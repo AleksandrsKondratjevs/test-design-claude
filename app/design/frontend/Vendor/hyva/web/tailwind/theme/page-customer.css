@@ -1,0 +1,47 @@
+@layer components {
+    .account-card {
+        @apply bg-container-darker rounded-xs p-4 md:p-6;
+    }
+}
+
+#htms-body.account {
+    .page-title-container {
+        @apply max-md:hidden;
+    }
+}
+
+.customer-account-login,
+.customer-account-create,
+.customer-account-forgotpassword {
+    #maincontent {
+        @apply max-md:mt-8 mt-16;
+
+        .field {
+            @apply md:max-w-80;
+
+            input {
+                @apply w-full;
+            }
+        }
+    }
+}
+
+.customer-account-create {
+    .registration-container {
+        @apply px-0;
+    }
+}
+
+#customer-login-container {
+    @apply grid gap-4 grid-cols-1;
+
+    @variant md {
+        @apply grid-cols-2;
+    }
+}
+
+.customer-popup {
+    a {
+        @apply block p-2 hover:bg-container-darker rounded-xs text-black no-underline;
+    }
+}

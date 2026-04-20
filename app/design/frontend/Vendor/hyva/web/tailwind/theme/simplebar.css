@@ -1,0 +1,16 @@
+/* Color variables are one case use, therefor set as custom. */
+.simplebar-track {
+    @apply mr-1.5 my-2 rounded-full;
+
+    &.simplebar-vertical {
+        @apply w-1!;
+    }
+
+    .simplebar-scrollbar {
+        @apply bg-grey/100! rounded-full;
+
+        &::before {
+            @apply left-0! right-0! w-1! bg-grey/100! rounded-full;
+        }
+    }
+}

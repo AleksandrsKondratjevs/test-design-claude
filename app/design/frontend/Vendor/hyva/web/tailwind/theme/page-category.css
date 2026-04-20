@@ -1,0 +1,39 @@
+#category-view-container {
+    @apply px-0 flex flex-col items-center;
+}
+
+.page-main {
+    &.category-page-main {
+        .category-image {
+            & > img {
+                @apply aspect-[4/2] object-cover;
+            }
+        }
+
+        .category-description {
+            [data-content-type="row"] {
+                @apply lg:pe-0;
+            }
+        }
+
+        .category-cms {
+            [data-content-type="row"] {
+                [data-element="inner"] {
+                    @apply max-w-[816px];
+                }
+            }
+
+            .content-block-title,
+            .content-block-subtitle {
+                @apply text-left;
+            }
+        }
+    }
+}
+
+/*
+Use the following selector to extend the toolbar modes switcher with your own icon,
+also replace `custom` with your own mode name.
+
+.modes-mode.mode-custom {}
+*/

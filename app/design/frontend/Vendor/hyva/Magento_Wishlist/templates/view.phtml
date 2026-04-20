@@ -1,0 +1,101 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Wishlist\Block\Customer\Wishlist;
+use Magento\Wishlist\Helper\Data as WishlistHelper;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Escaper $escaper */
+/** @var Wishlist $block */
+
+$wishlistHelper = $this->helper(WishlistHelper::class);
+?>
+
+<?php if ($wishlistHelper->isAllow()): ?>
+    <?php
+        $items = $block->getWishlistItems();
+        $itemsCount = count($items);
+    ?>
+    <div class="toolbar wishlist-toolbar"><?= $block->getChildHtml('wishlist_item_pager'); ?></div>
+    <?= ($block->getChildHtml('wishlist.rss.link')) ?>
+    <form class="form-wishlist-items"
+          id="wishlist-view-form"
+          x-data="initMyWishList()"
+          action="
+          <?= $escaper->escapeUrl(
+              $block->getUrl(
+                  'wishlist/index/update',
+                  ['wishlist_id' => $block->getWishlistInstance()->getId()]
+              )
+          ) ?>"
+          method="post">
+        <div class="w-full grid grid-cols-2 grid-flow-row-dense md:flex gap-3 justify-end mt-6 mb-4">
+            <?= $block->getChildHtml('control_buttons') ?>
+        </div>
+        <?= $block->getChildHtml('top') ?>
+        <?php if ($block->hasWishlistItems()): ?>
+            <?= $block->getBlockHtml('formkey') ?>
+            <?php $block->getChildBlock('items')->setItems($items); ?>
+            <?= $block->getChildHtml('items') ?>
+        <?php else: ?>
+            <div class="message info empty">
+                <span>
+                    <?= $escaper->escapeHtml(__('You have no items in your wish list.')) ?>
+                </span>
+            </div>
+        <?php endif ?>
+        <?= $block->getChildHtml('bottom') ?>
+        <div class="actions-toolbar flex max-md:flex-col-reverse justify-between">
+            <div class="secondary">
+                <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>" class="action back btn">
+                    <span><?= $escaper->escapeHtml(__('Back to Dashboard')) ?></span>
+                </a>
+            </div>
+            <?php if($itemsCount > 3): ?>
+                <div class="grid grid-cols-2 grid-flow-row-dense md:flex gap-3 max-md:w-full">
+                    <?= $block->getChildHtml('control_buttons') ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </form>
+    <div class="toolbar wishlist-toolbar mt-6 mb-16">
+        <?= $block->getChildHtml('wishlist_item_pager') ?>
+    </div>
+
+    <script>
+        function initMyWishList() {
+            return {
+                addToCart(productId, postParams) {
+                    const qtyElement = this.$root.querySelector(`#qty\\[${productId}\\]`);
+                    const qty = qtyElement && qtyElement.value;
+
+                    postParams.data.qty = qty || postParams.data.qty;
+
+                    hyva.postForm(postParams);
+
+                },
+                addAllItemsToCart() {
+                    const urlParams = <?= /* @noEscape */ $block->getAddAllToCartParams() ?>;
+                    let separator = urlParams.action.indexOf('?') >= 0 ? '&' : '?';
+
+                    Array.from(document.querySelectorAll('input[name^=qty]')).map(qty => {
+                        urlParams.action += separator + qty.name + '=' + encodeURIComponent(qty.value);
+                        separator = '&';
+                    });
+                    hyva.postForm(urlParams);
+                }
+            }
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+<?php endif ?>

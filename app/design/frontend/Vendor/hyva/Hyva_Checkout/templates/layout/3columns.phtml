@@ -1,0 +1,50 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var Template $block */
+?>
+
+<div class="grid grid-cols-1 md:gap-8 lg:grid-cols-[1fr_504px]">
+    <div class="area-main space-y-0.5">
+        <?= $block->getChildHtml('column.main') ?>
+        <?= $block->getChildHtml('column.center') ?>
+        <div class="max-md:hidden pt-8">
+            <?= $block->getChildHtml('hyva.checkout.navigation') ?>
+        </div>
+    </div>
+
+
+    <div class="area-right checkout-summary md:space-y-6 md:sticky md:top-6 md:h-max" x-data="hyvaCheckoutStickySummary">
+        <div class="max-md:hidden max-md:px-4 max-md:pb-4 max-md:bg-white" :class="getStickyClass">
+            <div class="md:hidden sticky py-4 mb-2 top-0 flex justify-between gap-4 bg-white z-10">
+                <h4><?= $escaper->escapeHtml(__('Order Summary')) ?></h4>
+                <button type="button" @click="hideSummary">
+                    <?= $heroicons->xHtml('', 20, 20, ['aria-hidden' => 'true']); ?>
+                </button>
+            </div>
+            <?= $block->getChildHtml('column.right') ?>
+        </div>
+        <div class="checkout-summary-sticky-info md:hidden fixed bottom-0 p-4 bg-white w-full left-0">
+            <button type="button" @click="showSummary" class="flex gap-3 justify-between w-full mb-3">
+                <?= $block->getChildHtml('price-summary.total-segments.sticky') ?>
+                <div class="flex gap-3">
+                    <div class="h-full w-[1px] bg-primary-alpha-50"></div>
+                    <?= $heroicons->chevronDownHtml('my-0.5', 20, 20, ['aria-hidden' => 'true']); ?>
+                </div>
+            </button>
+            <?= $block->getChildHtml('hyva.checkout.navigation') ?>
+        </div>
+    </div>
+</div>

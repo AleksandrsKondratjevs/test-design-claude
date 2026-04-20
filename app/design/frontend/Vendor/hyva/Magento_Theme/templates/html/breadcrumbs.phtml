@@ -1,0 +1,50 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Theme\Block\Html\Breadcrumbs;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Breadcrumbs $block */
+/** @var array[] $crumbs */
+
+$containerCssClass = $block->getContainerCssClass() ?? ''
+
+?>
+
+<?php if ($crumbs && is_array($crumbs)): ?>
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <div class="container overflow-x-scroll no-scrollbar <?= $containerCssClass ?>">
+            <ol class="items list-reset rounded-sm flex flex-wrap items-center text-black text-sm w-max py-4 md:py-8">
+                <?php foreach ($crumbs as $crumbName => $crumbInfo): ?>
+                    <li class="item flex items-center <?= $escaper->escapeHtmlAttr($crumbName) ?>">
+                        <?php if (!$crumbInfo['first']): ?>
+                            <span aria-hidden="true" class="separator px-2 text-primary-alpha-15">
+                                /
+                            </span>
+                        <?php endif; ?>
+                        <?php if ($crumbInfo['link']): ?>
+                            <a href="<?= $escaper->escapeUrl($crumbInfo['link']) ?>"
+                                class="no-underline text-black font-normal"
+                                title="<?= $escaper->escapeHtmlAttr($crumbInfo['title']) ?>">
+                                <?= $escaper->escapeHtml($crumbInfo['label']) ?>
+                            </a>
+                        <?php elseif ($crumbInfo['last']): ?>
+                            <span
+                                class="text-grey"
+                                aria-current="page"><?= $escaper->escapeHtml($crumbInfo['label']) ?></span>
+                        <?php else: ?>
+                            <?= $escaper->escapeHtml($crumbInfo['label']) ?>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ol>
+        </div>
+    </nav>
+<?php endif; ?>

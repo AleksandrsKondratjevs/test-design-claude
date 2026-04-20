@@ -1,0 +1,23 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Magento\Framework\Escaper;
+use Magento\Wishlist\Block\Customer\Wishlist\Button;
+
+/** @var Escaper $escaper */
+/** @var Button $block */
+?>
+
+<?php if ($block->getWishlist()->getItemsCount() && $block->getWishlist()->isSalable()): ?>
+    <button type="button"
+            @click.prevent="addAllItemsToCart()"
+            data-role="all-tocart"
+            title="<?= $escaper->escapeHtmlAttr(__('Add All to Cart')) ?>"
+            class="action tocart btn btn-primary max-md:col-span-2 max-md:-order-1">
+        <span><?= $escaper->escapeHtml(__('Add All to Cart')) ?></span>
+    </button>
+<?php endif;?>

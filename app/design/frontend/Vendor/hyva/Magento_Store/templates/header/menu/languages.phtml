@@ -1,0 +1,69 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+use Hyva\Theme\ViewModel\Store;
+use Hyva\Theme\ViewModel\StoreSwitcher;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Store\ViewModel\SwitcherUrlProvider;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsSolid $heroiconsSolid */
+$heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
+
+/** @var SwitcherUrlProvider $switcherUrlProvider */
+$switcherUrlProvider = $viewModels->require(SwitcherUrlProvider::class);
+
+/** @var Store $storeViewModel */
+$storeViewModel = $viewModels->require(Store::class);
+
+/** @var StoreSwitcher $storeSwitcherViewModel */
+$storeSwitcherViewModel = $viewModels->require(StoreSwitcher::class);
+$currentStore = $storeSwitcherViewModel->getStore();
+
+if (count($storeSwitcherViewModel->getStores()) <= 1) {
+    return '';
+}
+
+$options = [];
+
+foreach ($storeSwitcherViewModel->getStores() as $lang) {
+    $options[] = [
+        'url' => $switcherUrlProvider->getTargetStoreRedirectUrl($lang),
+        'value' => $lang->getCode(),
+        'label' => $lang->getName()
+    ];
+}
+?>
+
+<fieldset class="fieldset">
+    <div class="field">
+        <?=
+            $this->getLayout()
+                ->createBlock('Magento\Framework\View\Element\Template')
+                ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                ->setData('label', __('Language'))
+                ->setData('id', 'language-selector')
+                ->setData('name', 'language-selector')
+                ->setData('css_class', 'w-full')
+                ->setData('options', $options)
+                ->setData('default', $currentStore->getCode())
+                ->setData('is_options_as_url', true)
+                ->toHtml();
+        ?>
+    </div>
+</fieldset>

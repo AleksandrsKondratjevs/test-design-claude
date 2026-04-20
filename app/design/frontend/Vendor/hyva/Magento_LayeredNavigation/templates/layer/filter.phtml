@@ -1,0 +1,140 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\Model\LocaleFormatter;
+use Magento\Catalog\Helper\Data;
+use Magento\Framework\Escaper;
+use Magento\LayeredNavigation\Block\Navigation\FilterRenderer;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var FilterRenderer $block */
+/** @var Escaper $escaper */
+/** @var LocaleFormatter $localeFormatter */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$catalogHelper = $this->helper(Data::class);
+$showFilterInput = $block->getShowInput();
+
+$filtersCount = count($filterItems);
+$secondBatchFilters = array_splice($filterItems, 5, $filtersCount);
+
+$uniqueId = uniqid('_');
+
+/** @var array $filterItems */
+?>
+
+<script>
+    function initMoreFilters<?= $uniqueId ?>() {
+        return {
+            isOpened: false,
+            handleMoreFiltersStatus(open = true) {
+                this.isOpened = !this.isOpened;
+
+                if (this.isOpened) {
+                    this.$nextTick(
+                        // Requires to focus on first available filter, therefor querySelector anchor tag.
+                        () => this.$refs.moreFiltersWrapper.querySelector('a')?.focus()
+                    );
+                }
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div class="flex flex-col px-4"
+    <?php if ($filtersCount > 5): ?>
+        x-data="initMoreFilters<?= $uniqueId ?>"
+    <?php endif; ?>
+>
+    <ol
+        class="items list-none flex flex-col gap-3"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('%1 filter options', $block->getFilterTitle())) ?>"
+    >
+        <?php foreach ($filterItems as $filterItem): ?>
+            <li class="relative text-sm">
+                <?php if ($filterItem->getCount() > 0): ?>
+                    <a
+                        href="<?= $escaper->escapeUrl($filterItem->getUrl()) ?>"
+                        class="group/filter flex gap-2 justify-between items-center no-underline font-normal w-full text-black hover:text-primary"
+                    >
+                        <span><?= /* @noEscape */ $filterItem->getLabel() ?></span>
+                        <span
+                            class="count <?= $catalogHelper->shouldDisplayProductCountOnLayer() ? 'text-grey' : 'sr-only' ?>"
+                            aria-label="<?= ((int) $filterItem->getCount() === 1)
+                                ? $escaper->escapeHtmlAttr(__('1 product available in filter'))
+                                : $escaper->escapeHtmlAttr(__('%1 products available in filter', $filterItem->getCount())) ?>"
+                        >(<?= /* @noEscape */ $localeFormatter->formatNumber((int)$filterItem->getCount()) ?>)</span>
+                    </a>
+                <?php else: ?>
+                    <span class="flex gap-2 justify-between py-1 hover:text-black">
+                        <span><?= /* @noEscape */ $filterItem->getLabel() ?></span>
+                        <span
+                            class="count <?= $catalogHelper->shouldDisplayProductCountOnLayer() ? 'text-grey' : 'sr-only' ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('%1 products available in filter', $filterItem->getCount())) ?>"
+                        >(<?= /* @noEscape */ $localeFormatter->formatNumber((int)$filterItem->getCount()) ?>)</span>
+                    </span>
+                <?php endif; ?>
+            </li>
+        <?php endforeach ?>
+    </ol>
+    <?php if ($filtersCount > 5): ?>
+        <ol
+            class="list-none"
+            x-show="isOpened"
+        >
+            <div class="mt-3 flex flex-col gap-3" x-ref="moreFiltersWrapper">
+                <?php foreach ($secondBatchFilters as $filterItem): ?>
+                    <li class="relative text-sm">
+                        <?php if ($filterItem->getCount() > 0): ?>
+                            <a
+                                href="<?= $escaper->escapeUrl($filterItem->getUrl()) ?>"
+                                class="flex gap-2 justify-between items-center no-underline font-normal w-full text-black hover:text-primary"
+                            >
+                                <span><?= /* @noEscape */ $filterItem->getLabel() ?></span>
+                                <span
+                                    class="count <?= $catalogHelper->shouldDisplayProductCountOnLayer() ? 'text-grey' : 'sr-only' ?>"
+                                    aria-label="<?= ((int) $filterItem->getCount() === 1)
+                                        ? $escaper->escapeHtmlAttr(__('1 product available in filter'))
+                                        : $escaper->escapeHtmlAttr(__('%1 products available in filter', $filterItem->getCount())) ?>"
+                                >(<?= /* @noEscape */ $localeFormatter->formatNumber((int)$filterItem->getCount()) ?>)</span>
+                            </a>
+                        <?php else: ?>
+                            <span class="flex gap-2 justify-between py-1 hover:text-black">
+                                <span><?= /* @noEscape */ $filterItem->getLabel() ?></span>
+                                <span
+                                    class="count <?= $catalogHelper->shouldDisplayProductCountOnLayer() ? 'text-grey' : 'sr-only' ?>"
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('%1 products available in filter', $filterItem->getCount())) ?>"
+                                >(<?= /* @noEscape */ $localeFormatter->formatNumber((int)$filterItem->getCount()) ?>)</span>
+                            </span>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach ?>
+            </div>
+        </ol>
+        <button
+            @click="handleMoreFiltersStatus"
+            class="font-bold text-primary underline mt-3 text-sm cursor-pointer text-left w-fit"
+            x-text="isOpened
+                ? '<?= __('Show less') ?>'
+                : '<?= __('Show more') ?>'
+            "
+            :tabindex="isOpened ? -1 : 0"
+            aria-label="isOpened
+                ? '<?= __('Show less %1 filter options', $block->getFilterTitle()) ?>'
+                : '<?= __('Show more %1 filter options', $block->getFilterTitle()) ?>'
+            "
+        ></button>
+    <?php endif; ?>
+</div>

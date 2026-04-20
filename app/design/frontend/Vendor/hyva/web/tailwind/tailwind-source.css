@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@import "@hyva-themes/hyva-modules/css";
+
+@source "../../**/*.phtml";
+@source "../../**/*.xml";
+
+@source inline('{md:,max-md:}line-clamp-{1,2,3,4,5,6,7,8}');
+@source inline('{md:,lg:,}grid-cols-{1,2,3,4,5,6}');
+
+/* Custom styles */
+@import "./base";
+@import "./components";
+@import "./theme";
+@import "./utilities";
+
+@import "./generated/hyva-tokens.css";
+@import "./generated/hyva-source.css";

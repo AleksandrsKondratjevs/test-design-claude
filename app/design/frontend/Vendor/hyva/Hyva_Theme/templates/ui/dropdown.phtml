@@ -1,0 +1,211 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\SvgIcons;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$uniqueId = uniqid('_');
+
+/**
+ * $label - label for input, if no provide, will not render
+ * $name - name for select input, incase if not provided, will fallback to id.
+ * $id - id for select input
+ * $defaultValue - default option selected, if no, fallback to placeholder
+ * $placeholder - Used as placeholder for select input, like 'Select option'.
+ * $onChange - Custom function will be executed on select input change, used in cases when need to select country.
+ * $isDisabled - Defines if select field is disabled
+ */
+
+/**
+ * Options structure:
+ * [
+ *  [
+ *   'value' => Input value
+ *   'label' => Input label
+ *   'disabled' => true|false
+ *   'customAttributes' => [
+ *    'attribute name' => value
+ *   ]
+ *  ]
+ * ]
+ */
+
+$label = $block->getLabel();
+$id = $block->getId() ?? $uniqueId;
+$name = $block->getName() ?? $id;
+$ref = $block->getRef() ?? 'select';
+$options = $block->getOptions();
+$defaultValue = $block->getDefault() ?? $options[0]['value'];
+$placeholder = $block->getPlaceholder();
+$onChange = $block->getOnChange();
+$cssClass = $block->getCssClass();
+$isDisabled = $block->getIsDisabled();
+$isOptionsAsUrl = $block->getIsOptionsAsUrl() ?? false;
+
+?>
+
+<script>
+    function initDropdown<?= /** @noEscape */ $uniqueId ?>() {
+        return {
+            isOpen: false,
+            selectedOptionValue: '<?= $placeholder ? '' : $defaultValue ?? $options[0]['value'] ?>',
+            activeIndex: -1,
+            options: <?= json_encode($options) ?>,
+
+            handleOptionSelect(value) {
+                this.isOpen = false;
+                this.selectedOptionValue = value;
+
+                this.$refs['<?= $ref ?>'].value = value;
+                this.$refs['<?= $ref ?>'].dispatchEvent(new Event('change'));
+            },
+            select() {
+                const selectedOption = this.$refs.dropdown.getElementsByClassName('form-select-option-selected');
+
+                if (!Array.from(selectedOption).length) {
+                    return;
+                }
+
+                this.$refs.dropdown.scrollTo(0, selectedOption[0].offsetTop);
+            },
+            handleClick(event) {
+                if (Alpine.store('device')?.isDesktop && event.pointerType === 'mouse') {
+                    this.isOpen = !this.isOpen;
+                }
+            },
+            init() {
+                this.$watch('isOpen', value => {
+                    if (!value) {
+                        this.activeIndex = -1;
+                    } else {
+                        this.$nextTick(() => {
+                            this.$refs['<?= $ref ?>'].focus();
+                            this.select();
+                        });
+                    }
+                });
+
+                <?php if ($isOptionsAsUrl): ?>
+                    this.$watch('selectedOptionValue', (value) => {
+                        const url = this.options.find((option) => option.value === value)?.url;
+
+                        if (url) {
+                            window.location.href = url;
+                        }
+                    })
+                <?php endif; ?>
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<?php if ($label): ?>
+    <label class="label" for="<?= $id ?>" @click="$event.preventDefault();">
+        <span>
+            <?= $label ?>
+        </span>
+    </label>
+<?php endif; ?>
+<div class="control <?= $cssClass ?>">
+    <div x-data="initDropdown<?= /** @noEscape */ $uniqueId ?>()" class="form-select-wrapper">
+        <select
+            class="form-select w-full"
+            @mousedown="$store.device.isDesktop ? $event.preventDefault() : null"
+            @click="handleClick"
+            @mouseup="$store.device.isDesktop ? $event.preventDefault() : null"
+            x-model="selectedOptionValue"
+            x-ref="<?= $ref ?>"
+            id="<?= $id ?>"
+            name="<?= $name ?>"
+            <?php if ($isDisabled): ?>
+                disabled
+            <?php endif; ?>
+            <?php if ($onChange): ?>
+            @change.debounce="<?= $onChange ?>"
+            <?php endif; ?>>
+            <?php if ($placeholder): ?>
+                <option hidden>
+                    <?= $placeholder ?>
+                </option>
+            <?php endif; ?>
+            <?php foreach ($options as $option): ?>
+                <?php
+                    $optionValue = $option['value'];
+                    $isDisabled = empty($option['disabled']) ? false : $option['disabled'];
+                    $optionLabel = $option['label'];
+                ?>
+                <option
+                    <?php if ($isDisabled): ?>
+                    disabled
+                    <?php endif; ?>
+                    value="<?= $optionValue ?>"
+                    <?php if (isset($option['customAttributes'])): ?>
+                    <?php foreach ($option['customAttributes'] as $key => $value): ?>
+                    <?= $key ?>="<?= $value ?>"
+                    <?php endforeach; ?>
+                    <?php endif; ?>>
+                    <?= $optionLabel ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <div class="chevron" :class="{ 'chevron-opened': isOpen }">
+            <?= $heroicons->chevronDownHtml('', 16, 16) ?>
+        </div>
+        <ul
+            @click.away="isOpen = false"
+            class="form-select-options-list hidden"
+            x-ref="dropdown"
+            x-show="isOpen"
+            :class="{ hidden: false }"
+        >
+            <?php foreach ($options as $key => $option): ?>
+                <?php
+                    $optionValue = $option['value'];
+                    $isDisabled = empty($option['disabled']) ? false : $option['disabled'];
+                    $optionLabel = $option['label'];
+                ?>
+                <li
+                    <?php if (!$isOptionsAsUrl): ?>
+                        @click="handleOptionSelect('<?= $optionValue ?>');"
+                        :class="{ 'form-select-option-selected': selectedOptionValue === '<?= $optionValue ?>' }"
+                        class="form-select-option <?= !$isDisabled ?: 'form-select-option-disabled' ?>"
+                    <?php endif; ?>
+                    value="<?= $optionValue ?>"
+                    id="<?= $optionValue ?>"
+                    :tabindex="<?= $key ?>"
+                    :key="<?= $key ?>"
+                    <?php if ($isDisabled): ?>
+                    disabled
+                    <?php endif; ?>>
+
+                    <?php if ($isOptionsAsUrl): ?>
+                        <a
+                            href="<?= $escaper->escapeUrl($option['url']) ?>"
+                            title="<?= $escaper->escapeHtmlAttr($option['label']) ?>"
+                            :class="{ 'form-select-option-selected': selectedOptionValue === '<?= $optionValue ?>' }"
+                            class="block no-underline font-normal form-select-option <?= !$isDisabled ?: 'form-select-option-disabled' ?>"
+                        >
+                    <?php endif; ?>
+
+                    <?= $optionLabel ?>
+
+                    <?php if ($isOptionsAsUrl): ?>
+                        </a>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,154 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Customer\Block\Address\Grid;
+use Magento\Framework\Escaper;
+
+/** @var Grid $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+
+<div class="block block-addresses-list">
+    <h3>
+        <?= $escaper->escapeHtml(__('Address Book')) ?>
+    </h3>
+    <div class="block-content" x-data="initAddresses()">
+        <?php if ($additionalAddresses = $block->getAdditionalAddresses()): ?>
+            <div class="flex flex-col lg:account-card lg:my-4">
+                <div class="grid grid-cols-6 gap-2 pb-2 px-3 [&>*]:max-lg:hidden [&>*]:text-sm [&>*]:font-bold max-lg:hidden">
+                    <div>
+                        <?= $escaper->escapeHtml(__('Company')) ?>
+                    </div>
+                    <div>
+                        <?= $escaper->escapeHtml(__('Name')) ?>
+                    </div>
+                    <div>
+                        <?= $escaper->escapeHtml(__('Street Address')) ?>
+                    </div>
+                    <div>
+                        <?= $escaper->escapeHtml(__('City')) ?>
+                    </div>
+                    <div>
+                        <?= $escaper->escapeHtml(__('Country')) ?>
+                    </div>
+                    <div class="text-right"><?= $escaper->escapeHtml(__('Edit/Delete')) ?></div>
+                </div>
+                <?php foreach ($additionalAddresses as $address): ?>
+                    <div
+                        class="
+                            grid lg:grid-cols-6 max-lg:[&>*]:px-3 px-3 max-lg:[&>*]:py-2.5 lg:py-2 [&>*]:grid lg:gap-2 max-lg:[&>*]:grid-cols-2
+                            [&>*]:gap-4  [&>*]:rounded-xs max-lg:even:[&>*]:bg-white lg:even:bg-white max-lg:my-4 max-lg:account-card"
+                    >
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Company')) ?></span>
+                            <?= $escaper->escapeHtml($address->getCompany()) ?>
+                        </div>
+                        <div>
+                        <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Name')) ?></span>
+                            <div>
+                                <?= $escaper->escapeHtml($address->getLastname()) ?>
+                                <?= $escaper->escapeHtml($address->getFirstname()) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Street Address')) ?></span>
+                            <div>
+                                <?= $escaper->escapeHtml($block->getStreetAddress($address)) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('City')) ?></span>
+                            <div>
+                                <?= $escaper->escapeHtml($address->getCity()) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Country')) ?></span>
+                            <div>
+                                <?= $escaper->escapeHtml($block->getCountryByCode($address->getCountryId())) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Edit/Delete')) ?></span>
+                            <div class="flex gap-6 lg:justify-end">
+                                <a class="action edit inline-block text-black"
+                                    title="<?= $escaper->escapeHtmlAttr(__('Edit')) ?>"
+                                    href="<?= $escaper->escapeUrl($block->getUrl(
+                                        'customer/address/edit',
+                                        ['id' => $address->getId()]
+                                    )) ?>">
+                                    <?= $heroicons->pencilHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                                    <span></span>
+                                </a>
+                                <a class="action delete text-black"
+                                title="<?= $escaper->escapeHtmlAttr(__('Delete')) ?>"
+                                @click.prevent="deleteAddressById(<?= $escaper->escapeJs($address->getId()) ?>)" href="#">
+                                    <?= $heroicons->trashHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <?php if ($block->getChildHtml('pager')): ?>
+                <div class="customer-addresses-toolbar toolbar bottom">
+                    <?= $block->getChildHtml('pager') ?>
+                </div>
+            <?php endif; ?>
+
+        <?php else: ?>
+            <p class="empty mt-4">
+                <?= $escaper->escapeHtml(__('You have no other address entries in your address book.')) ?>
+            </p>
+        <?php endif ?>
+
+        <script>
+            function initAddresses() {
+                return {
+                    deleteAddressById(id) {
+                        if (window.confirm(
+                            '<?= $escaper->escapeJs(__('Are you sure you want to delete this address?')) ?>'
+                        )) {
+                            hyva.postForm(
+                                {
+                                    "action": '<?= $escaper->escapeJs($block->getDeleteUrl()) ?>',
+                                    "data": {
+                                        "id": id
+                                    }
+                                }
+                            );
+                        }
+                    }
+                }
+            }
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    </div>
+</div>
+
+<div class="actions-toolbar">
+    <a href="<?= $escaper->escapeUrl($block->getUrl('customer/address/new')) ?>"
+        class="btn btn-primary">
+        <span>
+            <?= $escaper->escapeHtml(__('Add New Address')) ?>
+        </span>
+    </a>
+    <a class="action back btn"
+        href="<?= $escaper->escapeUrl($block->getUrl('customer/account')) ?>">
+        <span>
+            <?= $escaper->escapeHtml(__('Go Back')) ?>
+        </span>
+    </a>
+</div>

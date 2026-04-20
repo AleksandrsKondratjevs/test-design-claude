@@ -1,0 +1,113 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Block\Navigation;
+use Magento\Framework\Escaper;
+use Magento\Catalog\Model\Category;
+
+/** @var Escaper $escaper */
+/** @var Category $category */
+/** @var Navigation $block */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+if (!$block->getCategory()) {
+    return '';
+}
+
+$categories = $block->getCurrentChildCategories();
+$categoriesId = 'cat';
+$categoriesTitle = __('Category');
+$count = is_array($categories) ? count($categories) : $categories->count();
+$showFilterInput = $block->getShowInput() !== null ? (bool) $block->getShowInput() : true;
+
+if (!$count) {
+    return '';
+}
+?>
+
+<div class="my-6" x-data="initLayeredNavigation">
+    <div class="block-content filter-content block bg-white">
+        <button
+            id="<?= $escaper->escapeHtmlAttr($categoriesId) ?>"
+            class="block-title flex justify-between w-full items-center px-4"
+            @click="handleToggleFilter('cat')"
+            aria-label="<?= $escaper->escapeHtml(__('%1 filter', $categoriesTitle)) ?>"
+        >
+            <h4><?= $escaper->escapeHtml($categoriesTitle) ?></h4>
+            <span class="transition-transform transform duration-300 ease-in-out text-black" :class="{ 'rotate-180': openedFilters.includes('cat') }">
+                <?= $heroicons->chevronDownHtml('', 16, 16, ["aria-hidden" => "true"]); ?>
+            </span>
+        </button>
+        <div
+            class="filter-options-content grid transition-grid-row grid-rows-[0fr] duration-200"
+            :class="{ 'grid-rows-[1fr]': openedFilters.includes('cat'), 'grid-rows-[0fr]': !openedFilters.includes('cat') }"
+        >
+            <div class="overflow-hidden">
+                <div class="pt-4 px-4">
+                    <ol class="items list-none flex flex-col gap-3" aria-label="<?= $escaper->escapeHtmlAttr(__('%1 filter options', $categoriesTitle)) ?>">
+                        <?php foreach ($categories as $category):?>
+                            <?php if ($category->getIsActive()): ?>
+                                <li class="relative text-sm">
+                                    <a
+                                        href="<?= $escaper->escapeUrl($block->getCategoryUrl($category)) ?>"
+                                        class="group/filter flex gap-2 justify-between items-center no-underline font-normal w-full text-black hover:text-primary"
+                                        <?php if ($block->isCategoryActive($category)): ?>
+                                        aria-current="page"
+                                        <?php endif; ?>
+                                    >
+                                        <span class="flex gap-2 items-center">
+                                            <?php if($showFilterInput): ?>
+                                                <span
+                                                    class="relative inline-flex shrink-0 justify-center items-center border border-slate-300 w-5 h-5 rounded-full bg-white
+                                                        after:opacity-0 after:absolute after:inset-1 after:bg-white after:rounded-full after:transition
+                                                        group-hover/filter:bg-primary group-hover/filter:border-primary group-hover/filter:text-white group-hover/filter:after:opacity-100
+                                                        group-focus/filter:bg-primary group-focus/filter:border-primary group-focus/filter:text-white group-focus/filter:after:opacity-100"
+                                                    aria-hidden="true"
+                                                ></span>
+                                            <?php endif; ?>
+                                            <span><?= $escaper->escapeHtml($category->getName()) ?></span>
+                                        </span>
+                                        <span
+                                            class="count text-grey"
+                                            aria-label="<?= ((int) $category->getProductCount() === 1)
+                                                ? $escaper->escapeHtmlAttr(__('1 product available in filter'))
+                                                : $escaper->escapeHtmlAttr(__('%1 products available in filter', $category->getProductCount())) ?>"
+                                        >(<?= $escaper->escapeHtml($category->getProductCount()) ?>)</span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        <?php endforeach ?>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function initLayeredNavigation() {
+            return {
+                openedFilters: [],
+
+                handleToggleFilter(filterCode) {
+                    if (this.openedFilters.includes(filterCode)) {
+                        this.openedFilters = this.openedFilters.filter((openedFilter) => openedFilter !== filterCode);
+                    } else {
+                        this.openedFilters.push(filterCode);
+                    }
+                },
+            }
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+</div>

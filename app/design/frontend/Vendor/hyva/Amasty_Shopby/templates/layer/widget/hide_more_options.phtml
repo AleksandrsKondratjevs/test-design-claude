@@ -1,0 +1,72 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Amasty\Shopby\Block\Navigation\Widget\HideMoreOptions;
+use Amasty\Shopby\Model\Source\DisplayMode;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var Escaper $escaper */
+/** @var HideMoreOptions $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$uniqueId = "_" . uniqid();
+$dataAmJsAttribute = 'data-am-js=%s';
+$dataTextMore = __('Show (%1) more', '<span class="am-counter" data-am-counter="counter"></span>');
+
+if ($block->getIsState()) {
+    $buttonSelector = sprintf($dataAmJsAttribute, 'show-more_button_state');
+    $itemSelector = '[' . sprintf($dataAmJsAttribute, 'shopby-container') . ']';
+    $numberUnfoldedOptions = $block->getUnfoldedOptions();
+    $isModeDropdown = false;
+    $filterItem = '.amshopby-remove-item';
+    $filterCode = '';
+} else {
+    $filterSetting = $block->getFilterSetting();
+    $isModeDropdown = $filterSetting->getDisplayMode() == DisplayMode::MODE_DROPDOWN;
+    $filterCode = $escaper->escapeHtml($filterSetting->getAttributeCode());
+    $buttonSelector = sprintf($dataAmJsAttribute, 'am-filter-items-' . $filterCode . '-show-more');
+    $itemSelector = '.am-filter-items-' . $filterCode;
+    $filterItem = '.item';
+    $numberUnfoldedOptions = $filterSetting->getNumberUnfoldedOptions();
+}
+// phpcs:disable Generic.Files.LineLength.TooLong
+?>
+
+<?php if (!$isModeDropdown): ?>
+    <div class="am-show-more text-primary underline font-bold" x-data="amShopbyFilterHideMoreOptions<?= $escaper->escapeHtml($uniqueId) ?>()"
+         x-init="initHideMore($el)"
+         x-spread="eventListeners"
+         x-bind="eventListeners"
+         data-unfolded-options="<?= $escaper->escapeHtmlAttr($numberUnfoldedOptions) ?>">
+        <template x-if="isActive">
+            <button class="flex items-center mt-3"
+                    @click="triggerOptions()"
+                    :title="title"
+                    :aria-expanded="showMore ? 'true' : 'false' "
+            >
+                <span class="more-text" x-html="title"></span>
+            </button>
+        </template>
+    </div>
+    <script>
+      function amShopbyFilterHideMoreOptions<?= $escaper->escapeHtml($uniqueId)?>() {
+          return deepMerge({}, amShopbyFilterHideMoreOptions(), {
+              numberUnfoldedOptions: <?= $escaper->escapeHtml($numberUnfoldedOptions) ?>,
+              selectors: {
+                  filterItem: '<?= $escaper->escapeHtml($filterItem) ?>',
+              }
+          });
+      }
+    </script>
+<?php endif; ?>

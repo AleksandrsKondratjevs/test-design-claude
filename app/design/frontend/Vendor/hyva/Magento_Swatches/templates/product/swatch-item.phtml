@@ -1,0 +1,114 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Swatches\ViewModel\Product\Renderer\Configurable as ConfigurableViewModel;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ConfigurableViewModel $configurableViewModel */
+$configurableViewModel = $viewModels->require(ConfigurableViewModel::class);
+
+$productId = $block->getProductId();
+$attributeId = $block->getAttributeId();
+
+if (!$productId || !$attributeId) {
+    return '';
+}
+?>
+
+<div x-id="['attribute-option-<?= (int) $productId ?>-'+item.id]">
+    <template x-if="optionIsEnabled(<?= (int) $attributeId ?>, item.id) && optionIsActive(<?= (int) $attributeId ?>, item.id)">
+        <label
+            :for="$id('attribute-option-<?= (int) $productId ?>-'+item.id)"
+            class="swatch-option flex justify-center items-center relative bg-white text-sm cursor-pointer me-0 select-none product-option-value-label rounded-xs border-2 border-primary-alpha-15 hover:border-primary"
+            :class="{
+                'border-primary':
+                    (selectedValues[<?= (int)$attributeId ?>] === item.id),
+                'border-primary-alpha-15':
+                    (selectedValues[<?= (int)$attributeId ?>] !== item.id),
+                'size-8 p-0.5' : !isTextSwatch(<?= (int) $attributeId ?>, item.id),
+                'min-w-10 px-2.5 py-1': isTextSwatch(<?= (int) $attributeId ?>, item.id)
+            }"
+            <?php if ($configurableViewModel->getShowSwatchTooltip()): ?>
+                @mouseenter.self="activeTooltipItem = {
+                    attribute: '<?= (int) $attributeId ?>',
+                    item: item.id,
+                    index
+                }; tooltipPositionElement = $event.target;"
+                @mouseleave.self="activeTooltipItem = false"
+            <?php endif; ?>
+        >
+            <input
+                :id="$id('attribute-option-<?= (int) $productId ?>-'+item.id)"
+                :value="item.id"
+                name="super_attribute[<?= (int) $attributeId ?>]"
+                type="radio"
+                class="absolute bottom-0 p-0 border-0 focus:border-0 focus:ring-0 product-option-value-input"
+                style="z-index:-1"
+                x-on:focus="focusLabel(item.id)"
+                x-on:blur="blurLabel()"
+                x-on:change="changeOption(<?= (int) $attributeId ?>, $event.target.value)"
+                x-on:click="clearOptionIfActive(<?= (int) $attributeId ?>, item.id)"
+                x-model="selectedValues[<?= (int) $attributeId ?>]"
+                :required="getAllowedAttributeOptions(<?= (int) $attributeId ?>).filter(
+                    attributeOption => selectedValues[attributeOption]
+                ).length === 0"
+                :aria-label="getSwatchText(<?= $escaper->escapeHtmlAttr($attributeId) ?>, item.id)"
+                aria-describedby="attribute-label-<?= $escaper->escapeHtmlAttr($productId . '-' . $attributeId) ?>"
+            >
+            <template x-if="isTextSwatch(<?= (int) $attributeId ?>, item.id)">
+                <div
+                    x-html="getSwatchText(<?= (int) $attributeId ?>, item.id)"
+                    class="pointer-events-none select-none whitespace-nowrap"
+                    aria-hidden="true"
+                ></div>
+            </template>
+            <template x-if="!isTextSwatch(<?= (int) $attributeId ?>, item.id)">
+                <div class="size-6" :style="getSwatchBackgroundStyle('<?= (int) $attributeId ?>',item.id)"></div>
+            </template>
+        </label>
+    </template>
+
+    <template x-if="optionIsEnabled(<?= (int) $attributeId ?>, item.id) && !optionIsActive(<?= (int) $attributeId ?>, item.id)">
+        <div
+            class="flex justify-center items-center relative bg-white text-sm cursor-pointer me-0 select-none product-option-value-label rounded-xs border-2 border-primary-alpha-50 pointer-events-none"
+            :class="{
+                'size-8 p-0.5' : !isTextSwatch(<?= (int) $attributeId ?>, item.id),
+                'min-w-10 px-2.5 py-1': isTextSwatch(<?= (int) $attributeId ?>, item.id)
+            }"
+        >
+            <template x-if="isTextSwatch(<?= (int) $attributeId ?>, item.id)">
+                <div
+                    x-html="getSwatchText(<?= (int) $attributeId ?>, item.id)"
+                    class="pointer-events-none select-none whitespace-nowrap text-primary-alpha-50"
+                    aria-hidden="true"
+                ></div>
+            </template>
+            <template x-if="!isTextSwatch(<?= (int) $attributeId ?>, item.id)">
+                <div class="size-6" :style="getSwatchBackgroundStyle('<?= (int) $attributeId ?>',item.id)"></div>
+            </template>
+            <svg
+                class="absolute inset-0 w-full h-full bg-transparent"
+                :class="{
+                    'text-white': !isTextSwatch(<?= (int) $attributeId ?>, item.id),
+                    'text-primary-alpha-50': isTextSwatch(<?= (int) $attributeId ?>, item.id)
+                }"
+            >
+                <line x1="0" y1="100%" x2="100%" y2="0" class="stroke-current stroke-2"></line>
+            </svg>
+        </div>
+    </template>
+</div>

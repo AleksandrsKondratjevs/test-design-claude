@@ -1,0 +1,219 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\SwatchRenderer;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Swatches\Block\Product\Renderer\Configurable;
+use Magento\Swatches\ViewModel\Product\Renderer\Configurable as ConfigurableViewModel;
+
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Configurable $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var ConfigurableViewModel $configurableViewModel */
+$configurableViewModel = $viewModels->require(ConfigurableViewModel::class);
+
+/** @var SwatchRenderer $swatchRendererViewModel */
+$swatchRendererViewModel = $viewModels->require(SwatchRenderer::class);
+
+$product = $block->getProduct();
+$productId = $product->getId();
+
+$attributes = $block->decorateArray($block->getAllowAttributes());
+
+$layout = $block->getLayout();
+$swatchItemBlock = $layout->getBlock('product.swatch.item');
+$swatchItemBlock->setData('product_id', $productId);
+
+$tooltipBlockHtml = $block->getBlockHtml('product.swatch.tooltip');
+?>
+<?php if ($product->isSaleable() && count($attributes)): ?>
+    <script>
+        function initConfigurableSwatchOptions_<?= (int) $productId ?>() {
+            const configurableOptionsComponent = initConfigurableOptions(
+                '<?= (int) $productId ?>',
+                <?= /* @noEscape */ $block->getJsonConfig() ?>
+            );
+            const swatchOptionsComponent = initSwatchOptions(
+                <?= /* @noEscape */ $block->getJsonSwatchConfig() ?>
+            );
+
+            return Object.assign(
+                configurableOptionsComponent,
+                swatchOptionsComponent,
+                {
+                    selectedOptionValues: {},
+                    openFlags: {},
+
+                    handleOptionSelect(attributeId, value) {
+                        this.openFlags[attributeId] = false;
+                        this.selectedOptionValues[attributeId] = value;
+
+                        this.$refs['attribute' + attributeId].value = value;
+                        this.$refs['attribute' + attributeId].dispatchEvent(new Event('change'));
+                    },
+                    select(attributeId) {
+                        const dropdownRef = this.$refs['dropdown-' + attributeId];
+
+                        if (!dropdownRef) {
+                            return;
+                        }
+
+                        const selectedOption = dropdownRef.getElementsByClassName('form-select-option-selected');
+
+                        if (!Array.from(selectedOption).length) {
+                            return;
+                        }
+
+                        dropdownRef.scrollTo(0, selectedOption[0].offsetTop);
+                    },
+                }
+            );
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+
+    <div x-data="initConfigurableSwatchOptions_<?= (int) $productId ?>()"
+         @private-content-loaded.window="onGetCartData($event.detail.data)"
+         class="relative my-4 md:my-6"
+    >
+        <div class="flex flex-col gap-4 md:gap-6">
+            <?php foreach ($attributes as $attribute): ?>
+                <?php $attributeId = $attribute->getAttributeId(); ?>
+                <?php $productAttribute = $attribute->getProductAttribute();  ?>
+                <?php if ($swatchRendererViewModel->isSwatchAttribute($productAttribute)): ?>
+                    <div class="swatch-attribute min-h-[60px] <?= $escaper->escapeHtmlAttr($productAttribute->getAttributeCode()) ?>">
+                        <div class="flex flex-col gap-2 items-center w-full">
+                            <label
+                                class="w-full text-left label product-option-label"
+                                id="attribute-label-<?= $escaper->escapeHtmlAttr($productId . '-' . $attributeId) ?>"
+                                aria-hidden="true"
+                            >
+                                <span
+                                    x-text="
+                                        '<?= $escaper->escapeHtml($productAttribute->getStoreLabel()) ?>' + (getSwatchText(<?= (int) $attributeId ?>, selectedValues[<?= (int) $attributeId ?>])
+                                        ? ':' : '')"
+                                >
+                                    <?= $escaper->escapeHtml($productAttribute->getStoreLabel()) ?>
+                                </span>
+                                <span
+                                    class="ms-1 font-bold"
+                                    x-text="getSwatchText(<?= (int) $attributeId ?>, selectedValues[<?= (int) $attributeId ?>])"
+                                ></span>
+                            </label>
+                            <div class="w-full product-option-values">
+                                <div
+                                        class="flex items-center gap-2 swatch-attribute-options"
+                                        role="radiogroup"
+                                        aria-label="<?= $escaper->escapeHtmlAttr($productAttribute->getStoreLabel()) ?>"
+                                >
+                                    <template
+                                        x-for="(item, index) in optionConfig.attributes[<?= (int) $attributeId ?>].options"
+                                        :key="item.id"
+                                    >
+                                        <?= /* @noEscape */ $swatchItemBlock->setData('attribute_id', $attributeId)->toHtml(); ?>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="flex flex-col gap-2 control"
+                         x-init="$watch('openFlags[<?= (int) $attributeId ?>]', (value) => {
+                             if (value) {
+                                 $nextTick(() => {
+                                    $refs['attribute<?= $escaper->escapeHtmlAttr($attributeId) ?>'].focus();
+                                    select(<?= (int) $attributeId ?>);
+                                 });
+                             }
+                         })"
+                    >
+                        <label class="w-full sm:w-1/2 text-left label"
+                               for="attribute<?= $escaper->escapeHtmlAttr($attributeId) ?>"
+                        >
+                            <span>
+                                <?= $escaper->escapeHtml($attribute->getProductAttribute()->getStoreLabel()) ?>
+                            </span>
+                        </label>
+                        <div class="w-full sm:w-1/2 md:w-2/5 form-select-wrapper">
+                            <select name="super_attribute[<?= $escaper->escapeHtmlAttr($attributeId) ?>]"
+                                    id="attribute<?= $escaper->escapeHtmlAttr($attributeId) ?>"
+                                    x-ref="attribute<?= $escaper->escapeHtmlAttr($attributeId) ?>"
+                                    x-model="selectedOptionValues[<?= $escaper->escapeHtmlAttr($attributeId) ?>]"
+                                    @mousedown="$store.device.isDesktop ? $event.preventDefault() : null"
+                                    @mouseup="$store.device.isDesktop ? $event.preventDefault() : null"
+                                    @click="$store.device.isDesktop ? (openFlags[<?= $escaper->escapeHtmlAttr($attributeId) ?>] = !openFlags[<?= $escaper->escapeHtmlAttr($attributeId) ?>]) : null"
+                                    @keydown="select(<?= (int) $attributeId ?>)"
+                                    @keydown.enter.prevent="openFlags[<?= $escaper->escapeHtmlAttr($attributeId) ?>] = false"
+                                    class="form-select super-attribute-select w-full"
+                                    x-on:change="changeOption(<?= (int) $attributeId ?>, event.target.value)"
+                                    required>
+                                <option value="">
+                                    <?= $escaper->escapeHtml(__('Choose an Option...')) ?>
+                                </option>
+                                <template
+                                    x-for="(item, index) in getAllAttributeOptions(<?= (int) $attributeId ?>)"
+                                    :key="item.id"
+                                >
+                                    <template x-if="optionIsEnabled(<?= (int) $attributeId ?>, item.id)">
+                                        <option
+                                            :value="item.id"
+                                            x-html="item.label"
+                                            :disabled="!optionIsActive(<?= (int) $attributeId ?>, item.id)"
+                                            :selected="selectedValues[<?= $escaper->escapeHtmlAttr($attributeId) ?>] === item.id">
+                                        </option>
+                                    </template>
+                                </template>
+                            </select>
+                            <div class="chevron" :class="{ 'chevron-opened': openFlags[<?= $escaper->escapeHtmlAttr($attributeId) ?>] }">
+                                <!-- Change to your chevron or custom icon -->
+                                <?= $heroicons->chevronDownHtml('', 16, 16) ?>
+                            </div>
+                            <ul
+                                x-cloak
+                                x-show="openFlags[<?= $escaper->escapeHtmlAttr($attributeId) ?>]"
+                                @click.away="openFlags[<?= $escaper->escapeHtmlAttr($attributeId) ?>] = false"
+                                class="form-select-options-list"
+                                tabindex="0"
+                                x-ref="dropdown-<?= $escaper->escapeHtmlAttr($attributeId) ?>"
+                            >
+                                <template
+                                    x-for="(item, index) in getAllAttributeOptions(<?= (int) $attributeId ?>).filter(item => item.id && item.label)"
+                                    :key="item.id"
+                                >
+                                    <li
+                                        :value="item.id"
+                                        x-html="item.label"
+                                        @click="handleOptionSelect(<?= (int) $attributeId ?>, item.id);"
+                                        class="block no-underline font-normal form-select-option"
+                                        :class="{
+                                            'form-select-option-selected': selectedOptionValues[<?= $escaper->escapeHtmlAttr($attributeId) ?>] === item.id,
+                                            'form-select-option-disabled': !optionIsActive(<?= (int) $attributeId ?>, item.id)
+                                        }"
+                                    >
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+        <?= /* @noEscape */ $tooltipBlockHtml ?>
+    </div>
+
+<?php endif;?>

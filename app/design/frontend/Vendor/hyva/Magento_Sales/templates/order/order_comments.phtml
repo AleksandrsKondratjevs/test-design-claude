@@ -1,0 +1,28 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Magento\Framework\Escaper;
+use Magento\Sales\Block\Order\View;
+
+/** @var View $block  */
+/** @var Escaper $escaper */
+
+$history = $block->getOrder()->getVisibleStatusHistory();
+?>
+<?php if (!empty($history)): ?>
+    <div class="account-card flex flex-col gap-3 mb-6">
+        <h4><?= $escaper->escapeHtml(__('About Your Order')) ?></h4>
+        <?php foreach ($history as $historyItem): ?>
+            <div class="rounded-s-2 rounded-s-primary-alpha-15 ps-3" style="margin-left: 2px">
+                <span class="text-grey text-sm">
+                    <?= /* @noEscape */ $block->formatDate($historyItem->getCreatedAt(), \IntlDateFormatter::MEDIUM, false) ?>
+                </span>
+                <p class="leading-relaxed"><?= $escaper->escapeHtml($historyItem->getComment(), ['b', 'br', 'strong', 'i', 'u', 'a']) ?></p>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>

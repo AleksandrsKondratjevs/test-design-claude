@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="header-content">
+            <block name="header.content.wishlist" template="Magento_Wishlist::header/wishlist.phtml" as="wishlist" ifconfig="wishlist/general/active" />
+        </referenceBlock>
+    </body>
+</page>

@@ -1,0 +1,55 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Sales\Block\Order\Info\Buttons;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Escaper $escaper */
+/** @var Buttons $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<div class="grid grid-cols-[repeat(auto-fit,minmax(165px,1fr))] md:flex flex-col lg:flex-row gap-3">
+    <?php $order = $block->getOrder() ?>
+    <?php if ($this->helper(\Magento\Sales\Helper\Reorder::class)->canReorder($order->getEntityId())): ?>
+        <?php $formData = json_decode(
+            $this->helper(\Magento\Framework\Data\Helper\PostHelper::class)->getPostData(
+                $block->getReorderUrl($order)
+            ),
+            true
+        ) ?>
+        <form id="reorder-form"
+              action="<?= $escaper->escapeUrl($formData['action']) ?>"
+              method="post"
+              class="inline-flex items-center grow max-h-11"
+        >
+            <?= $block->getBlockHtml('formkey'); ?>
+            <input type="hidden" name="data" value='<?= /** @noEscape */ json_encode($formData['data']) ?>'>
+            <button type="submit" class="btn btn-secondary px-4.5 py-2 w-full h-full">
+                <?= $heroicons->refreshHtml('inline-block', 20, 20, ['aria-hidden' => 'true']); ?>
+                <span><?= $escaper->escapeHtml(__('Reorder')) ?></span>
+            </button>
+        </form>
+    <?php endif ?>
+    <a href="<?= $escaper->escapeUrl($block->getPrintUrl($order)) ?>"
+       class="btn btn-secondary px-4.5 py-2 max-h-11"
+       target="_blank"
+       rel="noopener">
+        <?= $heroicons->printerHtml('inline-block', 20, 20, ['aria-hidden' => 'true']); ?>
+        <?= $escaper->escapeHtml(__('Print Order')) ?>
+    </a>
+    <?= $block->getChildHtml() ?>
+</div>

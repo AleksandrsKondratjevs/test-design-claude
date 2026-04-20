@@ -1,0 +1,247 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\LocaleFormatter;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Theme\Block\Html\Pager;
+
+/** @var Pager $block */
+/** @var Escaper $escaper */
+/** @var LocaleFormatter $localeFormatter */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$paginationUrlAnchor = $block->hasData('pagination_url_anchor')
+    ? '#' . $escaper->escapeHtmlAttr((string) $block->getData('pagination_url_anchor'))
+    : '';
+
+$pagerItemClass = "relative inline-flex items-center text-sm font-semibold leading-5 bg-white border border-primary-alpha-15";
+$pagerItemBtnClass = $pagerItemClass
+    . " transition duration-150 ease-in-out"
+    . " hover:text-primary"
+    . " focus:z-10 focus:outline-hidden focus:border-primary-alpha-15 focus:shadow-outline-blue"
+    . " active:bg-gray-100 active:";
+?>
+<?php if ($block->getCollection()->getSize()): ?>
+
+    <?php if ($block->getUseContainer()): ?>
+        <div class="grid items-center grid-flow-row grid-cols-4 gap-2 pager
+            lg:grid-cols-8">
+    <?php endif ?>
+
+    <?php if ($block->getShowAmounts()): ?>
+        <p class="flex order-3 col-span-2 text-sm leading-5
+                toolbar-amount md:order-3 lg:order-2 gap-x-1">
+            <span class="toolbar-number">
+            <?php if ($block->getLastPageNum() > 1): ?>
+                <?= $escaper->escapeHtml(
+                    __(
+                        'Items %1 to %2 of %3 total',
+                        $localeFormatter->formatNumber($block->getFirstNum()),
+                        $localeFormatter->formatNumber($block->getLastNum()),
+                        $localeFormatter->formatNumber($block->getTotalNum())
+                    )
+                ) ?>
+            <?php elseif ($block->getTotalNum() == 1): ?>
+                <?= $escaper->escapeHtml(__('%1 Item', $localeFormatter->formatNumber($block->getTotalNum()))) ?>
+            <?php else: ?>
+                <?= $escaper->escapeHtml(__('%1 Item(s)', $localeFormatter->formatNumber($block->getTotalNum()))) ?>
+            <?php endif; ?>
+            </span>
+        </p>
+    <?php endif ?>
+
+    <div class="flex justify-center order-2 col-span-4">
+        <?php if ($block->getLastPageNum() > 1): ?>
+            <nav class="inline-flex items-center pages" aria-label="pagination">
+                <ol class="relative z-0 inline-flex items pages-items list-none">
+                    <li class="item pages-item-previous">
+                        <?php $text = $block->getAnchorTextForPrevious() ? $block->getAnchorTextForPrevious() : ''; ?>
+                        <?php if (!$block->isFirstPage()): ?>
+                            <a
+                                href="<?= $escaper->escapeUrl($block->getPreviousPageUrl()) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                class="<?= $escaper->escapeHtmlAttr($text ? 'link ' : 'action ') ?> <?= /* @noEscape */ $pagerItemBtnClass ?> text-black rounded-s-md p-[13px]"
+                                <?php if (!$text): ?>
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous')) ?>"
+                                <?php endif; ?>
+                            >
+                                <?php if ($text): ?>
+                                    <span class="sr-only label"><?= $escaper->escapeHtml(__('Page')) ?></span>
+                                    <span><?= $escaper->escapeHtml($text) ?></span>
+                                <?php else: ?>
+                                    <?= $heroicons->chevronLeftHtml('rtl:rotate-180', 16, 16, [ 'aria-hidden' => 'true']); ?>
+                                <?php endif; ?>
+                            </a>
+                        <?php else: ?>
+                            <a
+                                role="link"
+                                class="previous <?= /* @noEscape */ $pagerItemClass ?> rounded-s text-primary-alpha-15 pointer-events-none p-[13px] pe-3.5
+                                 border-primary-alpha-15"
+                                aria-disabled="true"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Previous')) ?>"
+                            >
+                                <?= $heroicons->chevronLeftHtml('rtl:rotate-180', 16, 16, [ 'aria-hidden' => 'true']); ?>
+                            </a>
+                        <?php endif; ?>
+                    </li>
+
+                    <?php if ($block->canShowFirst()): ?>
+                        <li
+                            class="item -ms-px"
+                            aria-label="<?= $escaper->escapeHtml(__('Page') . ' 1') ?>"
+                        >
+                            <a
+                                href="<?= $escaper->escapeUrl($block->getFirstPageUrl()) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                class="page first <?= /* @noEscape */ $pagerItemBtnClass ?> px-4 py-2 "
+                            >
+                                <span class="sr-only label"><?= $escaper->escapeHtml(__('Page')) ?></span>
+                                <span><?= $escaper->escapeHtml($localeFormatter->formatNumber(1)) ?></span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($block->canShowPreviousJump()): ?>
+                        <li class="item -ms-px">
+                            <a
+                                href="<?= $escaper->escapeUrl($block->getPreviousJumpUrl()) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                class="page previous jump <?= /* @noEscape */ $pagerItemBtnClass ?>  px-4
+                                 py-2"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__(
+                                    'Skip to page %1',
+                                    $localeFormatter->formatNumber($block->getPreviousJumpPage())
+                                )) ?>"
+                            >
+                            <span aria-label="<?= $escaper->escapeHtml(__('Jump backward')) ?>">...</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php foreach ($block->getFramePages() as $page): ?>
+                        <?php if ($block->isPageCurrent($page)): ?>
+                            <li class="item -ms-px">
+                                <a
+                                    href="<?= $escaper->escapeUrl($block->getPageUrl($page)) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                    class="page <?= /* @noEscape */ $pagerItemBtnClass ?> z-10 p-[9px] text-primary border-primary"
+                                    aria-current="page"
+                                >
+                                    <span class="sr-only label">
+                                        <?= $escaper->escapeHtml(
+                                            __('You\'re currently reading page')
+                                        ) ?>
+                                    </span>
+                                    <span class="flex justify-center items-center size-6 text-center"><?= $escaper->escapeHtml($localeFormatter->formatNumber($page)) ?><span>
+                                </a>
+                            </li>
+                        <?php else: ?>
+                            <li class="item -ms-px">
+                                <a
+                                    href="<?= $escaper->escapeUrl($block->getPageUrl($page)) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                    class="page <?= /* @noEscape */ $pagerItemBtnClass ?> p-[9px] ps-2.5 text-black"
+                                >
+                                    <span class="sr-only label"><?= $escaper->escapeHtml(__('Page')) ?></span>
+                                    <span class="flex justify-center items-center size-6 min-w-6"><?= $escaper->escapeHtml($localeFormatter->formatNumber($page)) ?></span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+
+                    <?php if ($block->canShowNextJump()): ?>
+                        <li class="item -ms-px">
+                            <a
+                                href="<?= $escaper->escapeUrl($block->getNextJumpUrl()) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                class="page next jump <?= /* @noEscape */ $pagerItemBtnClass ?> px-4 py-2 "
+                                aria-label="<?= $escaper->escapeHtmlAttr(__(
+                                    'Skip to page %1',
+                                    $localeFormatter->formatNumber($block->getNextJumpPage())
+                                )) ?>"
+                            >...</a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($block->canShowLast()): ?>
+                        <li class="item -ms-px ">
+                            <a
+                                href="<?= $escaper->escapeUrl($block->getLastPageUrl()) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                class="page last <?= /* @noEscape */ $pagerItemBtnClass ?> px-4 py-2"
+                            >
+                                <span class="sr-only label"><?= $escaper->escapeHtml(__('Page')) ?></span>
+                                <span><?= $escaper->escapeHtml($localeFormatter->formatNumber($block->getLastPageNum())) ?></span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <li class="item pages-item-next -ms-px">
+                        <?php if (!$block->isLastPage()): ?>
+                            <?php $text = $block->getAnchorTextForNext() ? $block->getAnchorTextForNext() : ''; ?>
+                            <a
+                                href="<?= $escaper->escapeUrl($block->getNextPageUrl()) . /* @noEscape */ $paginationUrlAnchor ?>"
+                                class="<?= $text ? 'link ' : 'action ' ?> next <?= /* @noEscape */ $pagerItemBtnClass ?> text-black rounded-e-md p-[13px] ps-3.5"
+                                <?php if (!$text): ?>
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next')) ?>"
+                                <?php endif; ?>
+                            >
+                                <?php if ($text): ?>
+                                    <span class="sr-only label"><?= $escaper->escapeHtml(__('Page')) ?></span>
+                                    <span><?= $escaper->escapeHtml($text) ?></span>
+                                <?php else: ?>
+                                    <?= $heroicons->chevronDownHtml('ltr:-rotate-90 rtl:rotate-90', 16, 16, [ 'aria-hidden' => 'true']); ?>
+                                <?php endif; ?>
+                            </a>
+                        <?php else: ?>
+                            <a
+                                role="link"
+                                class="next <?= /* @noEscape */ $pagerItemClass ?> text-primary-alpha-15 pointer-events-none rounded-e-md p-[13px]"
+                                aria-disabled="true"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Next')) ?>"
+                            >
+                                <?= $heroicons->chevronDownHtml('ltr:-rotate-90 rtl:rotate-90', 16, 16, [ 'aria-hidden' => 'true']); ?>
+                            </a>
+                        <?php endif; ?>
+                    </li>
+                </ol>
+            </nav>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($block->isShowPerPage()): ?>
+        <div class="flex items-center justify-end order-3 col-span-2 limiter md:order-3 lg:order-2">
+            <span class="me-2" aria-hidden="true"><?= $escaper->escapeHtml(__('Show')) ?></span>
+            <?php
+                $selectOptions = [];
+
+                foreach ($block->getAvailableLimit() as $key => $limit) {
+                    $selectOptions[] = [
+                        'value' => $escaper->escapeUrl($block->getLimitUrl($key)),
+                        'label' => $localeFormatter->formatNumber((int) $limit),
+                    ];
+
+                    if ($block->isLimitCurrent($key)) {
+                        $currentLimit = $escaper->escapeUrl($block->getLimitUrl($key));
+                    }
+                }
+            ?>
+            <?=
+                $this->getLayout()
+                ->createBlock('Magento\Framework\View\Element\Template')
+                ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                ->setData('options', $selectOptions)
+                ->setData('default', $currentLimit)
+                ->setData('on_change', "location.href = selectedOptionValue")
+                ->toHtml();
+            ?>
+        </div>
+    <?php endif ?>
+
+    <?php if ($block->getUseContainer()): ?>
+        </div>
+    <?php endif ?>
+
+<?php endif ?>

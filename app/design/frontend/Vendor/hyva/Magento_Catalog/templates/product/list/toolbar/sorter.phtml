@@ -1,0 +1,66 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<div class="toolbar-sorter sorter flex items-center justify-end max-md:w-full gap-3">
+        <div class="field max-md:w-full">
+            <?php
+                $options = [];
+
+                foreach ($block->getAvailableOrders() as $orderCode => $orderLabel) {
+                    $options[] = [
+                        'value' => $orderCode,
+                        'label' => __($orderLabel)
+                    ];
+
+                    if ($block->isOrderCurrent($orderCode)) {
+                        $currentCode = $orderCode;
+                    }
+                }
+            ?>
+            <?=
+                $this->getLayout()
+                ->createBlock('Magento\Framework\View\Element\Template')
+                ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                ->setData('id', 'sorter')
+                ->setData('options', $options)
+                ->setData('default', $currentCode)
+                ->setData('on_change', "changeUrl('product_list_order', selectedOptionValue, settings.orderDefault)")
+                ->toHtml();
+            ?>
+        </div>
+        <?php if ($block->getCurrentDirection() == 'desc'): ?>
+            <button title="<?= $escaper->escapeHtmlAttr(__('Set Ascending Direction')) ?>"
+            type="button"
+            class="action sorter-action sort-desc text-black"
+            @click.prevent="changeUrl('product_list_dir', 'asc', settings.directionDefault)"
+            >
+                <?= $heroicons->sortAscendingHtml(); ?>
+            </button>
+        <?php else: ?>
+            <button title="<?= $escaper->escapeHtmlAttr(__('Set Descending Direction')) ?>"
+            type="button"
+            class="action sorter-action sort-asc text-black"
+            @click.prevent="changeUrl('product_list_dir', 'desc', settings.directionDefault)"
+            >
+                <?= $heroicons->sortDescendingHtml(); ?>
+            </button>
+        <?php endif; ?>
+</div>

@@ -1,0 +1,18 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$scopeConfig = $objectManager->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+
+$cmsBlockId = $scopeConfig->getValue('sales/general/cart_summary_cms_block');
+$cmsBlockIdBottom = $scopeConfig->getValue('sales/general/cart_bottom_cms_block');
+?>
+
+<?php if ($cmsBlockId): ?>
+    <?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId($cmsBlockId)->toHtml(); ?>
+<?php endif; ?>
+
+<?php if ($cmsBlockIdBottom): ?>
+    <?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId($cmsBlockIdBottom)->toHtml(); ?>
+<?php endif; ?>

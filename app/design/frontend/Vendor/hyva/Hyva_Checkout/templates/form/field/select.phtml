@@ -1,0 +1,118 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Checkout\Model\Form\EntityField\AbstractEntityField;
+use Hyva\Checkout\Model\Form\EntityFormElement\Renderer\AbstractRenderer;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var AbstractEntityField $element */
+$element = $block->getData('element');
+
+$element->removeAttribute('type');
+
+/** @var AbstractRenderer $renderer */
+$renderer = $element->getRenderer();
+
+$cssClassesFieldWrapperInner = $element->renderClass(['field'], 'field-wrapper-inner');
+
+$options = $element->getOptions();
+$dropdownOptions = [];
+
+foreach ($options as $key => $option) {
+    if (is_object($option)) {
+        $dropdownOptions[] = [
+            'value' => $option->getValue(),
+            'label' => $option->getLabel(),
+        ];
+    } elseif (is_array($option)) {
+        $dropdownOptions[] = [
+            'value' => $option['value'] ?? $key,
+            'label' => $option['label'] ?? '',
+        ];
+    } elseif (is_string($option)) {
+        $dropdownOptions[] = [
+            'value' => $key,
+            'label' => __($option)->render(),
+        ];
+    }
+}
+
+$elementAttributesHtml = $element->hasAttributes() 
+    ? $element->renderAttributes($escaper) 
+    : '';
+
+$defaultValue = $element->getValue();
+if ($defaultValue === null && !empty($dropdownOptions)) {
+    $defaultValue = $dropdownOptions[0]['value'] ?? '';
+}
+
+/** @var Template $dropdownBlock */
+$dropdownBlock = $block->getLayout()->createBlock(
+    Template::class,
+    'checkout_dropdown_' . $element->getName(),
+    ['data' => [
+        'template' => 'Hyva_Theme::ui/dropdown-checkout.phtml',
+        'label' => null,
+        'id' => $element->getId(),
+        'name' => $element->getName(),
+        'ref' => 'select',
+        'options' => $dropdownOptions,
+        'default' => $defaultValue,
+        'placeholder' => null,
+        'on_change' => null,
+        'css_class' => 'w-full',
+        'is_disabled' => !empty($element->getData('disabled')),
+        'additional_attributes' => $elementAttributesHtml,
+    ]]
+);
+?>
+<div class="<?= $escaper->escapeHtmlAttr($cssClassesFieldWrapperInner) ?>">
+    <?= /* @noEscape */ $element->getRenderer()->renderLabel($element) ?>
+    <?= /* @noEscape */ $element->getRenderer()->renderBefore($element) ?>
+
+    <?php if ($element->hasRelatives()): ?>
+        <div class="space-y-2">
+    <?php endif ?>
+
+    <div class="group input-group flex gap-4">
+        <?php if ($element->hasIcon()): ?>
+            <div class="form-input-addon inline-flex gap-2 items-center">
+                <?= /* @noEscape */ $renderer->renderIcon($element) ?>
+            </div>
+        <?php endif ?>
+
+        <?= /* @noEscape */ $dropdownBlock->toHtml() ?>
+
+        <?php if (!empty($renderer->renderTooltip($element))): ?>
+            <div class="form-input-addon inline-flex gap-2 items-center">
+                <?= /* @noEscape */ $renderer->renderTooltip($element) ?>
+            </div>
+        <?php endif ?>
+    </div>
+    <?= /* @noEscape */ $renderer->renderHintText($element) ?>
+    <?= /* @noEscape */ $renderer->renderComment($element) ?>
+
+    <?php if ($element->hasRelatives()): ?>
+        <?php foreach ($element->getRelatives() as $relative): ?>
+            <?php if ($relative->isVisible()): ?>
+                <?= /* @noEscape */ $relative->render() ?>
+            <?php endif ?>
+        <?php endforeach ?>
+    <?php endif ?>
+
+    <?php if ($element->hasRelatives()): ?>
+        </div>
+    <?php endif ?>
+
+    <?= /* @noEscape */ $renderer->renderAfter($element) ?>
+</div>

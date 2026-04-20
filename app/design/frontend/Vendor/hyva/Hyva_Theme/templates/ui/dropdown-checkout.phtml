@@ -1,0 +1,159 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$uniqueId = uniqid('_');
+
+/**
+ * CSP-compliant checkout dropdown for Magewire compatibility
+ * Note: Alpine component 'hyvaCheckoutDropdown' is registered in Hyva_Checkout::components/alpine-dropdown.phtml
+ * 
+ * $label - label for input, if no provide, will not render
+ * $name - name for select input, incase if not provided, will fallback to id.
+ * $id - id for select input
+ * $defaultValue - default option selected, if no, fallback to placeholder
+ * $placeholder - Used as placeholder for select input, like 'Select option'.
+ * $onChange - Custom function will be executed on select input change
+ * $isDisabled - Defines if select field is disabled
+ * $additionalAttributes - Additional attributes like wire:model
+ */
+
+/**
+ * Options structure:
+ * [
+ *  [
+ *   'value' => Input value
+ *   'label' => Input label
+ *   'disabled' => true|false
+ *   'customAttributes' => [
+ *    'attribute name' => value
+ *   ]
+ *  ]
+ * ]
+ */
+
+$label = $block->getLabel();
+$id = $block->getId() ?? $uniqueId;
+$name = $block->getName() ?? $id;
+$ref = $block->getRef() ?? 'select';
+$options = $block->getOptions();
+$defaultValue = $block->getDefault() ?? $options[0]['value'];
+$placeholder = $block->getPlaceholder();
+$onChange = $block->getOnChange();
+$cssClass = $block->getCssClass();
+$isDisabled = $block->getIsDisabled();
+$isOptionsAsUrl = $block->getIsOptionsAsUrl() ?? false;
+$additionalAttributes = $block->getAdditionalAttributes() ??     '';
+
+?>
+
+<?php if ($label): ?>
+    <label class="label" for="<?= $id ?>" @click.prevent>
+        <span>
+            <?= $label ?>
+        </span>
+    </label>
+<?php endif; ?>
+<div class="control <?= $cssClass ?>">
+    <div x-data="hyvaCheckoutDropdown" data-ref="<?= $escaper->escapeHtmlAttr($ref) ?>" data-is-options-as-url="<?= $isOptionsAsUrl ? 'true' : 'false' ?>" class="form-select-wrapper">
+        <select
+            class="form-select w-full"
+            @mousedown="handleMouseDown"
+            @click="handleClick"
+            @mouseup="handleMouseUp"
+            x-ref="<?= $ref ?>"
+            id="<?= $id ?>"
+            name="<?= $name ?>"
+            <?php if ($isDisabled): ?>
+                disabled
+            <?php endif; ?>
+            <?php if ($onChange): ?>
+            @change.debounce="<?= $onChange ?>"
+            <?php endif; ?>
+            <?php if ($additionalAttributes): ?>
+            <?= /* @noEscape */ $additionalAttributes ?>
+            <?php endif; ?>>
+            <?php if ($placeholder): ?>
+                <option hidden>
+                    <?= $placeholder ?>
+                </option>
+            <?php endif; ?>
+            <?php foreach ($options as $option): ?>
+                <?php
+                    $optionValue = $option['value'];
+                    $isDisabled = empty($option['disabled']) ? false : $option['disabled'];
+                    $optionLabel = $option['label'];
+                ?>
+                <option
+                    <?php if ($isDisabled): ?>
+                    disabled
+                    <?php endif; ?>
+                    value="<?= $optionValue ?>"
+                    <?php if (isset($option['customAttributes'])): ?>
+                    <?php foreach ($option['customAttributes'] as $key => $value): ?>
+                    <?= $key ?>="<?= $value ?>"
+                    <?php endforeach; ?>
+                    <?php endif; ?>>
+                    <?= $optionLabel ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <div class="chevron" x-ref="chevron" wire:ignore>
+            <?= $heroicons->chevronDownHtml('', 16, 16) ?>
+        </div>
+        <ul
+            @click.away="closeDropdown"
+            class="form-select-options-list"
+            x-ref="dropdown"
+            x-show="isOpen"
+            x-cloak
+            wire:ignore
+        >
+            <?php foreach ($options as $key => $option): ?>
+                <?php
+                    $optionValue = $option['value'];
+                    $isOptionDisabled = empty($option['disabled']) ? false : $option['disabled'];
+                    $optionLabel = $option['label'];
+                    $optionId = 'option-' . $uniqueId . '-' . $key;
+                ?>
+                <li
+                    <?php if (!$isOptionsAsUrl): ?>
+                        @click="handleOptionSelect"
+                        data-value="<?= $escaper->escapeHtmlAttr($optionValue) ?>"
+                        class="form-select-option <?= $isOptionDisabled ? 'form-select-option-disabled' : '' ?>"
+                    <?php endif; ?>
+                    value="<?= $escaper->escapeHtmlAttr($optionValue) ?>"
+                    id="<?= $escaper->escapeHtmlAttr($optionId) ?>"
+                    tabindex="<?= (int)$key ?>"
+                    <?php if ($isOptionDisabled): ?>
+                    disabled
+                    <?php endif; ?>>
+
+                    <?php if ($isOptionsAsUrl): ?>
+                        <a
+                            href="<?= $escaper->escapeUrl($option['url']) ?>"
+                            title="<?= $escaper->escapeHtmlAttr($option['label']) ?>"
+                            class="block no-underline font-normal form-select-option <?= $isOptionDisabled ? 'form-select-option-disabled' : '' ?>"
+                        >
+                    <?php endif; ?>
+
+                    <?= $escaper->escapeHtml($optionLabel) ?>
+
+                    <?php if ($isOptionsAsUrl): ?>
+                        </a>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</div>

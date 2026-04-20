@@ -1,0 +1,7 @@
+@layer components {
+    .cms-index-index {
+        .columns {
+            @apply px-0;
+        }
+    }
+}

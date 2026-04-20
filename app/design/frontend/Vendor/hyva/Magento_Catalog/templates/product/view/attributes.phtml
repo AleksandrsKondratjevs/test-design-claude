@@ -1,0 +1,45 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Catalog\Helper\Output as CatalogOutputHelper;
+use Magento\Catalog\Block\Product\View\Attributes;
+use Magento\Catalog\Model\Product;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Escaper $escaper */
+/** @var CatalogOutputHelper $output */
+/** @var Attributes $block */
+
+
+/** @var CatalogOutputHelper $catalogOutputHelper */
+$catalogOutputHelper = $this->helper(CatalogOutputHelper::class);
+
+/** @var Product $product */
+$product = $block->getProduct();
+?>
+
+<?php if ($attributes = $block->getAdditionalData()): ?>
+    <div class="table-wrapper overflow-x-auto" id="product-attributes">
+        <table class="additional-attributes w-full">
+            <?php foreach ($attributes as $attribute): ?>
+                <tr class="border-b border-primary-alpha-50">
+                    <th class="w-1/2 py-2.5 px-3 text-left font-normal product-attribute-label"
+                        scope="row"><?= $escaper->escapeHtml($attribute['label']) ?></th>
+                    <td class="w-1/2 py-2.5 px-3 text-left font-medium product-attribute-value"
+                        data-th="<?= $escaper->escapeHtmlAttr($attribute['label']) ?>"
+                    ><?= /* @noEscape */
+                     $catalogOutputHelper->productAttribute($product, $attribute['value'], $attribute['code']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    </div>
+<?php endif;?>

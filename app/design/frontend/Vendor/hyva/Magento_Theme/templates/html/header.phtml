@@ -1,0 +1,281 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Magento\Checkout\Block\Cart\Sidebar as SidebarCart;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var StoreConfig $storeConfig */
+$storeConfig = $viewModels->require(StoreConfig::class);
+$showMiniCart = $storeConfig->getStoreConfig(SidebarCart::XML_PATH_CHECKOUT_SIDEBAR_DISPLAY);
+$notificationBgColor = $storeConfig->getStoreConfig('hyva_theme_content/notification_bar/background_color');
+$notificationBgColor = '#' . $notificationBgColor;
+
+$showCompare = $block->getShowCompare() !== null ? (bool) $block->getShowCompare() : true;
+$showWishlist = $block->getShowWishlist() !== null ? (bool) $block->getShowWishlist() : false;
+?>
+<script>
+    function initHeader() {
+        return {
+            searchOpen: false,
+            cart: {},
+            isCartOpen: false,
+            isMobile: true,
+            // Defined in px
+            downScrollThreshold: 300,
+            upScrollThreshold: 150,
+            headerTagElement: undefined,
+            lastScrollPosition: window.scrollY,
+            lastScrollDirection: undefined,
+
+            init() {
+                this.headerTagElement = document.querySelector('header.page-header');
+
+                this.onChangeMedia(this.$store.device.isDesktop);
+                this.handleNotificationHeight();
+
+                this.$watch('$store.device.isDesktop', (isDesktop) => {
+                    this.onChangeMedia(isDesktop);
+                    this.handleNotificationHeight();
+                })
+
+            },
+            handleNotificationHeight() {
+                this.headerTagElement.style.setProperty('--header-notification-height', `${this.$refs.headerNotification.offsetHeight}px`);
+            },
+            handleScrollThreshold() {
+                const {
+                    scrollY
+                } = window;
+
+                // Determine if we are scrolling up or down
+                const isScrollingDown = this.lastScrollPosition < scrollY;
+                const isScrollingUp = this.lastScrollPosition > scrollY;
+
+                if (isScrollingDown && this.lastScrollDirection !== 'down') {
+                    this.lastScrollDirection = 'down';
+                    this.scrollUpDistance = 0;
+                }
+
+                if (isScrollingUp && this.lastScrollDirection !== 'up') {
+                    this.lastScrollDirection = 'up';
+                    this.scrollDownDistance = 0;
+                }
+
+                // If scrolling down and exceeding the down scroll threshold, hide notification
+                if (isScrollingDown && scrollY > this.downScrollThreshold && !this.isNotificationHidden) {
+                    this.handleHideNotification(true, scrollY);
+                    this.lastScrollPosition = scrollY;
+                    return;
+                }
+
+                // If scrolling up and exceeding the up scroll threshold (100px), show notification again
+                if (isScrollingUp && (scrollY < this.lastScrollPosition - this.upScrollThreshold)) {
+                    this.handleHideNotification(false, scrollY);
+                    this.lastScrollPosition = scrollY;
+                    return;
+                }
+
+                // Handle the scrolling up or down thresholds with reset behavior
+                if (isScrollingDown) {
+                    this.scrollDownDistance += scrollY - this.lastScrollPosition;
+                    if (this.scrollDownDistance > this.downScrollThreshold) {
+                        this.handleHideNotification(true, scrollY);
+                    }
+                }
+
+                if (isScrollingUp) {
+                    this.scrollUpDistance += this.lastScrollPosition - scrollY;
+                    if (this.scrollUpDistance > 100) {
+                        this.handleHideNotification(false, scrollY);
+                    }
+                }
+
+                // Update the last scroll position
+                this.lastScrollPosition = scrollY;
+            },
+            handleHideNotification(isHidden, scrollPosition) {
+                if (isHidden) {
+                    this.headerTagElement.classList.add('page-header-hidden-notification');
+                } else {
+                    this.headerTagElement.classList.remove('page-header-hidden-notification');
+                }
+
+                this.isNotificationHidden = isHidden;
+                this.lastScrollPosition = scrollPosition;
+            },
+            getData(data) {
+                if (data.cart) {
+                    this.cart = data.cart ?? {};
+                }
+            },
+            cartAriaLabel() {
+                return '<?= $escaper->escapeHtml($showMiniCart ? __('Toggle minicart') : __('View cart')) ?>, ' +
+                    this.isCartEmpty() ?
+                    '<?= $escaper->escapeHtml(__('Cart is empty')) ?>' :
+                    hyva.str(
+                        'You have %1 product%2 in your cart.',
+                        cart.summary_count,
+                        cart.summary_count === 1 ? '' : 's'
+                    );
+            },
+            isCartEmpty() {
+                return !this.cart.summary_count;
+            },
+            toggleCart() {
+                this.isCartOpen = this.$event.detail?.isOpen ?? true;
+                this.$dispatch('toggle-cart', { isOpen: this.isCartOpen });
+            },
+            onChangeMedia(isDesktop) {
+                if (!isDesktop) {
+                    this.$refs.searchContainerMobile.appendChild(this.$refs.searchForm);
+                } else {
+                    const desktopSearchContainer = this.$refs.searchContainerDesktop;
+                    if (desktopSearchContainer.firstElementChild) {
+                        desktopSearchContainer.replaceChild(this.$refs.searchForm, desktopSearchContainer.firstElementChild);
+                    } else {
+                        desktopSearchContainer.appendChild(this.$refs.searchForm);
+                    }
+                }
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initHeader', initHeader);
+    }, { once: true })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div id="header"
+    x-data="initHeader()"
+    @scroll.window="handleScrollThreshold"
+    @private-content-loaded.window="getData(event.detail.data)">
+    <div class="py-2 w-full h-full" x-ref="headerNotification" style="background-color: <?= $escaper->escapeHtmlAttr($notificationBgColor) ?>;">
+        <div class="flex justify-between gap-4 container max-md:px-0">
+            <!-- Empty div to center notification -->
+            <div class="md:w-1/4 max-md:hidden"></div>
+            <div class="header-notification">
+                <?= $block->getChildHtml('header-notification') ?>
+            </div>
+            <div class="md:w-1/4 flex justify-end max-md:hidden">
+                <?= $block->getChildHtml('header.currency-language-switcher') ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white lg:relative py-3.5 md:py-4">
+        <div class="container flex gap-5 lg:gap-10 justify-between items-center">
+
+            <!-- Mobile menu -->
+            <div class="min-w-6 z-30 lg:hidden">
+                <?= $block->getChildHtml('topmenu.mobile') ?>
+            </div>
+
+            <!--Logo-->
+            <?= $block->getChildHtml('logo'); ?>
+
+            <!--Search desktop-->
+            <div x-ref="searchContainerDesktop" class="hidden lg:block lg:flex-1">
+                <div>
+                    <?= $block->getChildHtml('header-search'); ?>
+                </div>
+            </div>
+
+            <div class="flex gap-5 items-center">
+
+                <!--Customer Icon & Dropdown-->
+                <?= $block->getChildHtml('customer') ?>
+
+                <!--Compare Icon-->
+                <?php if ($showCompare): ?>
+                    <?= $block->getChildHtml('compare') ?>
+                <?php endif ?>
+
+                <!--Wishlist Icon-->
+                <?php if ($showWishlist): ?>
+                    <?= $block->getChildHtml('wishlist') ?>
+                <?php endif ?>
+
+                <!--Cart Icon-->
+                <?php if ($showMiniCart): ?>
+                    <button
+                        <?php else: ?>
+                        <a
+                        <?php endif ?>
+                        id="menu-cart-icon"
+                        class="relative outline-hidden"
+                        x-ref="cartButton"
+                        :aria-disabled="isCartEmpty"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Cart')) ?>"
+                        <?php if ($showMiniCart): ?>
+                        @click.prevent.stop="() => {
+                        $dispatch('toggle-cart', { isOpen: true })
+                    }"
+                        @toggle-cart.window="toggleCart($event)"
+                        :aria-expanded="isCartOpen"
+                        aria-haspopup="dialog"
+                        <?php else: ?>
+                        href="<?= $escaper->escapeUrl($block->getUrl('checkout/cart/index')) ?>"
+                        <?php endif ?>
+                        :aria-label="cartAriaLabel">
+
+                        <?= $heroicons->shoppingCartHtml() ?>
+
+                        <span
+                            x-text="cart.summary_count"
+                            x-show="!isCartEmpty()"
+                            x-cloak
+                            class="
+                                absolute top-0 end-0 px-0.5 min-h-4 min-w-4 -mt-3.5 -me-1.5 flex justify-center items-center text-xs font-bold
+                                leading-none text-center text-white uppercase transform
+                                translate-y-1/2 rounded-full bg-primary
+                            "
+                            aria-hidden="true"></span>
+                        <?php if ($showMiniCart): ?>
+                    </button>
+                <?php else: ?>
+                    </a>
+                <?php endif ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-container-darker">
+        <?= $block->getChildHtml('topmenu.desktop') ?>
+    </div>
+
+    <!--Search mobile-->
+    <div x-ref="searchContainerMobile" class="relative lg:hidden bg-container-darker container py-3.5">
+        <div x-ref="searchForm">
+            <?= $block->getChildHtml('header-search'); ?>
+        </div>
+    </div>
+
+    <!--Cart Drawer-->
+    <?= $block->getChildHtml('cart-drawer'); ?>
+
+    <!--Authentication Pop-Up-->
+    <?= $block->getChildHtml('authentication-popup'); ?>
+</div>
+
+<?= $block->getChildHtml('page.messages') ?>

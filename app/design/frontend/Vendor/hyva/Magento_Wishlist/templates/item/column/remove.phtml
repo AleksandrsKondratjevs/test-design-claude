@@ -1,0 +1,36 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Wishlist\Block\Customer\Wishlist\Item\Column\Remove;
+use Magento\Framework\Escaper;
+use Magento\Wishlist\Model\Item;
+
+/** @var Remove $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var Item $item */
+$item = $block->getItem();
+$product = $item->getProduct();
+?>
+
+<button
+    type="button"
+    data-role="remove"
+    @click.prevent='hyva.postForm(<?= /* @noEscape */ $block->getItemRemoveParams($block->getItem()) ?>)'
+    class="btn-remove action delete btn btn-secondary inline-flex p-3"
+>
+    <?= $heroicons->trashHtml('', 20, 20); ?>
+    <span class="sr-only">
+        <?= $escaper->escapeHtml(__('Remove item %1', $product->getName())) ?>
+    </span>
+</a>

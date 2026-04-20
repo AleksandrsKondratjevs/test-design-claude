@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+?>
+<?php
+/**
+ * Blog post view template
+ *
+ * @var $block \Magefan\Blog\Block\Post\View
+ */
+?>
+<?php
+$_post = $block->getPost();
+$_postUrl = $_post->getPostUrl();
+$_postName = $block->escapeHtml($_post->getTitle(), null);
+?>
+
+<?php
+/** @var Hyva\Theme\ViewModel\HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(\Hyva\Theme\ViewModel\HeroiconsOutline::class);
+?>
+
+<div class="post-view blog-wrapper modern w-full lg:max-w-[608px]">
+    <div class="post-holder post-holder-<?= (int)$_post->getId() ?>">
+
+        <div class="post-header clearfix">
+
+            <!-- post category-->
+            <?php if ($_categoriesCount = $_post->getCategoriesCount()) { ?>
+                <div class="post-category flex flex-wrap gap-3 mb-4">
+                    <?php foreach ($_post->getParentCategories() as $ct) { ?>
+                        <a class="category-name inline-block px-2.5 py-1.5 bg-gray-900 text-white leading-4 _hover:bg-gray-600" href="<?= $block->escapeUrl($ct->getCategoryUrl()) ?>"
+                            title="<?= $block->escapeHtml($ct->getTitle()) ?>">
+                            <?= $block->escapeHtml($ct->getTitle()) ?>
+                        </a>
+                    <?php } ?>
+                </div>
+            <?php }  ?>
+
+            <!-- block data -->
+            <div class="post-data-wrap mb-6 sm:mb-8">
+                <!-- post author -->
+                <?php if ($block->authorEnabled()) { ?>
+                    <?php if ($_author = $_post->getAuthor()) { ?>
+                        <span class="post-author-name">
+                            <?php if ($block->authorPageEnabled()) { ?>
+                                <a class="font-bold text-sm text-primary mr-3" title="<?= $block->escapeHtml($_author->getTitle()) ?>"
+                                    href="<?= $block->escapeUrl($_author->getAuthorUrl()) ?>"><?= $block->escapeHtml($_author->getTitle()) ?>
+                                </a>
+                            <?php } else { ?>
+                                <?= $block->escapeHtml($_author->getTitle()) ?>
+                            <?php } ?>
+                        </span>
+                    <?php } ?>
+                <?php } ?>
+
+                <!-- post date -->
+                <?php if ($_post->isPublishDateEnabled()) { ?>
+                    <span class="post-date text-sm text-grey font-normal"><?= $block->escapeHtml($_post->getPublishDate()) ?></span>
+                <?php } ?>
+
+                <!-- post view -->
+                <?php if ($block->viewsCountEnabled()) { ?>
+                    <?php if ($viewsCount = $_post->getViewsCount()) { ?>
+                        <span class="post-view float-right hidden md:flex items-center gap-1 text-sm">
+                            <?= $heroicons->eyeHtml('size-4') ?>
+                            <?= $block->escapeHtml($viewsCount) ?>
+                        </span>
+                    <?php } ?>
+                <?php } ?>
+
+                <!-- post comments -->
+                <?php if ($block->magefanCommentsEnabled() && $_post->getCommentsCount()) { ?>
+                    <span class="post-comments float-right hidden md:flex items-center gap-1 text-sm">
+                        <?= $heroicons->annotationHtml('size-4') ?>
+                        <a title="<?= $block->escapeHtml($_post->getTitle()) ?>"
+                            href="<?= $block->escapeUrl($_post->getPostUrl()) ?>#post-comments"><?= $block->escapeHtml($_post->getCommentsCount()) ?></a>
+                    </span>
+                <?php } ?>
+            </div>
+            <?php /*
+            <div class="post-sharing mb-4 d-none">
+                <!-- Go to www.addthis.com/dashboard to customize your tools -->
+                <div class="addthis_inline_share_toolbox text-center" addthis:url="<?= $block->escapeUrl($_postUrl) ?>"></div>
+            </div>
+            */ ?>
+        </div>
+
+        <div class="post-content">
+            <div class="_post-description clearfix">
+                <!-- Post Image -->
+                <?php if ($featuredImage = $_post->getFeaturedImage()) { ?>
+                    <?php
+                    $featuredImgAlt = $_post->getData('featured_img_alt');
+                    if (!$featuredImgAlt) {
+                        $featuredImgAlt = $_postName;
+                    }
+                    ?>
+                    <div class="post-featured-image mb-6 sm:mb-8">
+                        <img src="<?= $block->escapeUrl($featuredImage) ?>"
+                            alt="<?= $block->escapeHtml($featuredImgAlt) ?>"
+                            class="w-full aspect-square" />
+                    </div>
+                <?php } ?>
+
+                <!-- Post Tags -->
+                <?php if ($_tagsCount = $_post->getTagsCount()) { ?>
+                    <div class="post-tag mb-6">
+                        <div class="item post-tags flex flex-wrap gap-3">
+                            <span class="post-tag-title inline-block px-3 py-2 bg-gray-900 text-white leading-4"><?= __("Tags") ?></span>
+                            <?php $n = 0; ?>
+                            <?php foreach ($_post->getRelatedTags() as $tag) { ?>
+                                <?php $n++; ?>
+                                <a class="inline-block  px-3 py-2 leading-4 hover:bg-gray-900 hover:text-white duration-300" title="<?= $block->escapeHtml($tag->getTitle()) ?>"
+                                    href="<?= $block->escapeUrl($tag->getTagUrl()) ?>"><?= $block->escapeHtml($tag->getTitle()) ?></a>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+                <!-- END Post Tags -->
+
+                <div class="post-description">
+                    <?= /*@noEscape*/ $block->getContent() ?>
+                    <div class="clear clearfix"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="post-bottom">
+            <?= $block->getChildHtml('blog.post.bottom') ?>
+        </div>
+    </div>
+</div>

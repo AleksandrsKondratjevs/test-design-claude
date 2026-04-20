@@ -1,0 +1,92 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+use Hyva\Theme\ViewModel\StoreSwitcher;
+use Hyva\Theme\ViewModel\Currency;
+use Hyva\Theme\ViewModel\SvgIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Store\ViewModel\SwitcherUrlProvider;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var Currency $currency */
+$currency = $viewModels->require(Currency::class);
+
+/** @var HeroiconsSolid $heroiconsSolid */
+$heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
+
+/** @var SvgIcons $hyvaicons */
+$hyvaicons = $viewModels->require(SvgIcons::class);
+
+/** @var SwitcherUrlProvider $switcherUrlProvider */
+$switcherUrlProvider = $viewModels->require(SwitcherUrlProvider::class);
+
+/** @var StoreSwitcher $storeSwitcherViewModel */
+$storeSwitcherViewModel = $viewModels->require(StoreSwitcher::class);
+$currentStore = $storeSwitcherViewModel->getStore();
+
+$isCurrencyShown = $currency->getCurrencyCount() > 1;
+$isStoreSwitcherShown = count($storeSwitcherViewModel->getStores()) > 1;
+
+if (!$isCurrencyShown && !$isStoreSwitcherShown) {
+    return '';
+}
+
+?>
+
+<div class="hidden md:flex items-center relative" x-data="{ isOpened: false }" @click.away="isOpened = false">
+    <button class="flex gap-1.5 items-stretch text-white text-sm font-bold" @click="isOpened = !isOpened">
+        <?php if ($isStoreSwitcherShown): ?>
+            <span><?= $escaper->escapeHtml($currentStore->getName()) ?></span>
+        <?php endif; ?>
+        <?php if ($isCurrencyShown && $isStoreSwitcherShown): ?>
+            <span class="w-[1px] flex bg-primary-alpha-15"></span>
+        <?php endif; ?>
+        <?php if ($isCurrencyShown): ?>
+            <?php
+                $currencies = $currency->getCurrencies();
+                $currentCurrencyCode = $currency->getCurrentCurrencyCode();
+                $currentCurrencyName = $currencies[$currentCurrencyCode] ?: '';
+            ?>
+            <span>
+                <?= $escaper->escapeHtml($currentCurrencyCode) ?>
+            </span>
+        <?php endif; ?>
+        <?= $heroiconsSolid->chevronDownHtml('ms-0.5 my-auto transition-transform', 12, 12, [":class" => "{ 'rotate-180': isOpened }"]) ?>
+    </button>
+
+    <div
+        class="absolute top-full mt-2.5 max-2xl:end-0 2xl:start-1/2 2xl:rtl:translate-x-1/2 2xl:ltr:-translate-x-1/2 z-30"
+        x-cloak
+        x-show="isOpened"
+        x-transition:enter="transition ease-out"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    >
+        <div class="bg-transparent w-full flex justify-center">
+            <?= $hyvaicons->renderHtml('tooltip-indicator', 'text-white', 18, 12); ?>
+        </div>
+        <div
+            class="bg-white p-4 min-w-60 flex flex-col gap-4 shadow-tooltip"
+        >
+            <?= $block->getChildHtml('store-language-switcher') ?>
+            <?= $block->getChildHtml('currency-switcher') ?>
+        </div>
+    </div>
+</div>

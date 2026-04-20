@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <block name="listing.product.swatch.item" template="Magento_Swatches::product/listing/swatch-item.phtml"/>
+
+        <referenceBlock name="category.product.type.details.renderers">
+            <block class="Magento\Swatches\Block\Product\Renderer\Listing\Configurable" name="category.product.type.details.renderers.configurable" as="configurable" template="Magento_Swatches::product/listing/renderer.phtml" ifconfig="catalog/frontend/show_swatches_in_product_list">
+                <arguments>
+                    <argument name="swatch_limit" xsi:type="number">5</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

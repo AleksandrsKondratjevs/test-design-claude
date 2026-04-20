@@ -1,0 +1,89 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\SvgIcons;
+use Magento\Customer\Block\Account\Customer;
+use Magento\Framework\Escaper;
+
+/** @var Customer $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var SvgIcons $hyvaicons */
+$hyvaicons = $viewModels->require(SvgIcons::class);
+?>
+
+<div
+    class="relative inline-block"
+    x-data="initCustomerMenu"
+    x-bind="eventListeners"
+>
+    <button
+        type="button"
+        id="customer-menu"
+        class="block rounded-sm"
+        @click="toggleOpen"
+        :aria-expanded="open"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
+        aria-haspopup="true"
+    >
+        <?= $heroicons->userCircleHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+    </button>
+    <nav
+        class="absolute top-full mt-2.5 max-2xl:end-0 ltr:start-1/2 rtl:end-1/2 -translate-x-1/2 z-30 w-48 sm:w-56"
+        x-cloak
+        x-show="open"
+        x-transition:enter="transition ease-out"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        aria-labelledby="customer-menu"
+    >
+        <div class="bg-transparent w-full flex justify-center">
+            <?= $hyvaicons->renderHtml('tooltip-indicator', 'text-white', 18, 12); ?>
+        </div>
+        <div class="customer-popup bg-white shadow-tooltip p-2">
+            <?php if ($block->customerLoggedIn()): ?>
+                <?= $block->getChildHtml('header.customer.logged.in.links') ?>
+            <?php else: ?>
+                <?= $block->getChildHtml('header.customer.logged.out.links') ?>
+            <?php endif; ?>
+        </div>
+    </nav>
+</div>
+<script>
+    function initCustomerMenu() {
+        return hyva.createBooleanObject('open', false, {
+            eventListeners: {
+                ['@pageshow.window'](event) {
+                    if (event.persisted) {
+                        this.setOpenFalse()
+                    }
+                },
+                ['@keyup.escape']() {
+                    this.setOpenFalse()
+                },
+                ['@click.outside']() {
+                    this.setOpenFalse()
+                }
+            }
+        })
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initCustomerMenu', initCustomerMenu), {once: true})
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

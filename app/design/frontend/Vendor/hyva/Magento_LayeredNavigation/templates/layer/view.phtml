@@ -1,0 +1,118 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\LayeredNavigation\Block\Navigation;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Navigation $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$activeFilterStyle = $block->getActiveStyle();
+$activeIsOpen = $block->getActiveOpen();
+$showFilterInput = $block->getShowInput() !== null ? (bool) $block->getShowInput() : true;
+$showFilterPriceSlider = $block->getShowPriceSlider() !== null ? (bool) $block->getShowPriceSlider() : true;
+$showFilterPriceOptions = $block->getShowPriceOptions() !== null ? (bool) $block->getShowPriceOptions() : false;
+$openFiltersByIds = (array) $block->getOpenByIds() ?: [];
+$maxPriceFallbackValue = (int) $block->getMaxPriceFallbackValue() ?: 1000
+?>
+
+<?php if ($block->canShowBlock()): ?>
+    <div id="layered-navigation-desktop" class="hidden md:block">
+        <div
+            role="region"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Product filters')) ?>"
+            x-data="initLayeredNavigation()"
+            x-defer="intersect"
+            id="layered-navigation-content"
+        >
+            <a href="#product-list" class="block sr-only focus:not-sr-only max-md:hidden">
+                <span class="block my-2 py-2.5 px-4 text-primary text-center"><?= $escaper->escapeHtml(__('Skip to product list')) ?></span>
+            </a>
+            <div
+                id="filters-content"
+                class="block-content filter-content block bg-white"
+            >
+                <?= $block->getChildBlock('state')->setOpen($activeIsOpen)->setFilterStyle($activeFilterStyle)->toHtml(); ?>
+                <?php foreach ($block->getFilters() as $filter): ?>
+                    <?php $isFilterDefaultOpen = in_array($filter->getRequestVar(), $openFiltersByIds); ?>
+                    <?php if ($filter->getItemsCount()): ?>
+                        <div
+                            id="<?= $escaper->escapeHtmlAttr($filter->getRequestVar()) ?>"
+                            class="filter-option py-4 border-b border-primary-alpha-15 last:border-b-0"
+                            <?= $isFilterDefaultOpen ? 'open': ''; ?>
+                        >
+                            <button
+                                class="block-title flex justify-between w-full items-center px-4"
+                                @click="handleToggleFilter('<?= $filter->getRequestVar() ?>')"
+                                aria-label="<?= $escaper->escapeHtml(__('%1 filter', $filter->getName())) ?>"
+                            >
+                                <h4><?= $escaper->escapeHtml(__($filter->getName())) ?></h4>
+                                <span class="transition-transform transform duration-300 ease-in-out text-black" :class="{ 'rotate-180': openedFilters.includes('<?= $filter->getRequestVar() ?>') }">
+                                    <?= $heroicons->chevronDownHtml('', 16, 16, ["aria-hidden" => "true"]); ?>
+                                </span>
+                            </button>
+                            <div
+                                x-show="openedFilters.includes('<?= $filter->getRequestVar() ?>')"
+                                x-transition:enter-start="grid-rows-[0fr]"
+                                x-transition:enter-end="grid-rows-[1fr]"
+                                x-transition:leave-start="grid-rows-[1fr]"
+                                x-transition:leave-end="grid-rows-[0fr]"
+                                class="filter-options-content grid transition-grid-row duration-200"
+                            >
+                                <div class="overflow-hidden">
+                                    <div class="pt-4">
+                                        <?php if ($filter->getRequestVar() === 'price' && $showFilterPriceSlider && $block->getChildBlock('renderer-price')): ?>
+                                            <?= /* @noEscape */ $block->getChildBlock('renderer-price')
+                                                ->setFilterId($filter->getRequestVar())
+                                                ->setMaxPriceFallbackValue($maxPriceFallbackValue)
+                                                ->setFilterTitle($filter->getName())
+                                                ->render($filter); ?>
+                                        <?php else: ?>
+                                            <?= /* @noEscape */ $block->getChildBlock('renderer')
+                                                ->setFilterTitle($filter->getName())
+                                                ->setFilterId($filter->getRequestVar())
+                                                ->setShowInput($showFilterInput)
+                                                ->render($filter); ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <script>
+        function initLayeredNavigation() {
+            return {
+                openedFilters: [],
+
+                handleToggleFilter(filterCode) {
+                    if (this.openedFilters.includes(filterCode)) {
+                        this.openedFilters = this.openedFilters.filter((openedFilter) => openedFilter !== filterCode);
+                    } else {
+                        this.openedFilters.push(filterCode);
+                    }
+                },
+            }
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+<?php endif; ?>

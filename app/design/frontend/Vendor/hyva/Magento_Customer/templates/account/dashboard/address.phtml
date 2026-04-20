@@ -1,0 +1,75 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Customer\Block\Account\Dashboard\Address;
+use Magento\Framework\Escaper;
+
+/** @var Address $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<div class="block block-dashboard-addresses">
+    <div class="flex flex-col gap-2 md:flex-row md:justify-between md:items-center w-full mb-4 mt-8 md:mb-6 md:mt-16">
+        <h3 class="block-title">
+            <span class="block"><?= $escaper->escapeHtml(__('Address Book')) ?></span>
+        </h3>
+        <a class="action edit inline-block underline"
+            href="<?= $escaper->escapeUrl($block->getAddressBookUrl()) ?>"
+        >
+            <span><?= $escaper->escapeHtml(__('Manage Addresses')) ?></span>
+        </a>
+    </div>
+    <div class="block-content">
+        <div class="grid grid-cols-1 xl:grid-cols-2 justify-between gap-4">
+            <div class="w-full">
+                <div class="flex p-8 sm:flex-row flex-col h-full account-card">
+                    <div class="grow">
+                        <h4 class="mb-3">
+                            <span><?= $escaper->escapeHtml(__('Default Billing Address')) ?></span>
+                        </h4>
+                        <address>
+                            <?= $block->getPrimaryBillingAddressHtml() ?>
+                        </address>
+                        <a
+                            class="btn btn-secondary btn-size-sm mt-6 md:w-fit"
+                            href="<?= $escaper->escapeUrl($block->getPrimaryBillingAddressEditUrl()) ?>"
+                            data-ui-id="default-billing-edit-link"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Edit Address - billing default')) ?>"
+                        >
+                            <span><?= $escaper->escapeHtml(__('Edit Address')) ?></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full">
+                <div class="flex p-8 sm:flex-row flex-col h-full account-card">
+                    <div class="grow">
+                        <h4 class="mb-3">
+                            <span><?= $escaper->escapeHtml(__('Default Shipping Address')) ?></span>
+                        </h4>
+                        <address>
+                            <?= $block->getPrimaryShippingAddressHtml() ?>
+                        </address>
+                        <a
+                            class="btn btn-secondary btn-size-sm mt-6 md:w-fit"
+                            href="<?= $escaper->escapeUrl($block->getPrimaryShippingAddressEditUrl()) ?>"
+                            data-ui-id="default-billing-edit-link"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Edit Address - shipping default')) ?>"
+                        >
+                            <span><?= $escaper->escapeHtml(__('Edit Address')) ?></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

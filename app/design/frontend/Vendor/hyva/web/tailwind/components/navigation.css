@@ -1,0 +1,19 @@
+.navigation {
+    .level-0,
+    .level-1,
+    .level-2 {
+        @apply text-[var(--menu-item-color)];
+    }
+}
+
+.navigation-cms-block {
+    [data-content-type="row"] {
+        @apply w-fit;
+
+        [data-content-type="banner"] {
+            picture {
+                @apply flex w-full;
+            }
+        }
+    }
+}

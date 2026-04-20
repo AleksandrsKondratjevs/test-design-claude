@@ -1,0 +1,236 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Hyva\Theme\ViewModel\ProductPage;
+use Hyva\Theme\ViewModel\Store;
+use Magento\Catalog\Block\Product\ReviewRendererInterface as ProductReviewRenderer;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var Store $viewModelStore */
+$viewModelStore = $viewModels->require(Store::class);
+
+/** @var ProductPage $productViewModel */
+$productViewModel = $viewModels->require(ProductPage::class);
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var ProductListItem $productListItemViewModel */
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+
+$uniqueId = '_' . uniqid('');
+
+$viewMode = 'grid';
+$imageDisplayArea = 'category_page_grid';
+$showDescription = false;
+
+$name = (string) $block->getName();
+$isSliderInfinitive = (bool) $block->getIsSliderInfinitive();
+$isSliderShowArrows = (bool) $block->getData('is_slider_show_arrows');
+$sliderPagination = $block->getData('slider_pagination') ?: 'dots';
+
+$title = (string) $block->getTitle();
+$headingTag = $block->getData('heading_tag') ?: 'h3';
+$items = $block->getItems() ?? [];
+if (is_object($items) && $items instanceof Iterator) {
+    $items = iterator_to_array($items);
+}
+if (!$itemCount = count($items)) {
+    return '';
+}
+
+$sliderIndex = 1;
+$sliderItemRenderer = $block->getLayout()->getBlock('product_list_item')
+    ?: $block->getChildBlock('slider.item.template')
+    ?: $block->getLayout()->createBlock(Template::class);
+
+$hideRatingSummary = (bool) $block->getData('hide_rating_summary');
+$hideDetails       = (bool) $block->getData('hide_details');
+
+$sliderItemRenderer->setData('hide_details', $hideDetails);
+$sliderItemRenderer->setData('hide_rating_summary', $hideRatingSummary);
+
+// The slider item renderer block is often a shared instance.
+// If a specific item template is set for this slider, the previously set template must be reset later
+// so the item template is only replaced for the one slider it is specified on.
+$sharedItemRendererTemplate = null;
+$isSharedItemRenderer       = $sliderItemRenderer !== $block->getChildBlock('slider.item.template');
+
+if ($isSharedItemRenderer && $block->getChildBlock('slider.item.template')) {
+    $sharedItemRendererTemplate = $sliderItemRenderer->getTemplate();
+    $sliderSpecificItemTemplate = $block->getChildBlock('slider.item.template')->getTemplate();
+    $sliderItemRenderer->setTemplate($sliderSpecificItemTemplate);
+}
+
+// Breakpoints for 1 visible slider items on mobile, 2 visible on md, 3 on lg and 4 on xl (see $sliderPageSize).
+$defaultSliderItemClasses = '';
+
+$sliderSectionClasses = $block->getData('maybe_purged_tailwind_section_classes') ?? 'relative';
+$slideItemClasses = $block->getData('maybe_purged_tailwind_slide_item_classes') ?? $defaultSliderItemClasses;
+
+// Slider count for different breakpoints
+$sliderCountMobile = 1.2;
+$sliderCountTablet = 2;
+$sliderCountDesktop = 4;
+
+?>
+<?= $this->getLayout()
+    ->createBlock('Magento\Framework\View\Element\Template')
+    ->setTemplate('Scandiweb_ContentTypes::style/slider-initial-styling.phtml')
+    ->setData('slider_count_mobile', $sliderCountMobile)
+    ->setData('slider_count_tablet', $sliderCountTablet)
+    ->setData('slider_count_desktop', $sliderCountDesktop)
+    ->setData('unique_id', $uniqueId)
+    ->toHtml(); ?>
+<script>
+    'use strict';
+
+    function initSliderComponent<?= $uniqueId ?>() {
+        return {
+            active: 0,
+            itemCount: 0,
+
+            init() {
+                this.$nextTick(() => {
+                    this.initializeSwiper();
+                });
+            },
+
+            initializeSwiper() {
+                const swiperOptions = {
+                    loop: <?= $isSliderInfinitive ? 'true' : 'false' ?>,
+                    loopAddBlankSlides: true,
+                    spaceBetween: 16,
+                    slidesPerView: <?= $escaper->escapeJs($sliderCountMobile) ?>,
+                    breakpoints: {
+                        768: {
+                            slidesPerView: <?= $escaper->escapeJs($sliderCountTablet) ?>,
+                        },
+                        1024: {
+                            slidesPerView: <?= $escaper->escapeJs($sliderCountDesktop) ?>,
+                        },
+                    }
+                };
+
+                <?php if ($isSliderShowArrows): ?>
+                    const arrowPrev = this.$el.querySelector('.swiper-button-prev<?= $uniqueId ?>');
+                    const arrowNext = this.$el.querySelector('.swiper-button-next<?= $uniqueId ?>');
+
+                    if (arrowPrev && arrowNext) {
+                        swiperOptions.navigation = {
+                            prevEl: arrowPrev,
+                            nextEl: arrowNext
+                        }
+                    }
+                <?php endif; ?>
+
+                <?php if ($sliderPagination === 'dots'): ?>
+                    const paginationDots = this.$el.querySelector('.swiper-pagination<?= $uniqueId ?>');
+
+                    if (paginationDots) {
+                        swiperOptions.pagination = {
+                            el: paginationDots,
+                            type: 'bullets',
+                            clickable: true,
+                            dynamicBullets: true,
+                            dynamicMainBullets: 4,
+                        }
+                    }
+                <?php endif; ?>
+
+                <?php if ($sliderPagination === 'progressbar'): ?>
+                    const progressbar = this.$el.querySelector('.swiper-scrollbar<?= $uniqueId ?>');
+
+                    if (progressbar) {
+                        swiperOptions.scrollbar = {
+                            el: progressbar,
+                            draggable: true,
+                        }
+                    }
+                <?php endif; ?>
+
+                initSwiperSlider(this.$refs.sliderContainer, swiperOptions);
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<div
+    x-data="initSliderComponent<?= $uniqueId ?>()"
+    id="<?= $escaper->escapeHtmlAttr($uniqueId) ?>"
+    class="<?= $escaper->escapeHtmlAttr($sliderSectionClasses) ?>"
+    role="group"
+    aria-roledescription="<?= $escaper->escapeHtmlAttr(__('Carousel')) ?>"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('Carousel %1', $title)) ?>"
+    :aria-describedby="$id('slider-desc')">
+    <?php if ($items): ?>
+        <div class="overflow-visible">
+            <?php if ($title): ?>
+                <div>
+                    <<?= /* @noEscape */ $headingTag ?> class="content-block-title">
+                        <?= $escaper->escapeHtml($title); ?>
+                    </<?= /* @noEscape */ $headingTag ?>>
+                </div>
+            <?php endif; ?>
+            <div class="relative overflow-visible">
+                <div class="swiper overflow-hidden" x-ref="sliderContainer">
+                    <div class="swiper-wrapper flex">
+                        <?php foreach ($items as $product): ?>
+                            <div class="swiper-slide flex [&>*]:h-full h-auto! <?= $escaper->escapeHtmlAttr($slideItemClasses) ?>"
+                                role="group"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Item %1', $sliderIndex++)) ?>"
+                                :aria-describedby="`slide-desc-<?= $escaper->escapeHtmlAttr($product->getId()) ?>-${$id('slider-id')}`">
+                                <?=
+                                /** @noEscape */
+                                $productListItemViewModel->getItemHtmlWithRenderer(
+                                    $sliderItemRenderer,
+                                    $product,
+                                    $block,
+                                    $viewMode,
+                                    ProductReviewRenderer::SHORT_VIEW,
+                                    $imageDisplayArea,
+                                    $showDescription
+                                ) ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?=
+                $this->getLayout()
+                    ->createBlock('Magento\Framework\View\Element\Template')
+                    ->setTemplate('Scandiweb_ContentTypes::carousel-nav.phtml')
+                    ->setData('is_show_arrows', $isSliderShowArrows)
+                    ->setData('pagination', $sliderPagination)
+                    ->setData('unique_id', $uniqueId)
+                    ->toHtml();
+                ?>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+<?php
+
+if ($sharedItemRendererTemplate) {
+    $sliderItemRenderer->setTemplate($sharedItemRendererTemplate);
+}
+
+?>

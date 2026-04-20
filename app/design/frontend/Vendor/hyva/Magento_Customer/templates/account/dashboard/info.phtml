@@ -1,0 +1,97 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Customer\Block\Account\Dashboard\Info;
+use Magento\Framework\Escaper;
+
+/** @var Info $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<h3 class="mb-4 sm:mb-6 block-title">
+    <?= $escaper->escapeHtml(__('Account Information')) ?>
+</h3>
+<div class="grid grid-cols-1 xl:grid-cols-2 justify-between gap-4">
+    <div class="w-full">
+        <div class="flex flex-col h-full sm:flex-row account-card gap-4">
+            <div class="flex max-sm:items-center gap-4">
+                <div
+                    class="inline-flex items-center justify-center shrink-0 w-16 h-16 p-4 bg-white rounded-full text-primary">
+                    <?= $heroicons->userHtml('', 32, 32, ['aria-hidden' => 'true']) ?>
+                </div>
+                <h4 class="sm:hidden">
+                        <span><?= $escaper->escapeHtml(__('Contact Information')) ?></span>
+                </h4>
+            </div>
+            <div class="grow flex flex-col">
+                <h4 class="hidden sm:block mb-3">
+                    <span><?= $escaper->escapeHtml(__('Contact Information')) ?></span>
+                </h4>
+                <p class="flex flex-col gap-2">
+                    <span><?= $escaper->escapeHtml($block->getName()) ?></span>
+                    <span><?= $escaper->escapeHtml($block->getCustomer()->getEmail()) ?></span>
+                </p>
+                <?= $block->getChildHtml('customer.account.dashboard.info.extra'); ?>
+                <div class="flex flex-col gap-2 mt-4 sm:flex-row">
+                    <a
+                        class="btn btn-secondary btn-size-sm"
+                        href="<?= $escaper->escapeUrl($block->getUrl('customer/account/edit')) ?>"
+                        aria-label="<?= $escaper->escapeHtml(__('Edit contact information')) ?>"
+                    >
+                        <span><?= $escaper->escapeHtml(__('Edit')) ?></span>
+                    </a>
+                    <a
+                        class="btn btn-size-sm"
+                        href="<?= $escaper->escapeUrl($block->getChangePasswordUrl()) ?>"
+                    >
+                        <?= $escaper->escapeHtml(__('Change Password')) ?>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php if ($block->isNewsletterEnabled()): ?>
+        <div class="w-full">
+            <div class="flex flex-col h-full sm:flex-row account-card gap-4">
+                <div class="flex max-sm:items-center gap-4">
+                    <div
+                        class="inline-flex items-center justify-center shrink-0 w-16 h-16 p-4 bg-white rounded-full text-primary">
+                        <?= $heroicons->mailHtml('', 32, 32, ['aria-hidden' => 'true']) ?>
+                    </div>
+                    <h4 class="sm:hidden">
+                        <?= $escaper->escapeHtml(__('Newsletters')) ?>
+                    </h4>
+                </div>
+                <div class="grow flex flex-col gap-6 sm:gap-3">
+                    <h4 class="hidden sm:block">
+                        <?= $escaper->escapeHtml(__('Newsletters')) ?>
+                    </h4>
+                    <p>
+                        <?php if ($block->getIsSubscribed()): ?>
+                            <?= $escaper->escapeHtml(__('You are subscribed to "General Subscription".')) ?>
+                        <?php else: ?>
+                            <?= $escaper->escapeHtml(__('You aren\'t subscribed to our newsletter.')) ?>
+                        <?php endif; ?>
+                    </p>
+                    <a
+                        class="btn btn-secondary btn-size-sm mt-auto max-sm:w-full w-max items-center"
+                        href="<?= $escaper->escapeUrl($block->getUrl('newsletter/manage')) ?>"
+                        aria-label="<?= $escaper->escapeHtml(__('Edit newsletters')) ?>"
+                    >
+                        <span><?= $escaper->escapeHtml(__('Edit')) ?></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?= $block->getChildHtml('additional_blocks'); ?>
+</div>

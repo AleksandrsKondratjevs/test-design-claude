@@ -1,0 +1,22 @@
+:root {
+    --height-header: 166px;
+    --header-notification-height: 36px;
+}
+
+/* To preserve normal scroll on internal link while header is sticky */
+:target {
+    scroll-margin-top: calc(var(--height-header));
+}
+
+/* .page-header {} */
+.page-header {
+    @apply sticky top-0 z-50 transition-[top] duration-300;
+}
+
+.page-header-hidden-notification {
+    @apply -top-[calc(var(--header-notification-height))];
+}
+
+.header-notification {
+    @apply leading-5;
+}

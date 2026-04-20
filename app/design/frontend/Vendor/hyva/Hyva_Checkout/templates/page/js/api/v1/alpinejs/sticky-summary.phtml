@@ -1,0 +1,42 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+
+?>
+<script>
+    function hyvaCheckoutStickySummary() {
+        return {
+            isOpen: false,
+
+            showSummary() {
+                this.isOpen = true;
+                document.body.style.overflow = 'hidden';
+            },
+            hideSummary() {
+                this.isOpen = false;
+                document.body.style.overflow = 'auto';
+            },
+            getStickyClass() {
+                return {
+                    'fixed w-screen h-screen max-h-screen top-0 left-0 z-50 overflow-auto': this.isOpen,
+                    'flex flex-col': this.isOpen,
+                    'max-md:hidden': !this.isOpen
+                }
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('hyvaCheckoutStickySummary', hyvaCheckoutStickySummary)
+    }, { once: true })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

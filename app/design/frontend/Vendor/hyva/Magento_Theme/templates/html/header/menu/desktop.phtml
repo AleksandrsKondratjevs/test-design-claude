@@ -1,0 +1,238 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+// use Scandiweb\MenuOrganizer\ViewModel\MenuManager;
+use Hyva\Theme\ViewModel\Navigation;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsSolid $heroiconsSolid */
+$heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
+
+$uniqueId = '_' . uniqid();
+
+
+// Menu manager from Scandiweb
+// /** @var MenuManager $viewModelMenuManager */
+// $viewModelMenuManager = $viewModels->require(MenuManager::class);
+// $menuItems = $viewModelMenuManager->getMenuItems('menu');
+// $block->setData('cache_tags', $viewModelMenuManager->getIdentities());
+
+// Default navigation
+/** @var Navigation $viewModelNavigation */
+$viewModelNavigation = $viewModels->require(Navigation::class, $block);
+$menuItems = $viewModelNavigation->getNavigation(4);
+$block->setData('cache_tags', $viewModelNavigation->getIdentities());
+
+?>
+<script>
+    'use strict';
+
+    function initMenuDesktop<?= $escaper->escapeHtml($uniqueId) ?>() {
+        return {
+            hoverTopPosition: '166',
+            backdropTopPosition: '170',
+            selectedSubMenuHeight: 0,
+            activeMenuId: null,
+            lastActiveMenuId: null,
+            debounceMouseOver: null,
+
+            setActiveMenu(id) {
+                this.lastActiveMenuId = this.activeMenuId;
+
+                if (!id || id === this.activeMenuId) {
+                    this.activeMenuId = undefined;
+                    this.selectedSubMenuHeight = 0;
+
+                    return;
+                }
+
+                this.hoverTopPosition = this.$refs.menuContainer.offsetTop + this.$refs.menuContainer.getBoundingClientRect().height;
+                this.backdropTopPosition = this.$refs['nav-desktop'].getBoundingClientRect().bottom;
+                this.selectedSubMenuHeight = this.$refs[`subMenuContainer-${id}`].offsetHeight;
+                this.activeMenuId = id;
+            },
+            handleCloseSubMenu() {
+                clearTimeout(this.debounceMouseOver);
+                this.setActiveMenu(0);
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<div x-data="initMenuDesktop<?= $escaper->escapeHtml($uniqueId) ?>()"
+    class="z-20 order-2 sm:order-1 lg:order-2 navigation hidden lg:flex relative"
+    @mouseleave.stop="handleCloseSubMenu"
+    @scroll.window="activeMenuId ? handleCloseSubMenu() : null"
+>
+    <!-- desktop -->
+    <div x-ref="nav-desktop"
+        class="justify-between items-center mx-auto w-full container 2xl:px-10 2xl:max-w-8xl">
+        <nav aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
+            <ul class="flex flex-wrap justify-center" x-ref="menuContainer">
+                <?php foreach ($menuItems as $index => $itemLevel1): ?>
+                    <?php $singleItems = []; ?>
+                    <li class="level-0 flex items-center border-b-2 border-transparent transition-colors duration-500 group hover:border-primary focus-within:border-primary"
+                        @mouseover.stop.throttle="
+                            (event) => {
+                                if (activeMenuId === '<?= $itemLevel1['id'] ?>') {
+                                    return;
+                                }
+
+                                debounceMouseOver = setTimeout(
+                                    () => {
+                                        <?php if (!empty($itemLevel1['childData'])): ?>
+                                            setActiveMenu('<?= $itemLevel1['id'] ?>')
+                                        <?php else: ?>
+                                            setActiveMenu(0);
+                                        <?php endif; ?>
+                                    },
+                                    150
+                                )
+                            }"
+                        @mouseleave.self="clearTimeout(debounceMouseOver);"
+                        @keyup.escape="activeMenuId = 0"
+                    >
+                        <a  href="<?= $escaper->escapeUrl($itemLevel1['url']) ?>"
+                            @focus="setActiveMenu(0);"
+                            title="<?= $escaper->escapeHtmlAttr($itemLevel1['name']) ?>"
+                            class="level-0 flex gap-2 py-3 px-4 text-base no-underline text-black whitespace-nowrap font-medium"
+                            <?php if(isset($itemLevel1['category_menu_color'])): ?>
+                                style="--menu-item-color: <?= $escaper->escapeHtmlAttr($itemLevel1['category_menu_color']); ?>;"
+                            <?php endif; ?>
+                        >
+                            <span><?= $escaper->escapeHtml($itemLevel1['name']) ?></span>
+                        </a>
+                        <?php if (!empty($itemLevel1['childData'])): ?>
+                            <button
+                                @click="setActiveMenu('<?= $itemLevel1['id'] ?>')"
+                            >
+                                <?= $heroiconsSolid->chevronDownHtml(
+                                    'size-4 inline transition-transform block duration-300',
+                                    16,
+                                    16,
+                                    [
+                                        'aria-hidden' => 'true',
+                                        ":class" => '{ "rotate-180": activeMenuId === "' . $itemLevel1["id"] . '" }'
+                                    ])
+                                ?>
+                            </button>
+                        <?php endif; ?>
+                        <?php if (!empty($itemLevel1['childData'])): ?>
+                            <div class="absolute start-0 top-full z-10 mt-0 shadow-xs w-full bg-white h-0 duration-300 transition-[height] ease-out pointer-events-none overflow-hidden"
+                                :style="{
+                                    'top': `${hoverTopPosition}px`,
+                                    'height': activeMenuId === '<?= $itemLevel1['id']; ?>'
+                                    ? `${selectedSubMenuHeight}px`
+                                    : !activeMenuId ? 0 : `${selectedSubMenuHeight}px`
+                                }"
+                                :class="{
+                                    'pointer-events-none opacity-0 invisible': activeMenuId && activeMenuId !== '<?= $itemLevel1['id']; ?>' || !activeMenuId && lastActiveMenuId !== '<?= $itemLevel1['id']; ?>',
+                                    'pointer-events-auto opacity-100': activeMenuId === '<?= $itemLevel1['id']; ?>' || !activeMenuId && lastActiveMenuId === '<?= $itemLevel1['id']; ?>'
+                                }"
+                                x-defer="intersect"
+                            >
+                                <?php
+                                    $isCmsBlockSet = isset($itemLevel1['category_menu_cms_block']);
+                                ?>
+                                <div
+                                    class="pt-5 pb-6 2xl:py-12 container"
+                                    x-ref="subMenuContainer-<?= $itemLevel1['id']; ?>"
+                                    :class="{'invisible': activeMenuId !== '<?= $itemLevel1['id']; ?>'}"
+                                >
+                                    <div class="grid gap-6 w-full <?= $isCmsBlockSet ? 'grid-cols-[1fr_400px]' : '' ?>">
+                                        <ul class="grid gap-6 list-none <?= $isCmsBlockSet ? 'grid-cols-4' : ' grid-cols-6' ?>">
+                                            <?php foreach ($itemLevel1['childData'] as $itemLevel2): ?>
+                                                <?php if (empty($itemLevel2['childData'])): ?>
+                                                    <li class="level-1 w-[184px]">
+                                                        <a href="<?= $escaper->escapeUrl($itemLevel2['url']) ?>"
+                                                            title="<?= $escaper->escapeHtmlAttr($itemLevel2['name']) ?>"
+                                                            class="level-1 block text-xl font-bold no-underline text-black">
+                                                            <?= $escaper->escapeHtml($itemLevel2['name']) ?>
+                                                        </a>
+                                                    </li>
+                                                    <?php continue; ?>
+                                                <?php endif; ?>
+                                                <li class="level-1 w-[184px]">
+                                                    <a href="<?= $escaper->escapeUrl($itemLevel2['url']) ?>"
+                                                        title="<?= $escaper->escapeHtmlAttr($itemLevel2['name']) ?>"
+                                                        class="level-1 block text-xl no-underline font-bold text-black"
+                                                        <?php if(isset($itemLevel2['category_menu_color'])): ?>
+                                                            style="--menu-item-color: <?= $escaper->escapeHtmlAttr($itemLevel2['category_menu_color']); ?>;"
+                                                        <?php endif; ?>
+                                                    >
+                                                        <?= $escaper->escapeHtml($itemLevel2['name']) ?>
+                                                    </a>
+
+                                                    <ul class="z-10 w-full list-none flex flex-col gap-4 mt-5">
+                                                        <?php foreach ($itemLevel2['childData'] as $itemLevel3): ?>
+                                                            <li class="level-2 ">
+                                                                <a href="<?= $escaper->escapeUrl($itemLevel3['url']) ?>"
+                                                                    title="<?= $escaper->escapeHtmlAttr($itemLevel3['name']) ?>"
+                                                                    class="level-2 block font-medium no-underline text-black"
+                                                                    <?php if(isset($itemLevel3['category_menu_color'])): ?>
+                                                                        style="--menu-item-color: <?= $escaper->escapeHtmlAttr($itemLevel3['category_menu_color']); ?>;"
+                                                                    <?php endif; ?>
+                                                                >
+                                                                    <?= $escaper->escapeHtml($itemLevel3['name']) ?>
+                                                                </a>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                </li>
+                                            <?php endforeach; ?>
+                                            <?php if ($singleItems): ?>
+                                                <li class="level-1 w-48">
+                                                    <?php foreach ($singleItems as $item): ?>
+                                                        <a href="<?= $escaper->escapeUrl($item['url']) ?>"
+                                                            title="<?= $escaper->escapeHtmlAttr($item['name']) ?>"
+                                                            class="level-1 block text-xl font-bold no-underline text-black">
+                                                            <?= $escaper->escapeHtml($item['name']) ?>
+                                                        </a>
+                                                    <?php endforeach; ?>
+                                                </li>
+                                            <?php endif; ?>
+                                        </ul>
+                                        <?php if(isset($itemLevel1['category_menu_cms_block'])): ?>
+                                            <div class="navigation-cms-block shrink-0">
+                                                <?= $viewModelNavigation->getCmsBlockHtml($itemLevel1['category_menu_cms_block']) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </nav>
+    </div>
+    <!-- Backdrop -->
+    <div
+        class="backdrop"
+        :style="{ top: `${backdropTopPosition}px` }"
+        x-cloak
+        @mouseover.stop="handleCloseSubMenu"
+        x-show="activeMenuId"
+        x-transition:enter="ease-in-out duration-500"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in-out duration-500"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    >
+    </div>
+</div>

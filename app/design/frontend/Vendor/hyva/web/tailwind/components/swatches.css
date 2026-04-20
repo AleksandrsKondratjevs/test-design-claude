@@ -1,0 +1,13 @@
+@layer components {
+    .swatch-attribute {
+        @apply min-h-7;
+    }
+
+    .swatch-attribute-options {
+        @apply flex flex-row flex-wrap line-clamp-3;
+    }
+
+    .swatch-option {
+        @apply flex border border-grey justify-center me-1;
+    }
+}

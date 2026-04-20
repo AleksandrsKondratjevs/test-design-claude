@@ -1,0 +1,101 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\Escaper;
+use Magento\GiftMessage\Helper\Message as GiftMessageHelper;
+use Magento\Sales\Block\Order\Items;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Items $block */
+/** @var Escaper $escaper */
+
+$helper = $this->helper(GiftMessageHelper::class);
+$cols = $block->getData('is_context_shipment') ? 3 : 5;
+?>
+<div class="order-items mt-4">
+    <?php if ($block->isPagerDisplayed()): ?>
+        <?= $block->getPagerHtml() ?>
+    <?php endif ?>
+    <div class="hidden lg:grid grid-cols-<?= $escaper->escapeHtmlAttr($cols) ?> text-sm mt-4 gap-4 pb-2 px-3 font-bold">
+        <div class="col-span-2"><?= $escaper->escapeHtml(__('Product Name')) ?></div>
+        <?php if (!$block->getData('is_context_shipment')): ?>
+            <div><?= $escaper->escapeHtml(__('Price')) ?></div><?php endif; ?>
+        <div><?= $escaper->escapeHtml(__('Qty')) ?></div>
+        <?php if (!$block->getData('is_context_shipment')): ?>
+            <div class="text-right"><?= $escaper->escapeHtml(__('Subtotal')) ?></div><?php endif; ?>
+    </div>
+    <?php $items = $block->getOrder()->getAllItems(); ?>
+    <?php
+        $giftMessage = '';
+        $index = 0;
+        ?>
+    <?php foreach ($items as $item): ?>
+        <?php
+            $parentItem = $item->getParentItem();
+            if ($parentItem && $parentItem->getData('product_type') === Configurable::TYPE_CODE) {
+                continue;
+            }
+
+            if (!$parentItem) {
+                $index++;
+            }
+        ?>
+        <div class="[&>*]:py-2 [&>*]:px-3 <?= ($parentItem) ?
+            'child-item max-lg:ms-4 max-lg:border-t max-lg:border-primary-alpha-15 [&>div]:lg:border-t [&>div]:lg:border-primary-alpha-15 [&>div>.col-span-2]:lg:ms-6' :
+            'parent-item'
+        ?> <?= $index % 2 ? 'bg-white' : '' ?>">
+            <?= $block->getItemHtml($item) ?>
+        </div>
+        <?php if ($helper->isMessagesAllowed('order_item', $item) && $item->getGiftMessageId()): ?>
+            <?php $giftMessage = $helper->getGiftMessageForEntity($item); ?>
+        <div class="col options mb-2">
+            <a href="#"
+               id="order-item-gift-message-link-<?= (int)$item->getId() ?>"
+               class="action show"
+               aria-controls="order-item-gift-message-<?= (int)$item->getId() ?>"
+               data-item-id="<?= (int)$item->getId() ?>">
+                <?= $escaper->escapeHtml(__('Gift Message')) ?>
+            </a>
+            <?php $giftMessage =
+                $helper->getGiftMessageForEntity($item); ?>
+            <div class="order-gift-message" id="order-item-gift-message-<?= (int)$item->getId() ?>" role="region"
+                 aria-expanded="false" tabindex="-1">
+                <a href="#"
+                   title="<?= $escaper->escapeHtml(__('Close')) ?>"
+                   aria-controls="order-item-gift-message-<?= (int)$item->getId() ?>"
+                   data-item-id="<?= (int)$item->getId() ?>"
+                   class="action close">
+                    <?= $escaper->escapeHtml(__('Close')) ?>
+                </a>
+                <dl class="item-options">
+                    <dt class="item-sender">
+                        <strong class="label">
+                            <?= $escaper->escapeHtml(__('From')) ?>
+                        </strong>
+                        <?= $escaper->escapeHtml($giftMessage->getSender()) ?>
+                    </dt>
+                    <dt class="item-recipient">
+                        <strong class="label">
+                            <?= $escaper->escapeHtml(__('To')) ?>
+                        </strong>
+                        <?= $escaper->escapeHtml($giftMessage->getRecipient()) ?>
+                    </dt>
+                    <dd class="item-message">
+                        <?= /* @noEscape */ $helper->getEscapedGiftMessage($item) ?>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    <?php endif ?>
+    <?php endforeach; ?>
+    <?php if ($block->isPagerDisplayed()): ?>
+        <?= $block->getPagerHtml() ?>
+    <?php endif ?>
+</div>

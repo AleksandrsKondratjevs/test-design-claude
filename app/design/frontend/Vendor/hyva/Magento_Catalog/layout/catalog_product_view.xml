@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+ -->
+<page layout="1column"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="maybe_purged_tailwind_section_classes" xsi:type="string">flex mb-4 md:mb-2 line-clamp-2 px-4 md:px-0 lg:px-0 mt-0 md:mt-0 lg:mt-0 md:sr-only</argument>
+                <argument name="css_class" xsi:type="string"></argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="description">
+            <arguments>
+                <argument name="title" xsi:type="string" translate="true">Description</argument>
+                <argument name="title_template" xsi:type="string">Magento_Catalog::product/view/sections/default-section-title.phtml</argument>
+                <argument name="sort_order" xsi:type="number">-20</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="product.detail.page">
+            <block name="product.cms.below_information" template="Magento_Catalog::product/view/cms-below-information.phtml"/>
+            <block name="product.cms.bottom" template="Magento_Catalog::product/view/cms-bottom.phtml"/>
+        </referenceBlock>
+
+        <referenceBlock name="product.info.additional">
+            <block name="product.cms.below_details" template="Magento_Catalog::product/view/cms-below-details.phtml"/>
+        </referenceBlock>
+
+        <referenceBlock name="related">
+            <arguments>
+                <argument name="title" xsi:type="string" translate="true">You might also like</argument>
+            </arguments>
+        </referenceBlock>
+
+        <block name="listing.product.swatch.item" template="Magento_Swatches::product/listing/swatch-item.phtml"/>
+    </body>
+</page>

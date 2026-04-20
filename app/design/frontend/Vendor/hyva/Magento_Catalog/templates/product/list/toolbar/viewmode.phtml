@@ -1,0 +1,71 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$viewIcons = [
+    'grid' => $heroicons->viewGridHtml('', 24, 24),
+    'list' =>  $heroicons->viewListHtml('', 24, 24)
+];
+
+$modes = $block->getModes();
+
+// phpcs:disable Generic.Files.LineLength
+?>
+
+<?php if ($block->isEnabledViewSwitcher()): ?>
+    <?php if ($modes && count($modes) > 1): ?>
+        <?php
+            $modesCount = count($modes);
+            $index = 0;
+        ?>
+        <nav
+            class="modes hidden md:flex gap-3"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Products view mode')) ?>"
+        >
+            <?php foreach ($modes as $code => $label): ?>
+                <button
+                    type="button"
+                    class="modes-mode flex gap-2 <?= ($block->isModeActive($code)) ? 'text-black' : 'hover:text-black text-grey' ?>"
+                    <?php if ($block->isModeActive($code)): ?>
+                        disabled
+                    <?php else: ?>
+                        @click.prevent="changeUrl(
+                            'product_list_mode',
+                            '<?= $escaper->escapeHtmlAttr(strtolower($code)) ?>',
+                            settings.modeDefault
+                        )"
+                    <?php endif; ?>
+                    data-role="mode-switcher"
+                    data-value="<?= $escaper->escapeHtmlAttr(strtolower($code)) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Products view mode - %1', $label)) ?>"
+                >
+                    <?= $viewIcons[$code] ?>
+                    <?= $label ?>
+                </button>
+                <?php $index++; ?>
+                <?php if ($index < $modesCount): ?>
+                        <div class="w-[1px] bg-primary-alpha-15"></div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </nav>
+    <?php else: ?>
+        <div class="modes w-20 order-1 col-span-1 sm:col-span-2 md:col-span-1 lg:col-span-2"></div>
+    <?php endif; ?>
+<?php endif; ?>

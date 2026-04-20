@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+?>
+<?php
+/**
+ * Blog post next and prev post links
+ *
+ * @var $block \Magefan\Blog\Block\Post\View\NextPrev
+ */
+?>
+
+<?php if ($block->displayLinks()) { ?>
+    <?php
+    $prevPost = $block->getPrevPost();
+    $nextPost = $block->getNextPost();
+    ?>
+    <?php if ($prevPost || $nextPost) { ?>
+        <div class="post-nextprev modern grid grid-cols-2 gap-x-8 mt-6 sm:mt-8 mb-8 sm:mb-16">
+            <div class="post-prev col-span-1">
+                <?php if ($prevPost) { ?>
+                    <?php $title = $prevPost->getTitle() ?>
+                    <a class="nextprev-link prev-link text-left no-underline"
+                        href="<?= $block->escapeUrl($prevPost->getPostUrl()) ?>"
+                        title="<?= $block->escapeHtml(__('Read %1', $title)) ?>">
+                        <span class="text-left block text-[#7E81A0] text-sm"><?= $block->escapeHtml(__('Previous')) ?></span>
+                        <span class="text-left block underline max-w-full overflow-hidden text-ellipsis whitespace-nowrap sm:whitespace-normal text-primary  font-bold text-base"><?= $block->escapeHtml($title) ?></span>
+                    </a>
+                <?php } ?>
+            </div>
+
+            <div class="post-next col-span-1">
+                <?php if ($nextPost) { ?>
+                    <?php $title = $nextPost->getTitle() ?>
+                    <a class="nextprev-link next-link text-right no-underline"
+                        href="<?= $block->escapeUrl($nextPost->getPostUrl()) ?>"
+                        title="<?= $block->escapeHtml(__('Read %1', $title)) ?>">
+                        <span class="text-right block text-[#bbb] text-sm"><?= $block->escapeHtml(__('Next')) ?></span>
+                        <span class="text-right block underline max-w-full overflow-hidden text-ellipsis whitespace-nowrap sm:whitespace-normal text-primary  font-bold text-base"><?= $block->escapeHtml($title) ?></span>
+                    </a>
+                <?php } ?>
+            </div>
+        </div>
+    <?php } ?>
+<?php } ?>

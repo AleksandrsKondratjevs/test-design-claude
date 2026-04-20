@@ -1,0 +1,178 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\LayeredNavigation\Block\Navigation\FilterRenderer;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var FilterRenderer $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$filterTitle = $block->getFilterTitle();
+$filterId = $block->getFilterId();
+$maxPriceFallbackValue = (int) $block->getMaxPriceFallbackValue() ?: 1000;
+
+/** @var array $filterItems */
+?>
+
+<div
+    aria-role="group"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('%1 filter options', $filterTitle)) ?>"
+    x-data="filterPriceRange_<?= $escaper->escapeHtmlAttr($filterId) ?>()"
+>
+    <div
+        class="multirange-slider"
+        :style="`--tw-range-fill-min: ${(minprice / max) * 100}; --tw-range-fill-max: ${(maxprice / max) * 100}`"
+    >
+        <label
+            for="<?= $escaper->escapeHtmlAttr($filterId) ?>-min-price"
+            class="sr-only"
+        ><?= $escaper->escapeHtml(__('Minimal %1', $filterTitle)) ?></label>
+        <input
+            id="<?= $escaper->escapeHtmlAttr($filterId) ?>-min-price"
+            type="range"
+            :step="step"
+            :min="min"
+            :max="max"
+            @input="mintrigger"
+            x-model="minprice"
+            :aria-valuetext="setPriceFilter(minprice, maxprice)"
+        >
+        <label
+            for="<?= $escaper->escapeHtmlAttr($filterId) ?>-max-price"
+            class="sr-only"
+        ><?= $escaper->escapeHtml(__('Maximum %1', $filterTitle)) ?></label>
+        <input
+            id="<?= $escaper->escapeHtmlAttr($filterId) ?>-max-price"
+            type="range"
+            :step="step"
+            :min="min"
+            :max="max"
+            @input="maxtrigger"
+            x-model="maxprice"
+            :aria-valuetext="setPriceFilter(minprice, maxprice)"
+        >
+    </div>
+    <div class="flex justify-between items-center py-4 gap-6" aria-hidden="true">
+        <input
+            type="number"
+            :step="step"
+            :min="min"
+            :max="max"
+            @input="mintrigger"
+            x-model="minprice"
+            class="w-full flex-auto rounded-sg border-slate-300 bg-slate-50"
+            tabindex="-1"
+        >
+        <span class="text-sm"><?= $escaper->escapeHtml(__('to')) ?></span>
+        <input
+            type="number"
+            :step="step"
+            :min="min"
+            :max="max"
+            @input="maxtrigger"
+            x-model="maxprice"
+            class="w-full flex-auto rounded-sg border-slate-300 bg-slate-50"
+            tabindex="-1"
+        >
+    </div>
+    <a
+        :href="setFilterUrl"
+        class="btn btn-primary btn-size-sm"
+        aria-label="<?= $escaper->escapeHtml(__('Apply %1 Filter', $filterTitle)) ?>"
+    ><?= $escaper->escapeHtml(__('Apply Filter')) ?></a>
+
+    <script>
+        function filterPriceRange_<?= $escaper->escapeHtmlAttr($filterId) ?>() {
+            const defaultMaxValue = <?= /* @noEscape */ $maxPriceFallbackValue ?>;
+            const getUrlSearchParamPrice = ({ url, value = 'max', getPrevious = false } = {}) => {
+                const searchParams = new URL(url || document.location).searchParams;
+                let paramPrice = searchParams.get("price");
+                if (!paramPrice) return;
+
+                if (paramPrice.includes(',')) {
+                    paramPrice = paramPrice.split(',');
+                    paramPrice = getPrevious ? paramPrice.pop() : paramPrice.shift();
+                };
+
+                if (value === 'min') {
+                    paramPrice = paramPrice.split('-')[0];
+                }
+
+                if (value === 'max') {
+                    paramPrice = paramPrice.split('-')[1];
+                }
+
+                return paramPrice;
+            }
+
+            return {
+                minprice: getUrlSearchParamPrice({ value: 'min' }) || 0,
+                maxprice: getUrlSearchParamPrice({ value: 'max' }) || defaultMaxValue,
+                initPriceFilter: '',
+                priceFilter: '',
+                min: 0,
+                max: defaultMaxValue,
+                step: 10,
+                init() {
+                    this.setMaxPrice();
+                    this.initPriceFilter = this.setPriceFilter(this.minprice, this.maxprice);
+                    this.priceFilter = this.setPriceFilter(this.minprice, this.maxprice);
+                    this.mintrigger();
+                    this.maxtrigger();
+
+                    this.$watch('minprice', () => {
+                        this.priceFilter = this.setPriceFilter(this.minprice, this.maxprice);
+                    });
+
+                    this.$watch('maxprice', () => {
+                        this.priceFilter = this.setPriceFilter(this.minprice, this.maxprice);
+                    });
+                },
+                mintrigger() {
+                    this.minprice = Math.min(this.minprice, this.maxprice - this.step);
+                },
+                maxtrigger() {
+                    this.maxprice = Math.max(this.maxprice, this.minprice + this.step);
+                },
+                setMaxPrice() {
+                    const params = new URL(document.location).searchParams;
+                    if (params.has('price')) {
+                        this.max = getUrlSearchParamPrice({ getPrevious: true }) || defaultMaxValue;
+                    } else {
+                        const getMaxPriceValue = getUrlSearchParamPrice({
+                            url: '<?= count($filterItems) > 0 ? end($filterItems)->getUrl() : '' ?>',
+                        });
+
+                        if (getMaxPriceValue) {
+                            this.max = getMaxPriceValue;
+                            this.maxprice = getMaxPriceValue;
+                        }
+                    }
+                },
+                setPriceFilter(min, max) {
+                    return `${min}-${max}`;
+                },
+                setFilterUrl() {
+                    let newUrl = new URL(document.location);
+                    let params = newUrl.searchParams;
+                    params.set("price", `${this.priceFilter},${this.setPriceFilter(this.min, this.max)}`);
+                    newUrl.searchParams = params;
+                    return newUrl;
+                },
+            }
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+</div>
+

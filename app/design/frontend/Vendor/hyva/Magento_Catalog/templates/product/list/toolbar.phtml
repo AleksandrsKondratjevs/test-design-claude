@@ -1,0 +1,106 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Toolbar $block */
+/** @var HyvaCsp $hyvaCsp */
+
+$uniqueId = '_' . uniqid();
+$additionalOptions = ['page' => 'p'];
+
+?>
+<script>
+    function initToolbar<?= /** @noEscape */  $uniqueId ?>() {
+        return {
+            settings: <?= /* @noEscape */ $block->getWidgetOptionsJson($additionalOptions) ?>.productListToolbarForm || {},
+
+            getUrlParams: function () {
+                let decode = window.decodeURIComponent,
+                    urlPaths = this.settings.url.split('?'),
+                    urlParams = urlPaths[1] ? urlPaths[1].split('&') : [],
+                    params = {},
+                    parameters, i;
+
+                for (i = 0; i < urlParams.length; i++) {
+                    parameters = urlParams[i].split('=');
+                    params[decode(parameters[0])] = parameters[1] !== undefined ?
+                        decode(parameters[1].replace(/\+/g, '%20')) :
+                        '';
+                }
+
+                return params;
+            },
+            getCurrentLimit: function () {
+                return this.getUrlParams()[this.settings.limit] || this.settings.limitDefault;
+            },
+            getCurrentPage: function () {
+                return this.getUrlParams()[this.settings.page] || 1;
+            },
+            changeUrl(paramName, paramValue, defaultValue) {
+                let urlPaths = this.settings.url.split('?'),
+                    baseUrl = urlPaths[0],
+                    paramData = this.getUrlParams(),
+                    currentPage = this.getCurrentPage(),
+                    newPage;
+
+                /**
+                 * calculates the page on which the first item of the current page will
+                 * be with the new limit and sets that number as the new page
+                 */
+                if (currentPage > 1 && paramName === this.settings.limit) {
+                    newPage = Math.floor(this.getCurrentLimit() * (currentPage - 1) / paramValue) + 1;
+
+                    if (newPage > 1) {
+                        paramData[this.settings.page] = newPage;
+                    } else {
+                        delete paramData[this.settings.page];
+                    }
+                }
+
+                paramData[paramName] = paramValue;
+
+                if (this.settings.post) {
+                    hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
+                } else {
+                    if (paramValue === defaultValue.toString()) {
+                        delete paramData[paramName];
+                    }
+                    paramData = Object.keys(paramData).length === 0
+                        ? ''
+                        : '?' + (new URLSearchParams(paramData));
+                    location.href = baseUrl + paramData
+                }
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<?php if ($block->getCollection()->getSize()): ?>
+    <div x-data="initToolbar<?= /** @noEscape */ $uniqueId ?>()"
+         class="toolbar toolbar-products grid grid-cols-2 md:grid-cols-[max-content_1fr] max-md:flex-col items-center justify-between gap-y-3 <?= $block->getIsBottom() ? 'gap-x-5 lg:grid-cols-8' : 'gap-x-3 md:gap-x-8' ?>">
+        <?php if ($block->getIsBottom()): ?>
+            <?= /** @noEscape */  $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+            <?= $block->getPagerHtml() ?>
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
+            <?php else: ?>
+                <?php if ($block->isExpanded()): ?>
+                    <?= /** @noEscape */  $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/total.phtml')) ?>
+                    <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/filters.phtml')) ?>
+                    <div class="flex items-center gap-8 md:order-2 justify-end">
+                        <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/viewmode.phtml')) ?>
+                        <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
+                    </div>
+            <?php endif ?>
+        <?php endif ?>
+    </div>
+<?php endif ?>

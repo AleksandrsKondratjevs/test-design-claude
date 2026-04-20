@@ -1,0 +1,524 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Block\Product\View\Gallery;
+use Magento\Catalog\Helper\Image;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Gallery $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var StoreConfig $storeConfig */
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var HeroiconsSolid $heroiconsSolid */
+$heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
+
+$images = $block->getGalleryImages()->getItems();
+$mainImage = current(array_filter($images, [$block, 'isMainImage']));
+
+if (!empty($images) && empty($mainImage)) {
+    $mainImage = reset($images);
+}
+
+/** @var Image $helper */
+$helper = $block->getData('imageHelper');
+$mainImageData = $mainImage ?
+    $mainImage->getData('medium_image_url') :
+    $helper->getDefaultPlaceholderUrl('image');
+
+$smallWidth = $block->getImageAttribute('product_page_image_small', 'width', 90);
+$smallHeight = $block->getImageAttribute('product_page_image_small', 'height', 90);
+$mediumWidth = $block->getImageAttribute('product_page_image_medium', 'width', 608);
+$mediumHeight = $block->getImageAttribute('product_page_image_medium', 'height', 608);
+
+$galleryOptionShowRelated = $storeConfig->getStoreConfig('catalog/product_video/show_related') ?? false;
+$galleryOptionVideoLoop = $storeConfig->getStoreConfig('catalog/product_video/video_auto_restart') ?? false;
+
+$productName = $block->getProduct()->getName();
+?>
+
+<script>
+    function initGallery () {
+        let touchXDown, touchYDown;
+
+        return {
+            "active": 0,
+            "videoData": {},
+            "activeVideoType": false,
+            "autoplayVideo": false,
+            "loopVideo": <?= $galleryOptionVideoLoop ? 'true' : 'false' ?>,
+            "relatedVideos": <?= $galleryOptionShowRelated ? 'true' : 'false' ?>,
+            "vimeoPlayer": null,
+            "fullscreen": false,
+            "isSlider": false,
+            "initialImages": <?= /* @noEscape */ $block->getGalleryImagesJson() ?>,
+            "images": <?= /* @noEscape */ $block->getGalleryImagesJson() ?>,
+            "appendOnReceiveImages": <?=
+                $block->getVar('gallery_switch_strategy', 'Magento_ConfigurableProduct') === 'append' ? 'true' : 'false'
+            ?>,
+            "activeSlide": 0,
+            "isSliderStart": true,
+            "isSliderEnd": false,
+            "itemCount": 0,
+            "pageSize": 4,
+            "pageFillers": 0,
+            "focusTrapListener": null,
+            thumbnailsSlider: undefined,
+            gallerySlider: undefined,
+
+            init() {
+                this.initializeThumbnailsSwiper();
+                this.initializeGallerySwiper();
+
+                this.$watch('active', (index) => {
+                    this.gallerySlider.slideTo(index);
+                    this.setActive(index);
+                })
+
+                this.$watch('images', () => {
+                    this.gallerySlider.update();
+                    this.thumbnailsSlider.update();
+                })
+
+                this.$watch('fullscreen', open => {
+                    this.$nextTick(() => {
+                        this.scrollLock(open);
+                    });
+                })
+            },
+            scrollLock(use = true) {
+                document.body.style.overflow = use ? "hidden" : "";
+            },
+            initializeGallerySwiper() {
+                const swiperOptions = {
+                    slidesPerView: 1,
+                    mousewheel: {
+                        forceToAxis: true
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    thumbs: {
+                        swiper: this.thumbnailsSlider,
+                        autoScrollOffset: 0.5
+                    },
+                    breakpoints: {
+                        1440: {
+                            thumbs: {
+                                autoScrollOffset: 1
+                            },
+                        },
+                    },
+                    on: {
+                        slideChange: (slider) => {
+                            this.active = slider.activeIndex;
+                        }
+                    }
+                };
+
+                initSwiperSlider(this.$refs.gallery, swiperOptions).then((swiperInstance) => {
+                    this.gallerySlider = swiperInstance;
+                });
+            },
+            initializeThumbnailsSwiper() {
+                const swiperOptions = {
+                    slidesPerView: 'auto',
+                    spaceBetween: 8,
+                    navigation: {
+                        nextEl: '.thumbs-swiper-button-next',
+                        prevEl: '.thumbs-swiper-button-prev',
+                    },
+                    mousewheel: {
+                        forceToAxis: true
+                    },
+                    breakpoints: {
+                        1024: {
+                            spaceBetween: 16,
+                        },
+                    },
+                };
+
+                initSwiperSlider(this.$refs.thumbnails, swiperOptions).then((swiperInstance) => {
+                    this.thumbnailsSlider = swiperInstance;
+                });
+            },
+            receiveImages(images) {
+                if (this.appendOnReceiveImages) {
+                    const initialUrls = this.initialImages.map(image => image.full);
+                    const newImages = images.filter(image => ! initialUrls.includes(image.full));
+                    this.images = [].concat(this.initialImages, newImages);
+                    this.setActive(newImages.length ? this.initialImages.length : 0);
+                } else {
+                    this.images = images;
+                    this.setActive(0);
+                }
+
+                this.itemCount = this.images.length;
+            },
+            resetGallery() {
+                this.images = this.initialImages;
+                this.itemCount = this.images.length;
+                this.initActive();
+            },
+            initActive() {
+                let active = this.images.findIndex(function(image) {
+                    return image.isMain === true
+                });
+                if (active === -1) {
+                    active = 0;
+                }
+                this.setActive(active);
+            },
+            setActive(index) {
+                this.active = index;
+                this.activeVideoType = false;
+                if (window.youtubePlayer) {
+                    window.youtubePlayer.stopVideo();
+                }
+                if (this.vimeoPlayer) {
+                    this.vimeoPlayer.contentWindow.postMessage(JSON.stringify({"method": "pause"}), "*");
+                }
+                if (this.images[index].type === 'video' && this.autoplayVideo) {
+                    this.activateVideo();
+                }
+            },
+            activateVideo() {
+                const videoData = this.getVideoData();
+
+                if (!videoData) { return }
+
+                this.activeVideoType = videoData.type;
+
+                if (videoData.type === "youtube") {
+                    if (!window.youtubePlayer) {
+                        this.initYoutubeAPI(videoData);
+                    } else {
+                        window.youtubePlayer.loadVideoById(videoData.id);
+                    }
+
+                } else if (videoData.type === "vimeo") {
+                    this.initVimeoVideo(videoData);
+                }
+            },
+            getVideoData() {
+                const videoUrl = this.images[this.active] && this.images[this.active].videoUrl;
+
+                if (!videoUrl) { return }
+
+                let id,
+                    type,
+                    youtubeRegex,
+                    vimeoRegex,
+                    useYoutubeNoCookie = false;
+
+                if (videoUrl.match(/youtube\.com|youtu\.be|youtube-nocookie.com/)) {
+                    id = videoUrl.replace(/^\/(embed\/|v\/)?/, '').replace(/\/.*/, '');
+                    type = 'youtube';
+
+                    youtubeRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+                    id = videoUrl.match(youtubeRegex)[1];
+
+                    if (videoUrl.match(/youtube-nocookie.com/)) {
+                        useYoutubeNoCookie = true;
+                    }
+                } else if (videoUrl.match(/vimeo\.com/)) {
+                    type = 'vimeo';
+                    vimeoRegex = new RegExp(['https?:\\/\\/(?:www\\.|player\\.)?vimeo.com\\/(?:channels\\/(?:\\w+\\/)',
+                        '?|groups\\/([^\\/]*)\\/videos\\/|album\\/(\\d+)\\/video\\/|video\\/|)(\\d+)(?:$|\\/|\\?)'
+                    ].join(''));
+                    id = videoUrl.match(vimeoRegex)[3];
+                }
+
+                return id ? {
+                    id: id, type: type, useYoutubeNoCookie: useYoutubeNoCookie
+                } : false;
+            },
+            initYoutubeAPI(videoData) {
+                if (document.getElementById('loadYoutubeAPI')) {
+                    return;
+                }
+                const params = {
+                    "autoplay": true
+                };
+                const loadYoutubeAPI = document.createElement('script');
+                loadYoutubeAPI.src = 'https://www.youtube.com/iframe_api';
+                loadYoutubeAPI.id = 'loadYoutubeAPI';
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(loadYoutubeAPI, firstScriptTag);
+
+                const host = (videoData.useYoutubeNoCookie) ?
+                    'https://www.youtube-nocookie.com' :
+                    'https://www.youtube.com';
+
+                if (!this.relatedVideos) {
+                    params.rel = 0;
+                }
+                const fireYoutubeAPI = document.createElement('script');
+                fireYoutubeAPI.innerHTML = `function onYouTubeIframeAPIReady() {
+                    window.youtubePlayer = new YT.Player('youtube-player', {
+                        host: '${host}',
+                        videoId: '${videoData.id}',
+                        playerVars: ${JSON.stringify(params)},
+                    });
+                }`;
+                firstScriptTag.parentNode.insertBefore(fireYoutubeAPI, firstScriptTag);
+            },
+            initVimeoVideo(videoData) {
+                let additionalParams = '&autoplay=1';
+                let src = '';
+
+                const timestamp = new Date().getTime();
+                const vimeoContainer = document.getElementById("vimeo-player");
+                const videoId = videoData.id;
+
+                if (!vimeoContainer || !videoId) return;
+
+                if (this.loopVideo) {
+                    additionalParams += '&loop=1';
+                }
+                src = 'https://player.vimeo.com/video/' +
+                    videoId + '?api=1&player_id=vimeo' +
+                    videoId +
+                    timestamp +
+                    additionalParams;
+                vimeoContainer.innerHTML =
+                    `<iframe id="${'vimeo' + videoId + timestamp}"
+                        src="${src}"
+                        width="640" height="360"
+                        webkitallowfullscreen
+                        mozallowfullscreen
+                        allowfullscreen
+                        referrerPolicy="origin"
+                        allow="autoplay"
+                        class="object-center w-full h-full object-fit"
+                     ></iframe>`;
+
+                this.vimeoPlayer = vimeoContainer.childNodes[0];
+            },
+            getSlider() {
+                return this.$refs.jsThumbSlides;
+            },
+            eventListeners: {
+                ['@keydown.window.escape']() {
+                    if (!this.fullscreen) return;
+                    this.closeFullScreen()
+                },
+                ['@update-gallery.window'](event) {
+                    this.receiveImages(event.detail);
+                },
+                ['@reset-gallery.window'](event) {
+                    this.resetGallery();
+                },
+                ['@keyup.arrow-right.window']() {
+                    if (!this.fullscreen) return;
+                    this.nextItem();
+                },
+                ['@keyup.arrow-left.window']() {
+                    if (!this.fullscreen) return;
+                    this.previousItem();
+                },
+            },
+            openFullscreen() {
+                this.fullscreen = true;
+
+                hyva.trapFocus(this.$root);
+            },
+            closeFullScreen(setFocusTo = this.$refs.galleryFullscreenBtn) {
+                this.fullscreen = false;
+                hyva.releaseFocus(this.$root);
+                this.$nextTick(() => {
+                    setFocusTo && setFocusTo.focus()
+                });
+            }
+        }
+     }
+</script>
+<div id="gallery"
+     x-data="initGallery()"
+     x-bind="eventListeners"
+     class="max-md:-mx-4 md:h-auto md:row-start-1 md:row-span-2 md:col-start-1 relative"
+    >
+    <div
+        :class="{'w-full h-full fixed top-0 start-0 bg-white z-50 flex flex-col': fullscreen}"
+        :role="fullscreen ? 'dialog' : false"
+        :aria-modal="fullscreen"
+        :aria-label="fullscreen ? '<?= $escaper->escapeJs(__('Gallery modal fullscreen')) ?>' : false"
+        id="gallery-main"
+    >
+        <div class="hidden z-20 p-4" :class="{ 'hidden': !fullscreen, 'block': fullscreen }">
+            <button @click="closeFullScreen()"
+                    type="button"
+                    class="hidden ms-auto text-black"
+                    :class="{ 'hidden': !fullscreen, 'block': fullscreen }"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close fullscreen')) ?>"
+            >
+                <?= $heroicons->xHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+        <?php
+            /**
+             * The first image is a placeholder that determines the
+             * aspect ratio for the gallery. It will be hidden as
+             * soon as JS is loaded, but will keep reserving the
+             * necessary space in the layout for the other (absolute positioned)
+             * images.
+             */
+        ?>
+        <img
+            alt="<?= $mainImage ? $escaper->escapeHtmlAttr($mainImage->getData('label')) : '' ?>"
+            title="<?= $mainImage ? $escaper->escapeHtmlAttr($mainImage->getData('label')) : '' ?>"
+            class="object-contain object-center max-md:w-screen w-full h-auto top-0"
+            :class="{'hidden': true}"
+            src="<?= /* @noEscape */ $mainImageData ?>"
+            width="<?= /* @noEscape */ $mediumWidth ?>"
+            height="<?= /* @noEscape */ $mediumHeight ?>"
+            itemprop="image"
+        >
+        <div class="md:relative max-md:max-w-[100vw]" :class="{ 'max-w-[828px] mx-auto my-auto': fullscreen }">
+            <div
+                class="swiper z-10 overflow-hidden relative px-0! mx-0! rounded-xs"
+                x-ref="gallery"
+            >
+                <div class="relative swiper-wrapper flex" aria-live="polite" aria-atomic="true">
+                    <template x-for="(image, index) in images" :key="index">
+                        <img
+                            :alt="image.caption || '<?= $escaper->escapeJs($productName) ?>'"
+                            :title="image.caption || '<?= $escaper->escapeJs($productName) ?>'"
+                            class="object-contain object-center shrink-0  swiper-slide"
+                            :class="{ 'max-h-screen-75': fullscreen, 'my-auto': fullscreen }"
+                            width="<?= /* @noEscape */ $mediumWidth ?>"
+                            height="<?= /* @noEscape */ $mediumHeight ?>"
+                            :loading="active !== index ? 'lazy' : 'eager'"
+                            :src="fullscreen ? image.full : image.img"
+                            x-transition.opacity.duration.500ms
+                        >
+                    </template>
+                </div>
+                <button
+                    x-cloak
+                    class="absolute bottom-4 end-4 p-1.5 bg-white rounded-sm z-20"
+                    @click="fullscreen = true"
+                    :class="{ 'hidden': fullscreen, 'block': !fullscreen }"
+                >
+                    <?= $heroicons->zoomInHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                </button>
+                <button
+                    type="button"
+                    class="group absolute inset-0 z-10 outline-offset-2 grid place-items-center"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Play video')) ?>"
+                    x-show="images[active].type === 'video' && !activeVideoType"
+                    x-cloak
+                    @click="activateVideo()"
+                    @keydown.enter="activateVideo()"
+                >
+                    <?= $heroiconsSolid->playHtml(
+                        'stroke-white/75 fill-black/20 transition ease-in group-hover:scale-110 md:w-24 md:h-24',
+                        44,
+                        44,
+                        ['aria-hidden' => 'true']
+                    ); ?>
+                </button>
+                <div class="absolute inset-0 z-20 hidden w-full h-full bg-white nonmobile"
+                     :class="{ 'hidden': activeVideoType !== 'youtube' }"
+                     x-transition.opacity.duration.500ms
+                     x-show="images[active].type === 'video' && activeVideoType === 'youtube'"
+                >
+                    <div id="youtube-player" class="w-full h-full"></div>
+                </div>
+                <div class="absolute inset-0 z-20 hidden w-full h-full bg-white"
+                     :class="{ 'hidden': activeVideoType !== 'vimeo' }"
+                     x-transition.opacity.duration.500ms
+                     x-show="images[active].type === 'video' && activeVideoType === 'vimeo'"
+                >
+                    <div id="vimeo-player" class="w-full h-full"></div>
+                </div>
+            </div>
+            <?=
+                $this->getLayout()
+                    ->createBlock('Magento\Framework\View\Element\Template')
+                    ->setTemplate('Scandiweb_ContentTypes::carousel-nav.phtml')
+                    ->setData('is_show_arrows', true)
+                    ->setData('pagination', 'none')
+                    ->setData('arrows_container_class', 'max-md:mb-8 px-4 md:top-1/2')
+                    ->setData(
+                        'arrows_container_conditional_class',
+                        "{ 'max-md:pb-3 md:px-0 md:-ms-[52px] md:w-[calc(100%+104px)]': fullscreen }"
+                    )
+                    ->setData('arrows_wrapper_class', 'md:mx-0')
+                    ->toHtml();
+            ?>
+        </div>
+
+        <div class="max-md:mx-[76px] relative" :class="{ 'hidden': images.length <= 1 }">
+            <div
+                id="thumbs"
+                class="flex items-center gap-4 mt-3 md:mt-4 min-h-[88px] overflow-hidden"
+                :class="{ 'mt-3 md:mt-4': !fullscreen, 'my-4': fullscreen }"
+            >
+                <div
+                    class="swiper mx-0! px-0!"
+                    :class="{ 'px-4!': fullscreen, 'px-0!': !fullscreen }"
+                    x-ref="thumbnails"
+                >
+                    <div class="swiper-wrapper flex">
+                        <template x-for="(image, index) in images" :key="index">
+                            <div class="swiper-slide max-w-[88px] min-w-[88px]">
+                                <button
+                                    type="button"
+                                    @click="active = index"
+                                    class="relative block border-2 rounded-xs border-transparent hover:md:border-primary focus:md:border-primary"
+                                    :class="{'border-primary': active === index, 'border-transparent': active !== index}"
+                                >
+                                    <span class="sr-only">
+                                        <?= $escaper->escapeHtml('View larger image') ?>
+                                    </span>
+                                    <img
+                                        :src="image.thumb"
+                                        :alt="image.caption || '<?= $escaper->escapeJs(__("%1 thumbnail", $productName)) ?>'"
+                                        :title="image.caption || '<?= $escaper->escapeJs(__("%1 thumbnail", $productName)) ?>'"
+                                        width="<?= /* @noEscape */ $smallWidth ?>"
+                                        height="<?= /* @noEscape */ $smallHeight ?>"
+                                    >
+                                    <span
+                                        class="absolute inset-0 grid place-items-center"
+                                        x-show="image.type === 'video'"
+                                    >
+                                        <?= $heroicons->videoCameraHtml('stroke-white/75 fill-black/20', 24, 24, ['aria-hidden' => 'true']); ?>
+                                    </span>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-arrows-container visible! top-1/2 md:hidden">
+                <div class="swiper-arrows-container-wrapper">
+                    <div class="swiper-button-prev thumbs-swiper-button-prev -ml-14">
+                        <?= $heroicons->arrowLeftHtml('rtl:rotate-180', 20, 20, ['aria-hidden' => 'true']); ?>
+                    </div>
+                    <div class="swiper-button-next thumbs-swiper-button-next -mr-14">
+                        <?= $heroicons->arrowRightHtml('rtl:rotate-180', 20, 20, ['aria-hidden' => 'true']); ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

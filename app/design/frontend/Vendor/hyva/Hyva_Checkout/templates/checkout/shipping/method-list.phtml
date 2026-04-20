@@ -1,0 +1,129 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Checkout\Model\ShippingMethodMetaData;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Checkout\ViewModel\Checkout\Formatter as FormatterViewModel;
+use Hyva\Checkout\ViewModel\Checkout\Shipping\MethodList as ViewModel;
+use Hyva\Checkout\Magewire\Checkout\Shipping\MethodList as Magewire;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Quote\Api\Data\ShippingMethodInterface;
+use Magento\Tax\Helper\Data as TaxHelper;
+use Hyva\Theme\ViewModel\Store;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var ViewModel $viewModel */
+/** @var ShippingMethodInterface $method */
+/** @var Magewire $magewire */
+/** @var Escaper $escaper */
+/** @var TaxHelper $taxHelper */
+/** @var Store $storeViewModel */
+
+$viewModel = $viewModels->require(ViewModel::class);
+$formatterViewModel = $viewModels->require(FormatterViewModel::class);
+$taxHelper = $this->helper(TaxHelper::class);
+$storeViewModel = $viewModels->require(Store::class);
+$storeId = $storeViewModel->getStoreId();
+$methods = $viewModel->getList();
+?>
+<div id="shipping-methods">
+    <?php if ($methods): ?>
+        <div id="shipping-method-list" class="flex flex-col space-y-2">
+            <?php foreach ($methods as $method): ?>
+                <?php if ($method->getAvailable()): ?>
+                    <?php $methodCode = $escaper->escapeHtml($method->getMethodCode()) ?>
+                    <?php $methodCodeAttr = $escaper->escapeHtmlAttr($method->getMethodCode()) ?>
+                    <?php $methodCarrierCode = $escaper->escapeHtmlAttr($method->getCarrierCode()) ?>
+                    <?php $methodTitle = $escaper->escapeHtml($viewModel->getMethodTitle($method) ?: __('Unknown')) ?>
+                    <?php /** @var ShippingMethodMetaData $methodMetaData */ ?>
+                    <?php $methodMetaData = $viewModel->getMethodMetaData($block, $method) ?>
+
+                    <div
+                        id="shipping-method-option-<?= /* @noEscape */ $methodCode ?>"
+                        class="border bg-white rounded-sm <?= $magewire->method === $methodCarrierCode . '_' . $methodCodeAttr ? 'active border-primary' : 'inactive border-white' ?>"
+                        wire:key="<?= /* @noEscape */ $methodCodeAttr ?>"
+                        data-disabled="<?= ! $method->getErrorMessage() ? 'false' : 'true' ?>"
+                        x-data="hyvaCheckoutShippingMethodOption"
+                    >
+                        <label class="flex gap-x-4 mb-0 p-4 cursor-pointer items-center">
+                            <div class="field choice !flex">
+                                <input type="radio"
+                                    class="radio relative !mt-0"
+                                    id="shipping-method-<?= /* @noEscape */ $methodCodeAttr ?>"
+                                    name="shipping-method-option"
+                                    value="<?= $escaper->escapeHtmlAttr($methodCarrierCode . '_' . $methodCodeAttr) ?>"
+                                    wire:model="method"
+                                    x-bind:disabled="disabled"
+                                />
+                            </div>
+                            <span
+                                class="flex flex-1 w-full items-center justify-between cursor-pointer gap-x-4 gap-y-2"
+                                for="shipping-method-<?= /* @noEscape */ $methodCodeAttr ?>"
+                            >
+                                <span class="hyphens-auto break-words text-base font-bold">
+                                    <?= /** @noEscape */ $methodTitle ?>
+                                </span>
+
+                                <?php if ($methodMetaData->canRenderIcon() && $iconHtml = $methodMetaData->renderIcon()): ?>
+                                    <div class="shrink-0">
+                                        <?= /* @noEscape */ $iconHtml; ?>
+                                    </div>
+                                <?php endif ?>
+                                    <div class="product-price">
+                                        <?php if ($taxHelper->displayShippingPriceIncludingTax() || $taxHelper->displayShippingBothPrices()): ?>
+                                            <span class="price-including-tax" data-label="<?= $escaper->escapeHtmlAttr(__('Incl. Tax')) ?>">
+                                                <?= /* @noEscape */ $formatterViewModel->currencyWithLabelingConditions($method->getPriceInclTax(), 'shipping-list-item') ?>
+                                            </span>
+                                        <?php endif ?>
+
+                                        <?php if (($taxHelper->displayShippingPriceExcludingTax() || $taxHelper->displayShippingBothPrices() || $taxHelper->getShippingTaxClass($storeId) === 0)): ?>
+                                            <span class="price-excluding-tax" data-label="<?= $escaper->escapeHtmlAttr(__('Excl. Tax')) ?>">
+                                                <?= /* @noEscape */ $formatterViewModel->currencyWithLabelingConditions($method->getPriceExclTax(), 'shipping-list-item') ?>
+                                            </span>
+                                        <?php endif ?>
+                                    </div>
+                            </span>
+                        </label>
+                        <?php if (($method->getErrorMessage()) || ($viewModel->isCurrentShippingMethod($method, $magewire->method))): ?>
+                            <div class="flex-1 space-y-2">
+                                <?php if ($method->getErrorMessage()): ?>
+                                    <div class="p-4 pt-0">
+                                        <div role="alert" class="messages w-full">
+                                            <p class="message error mb-0">
+                                                <?= $escaper->escapeHtml(__($method->getErrorMessage())) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                <?php endif ?>
+
+                                <?php if ($viewModel->isCurrentShippingMethod($method, $magewire->method)): ?>
+                                    <?php if ($viewModel->hasAdditionalView($block, $method)): ?>
+                                        <?php $html = $viewModel->getAdditionalViewBlock($block, $method)->toHtml() ?>
+                                        <?php if (! empty($html)): ?>
+                                            <div class="p-4 pt-0">
+                                                <div id="<?= /* @noEscape */ 'shipping-method-view-' . $methodCodeAttr ?>"
+                                                     class="w-full mt-4"
+                                                >
+                                                    <?= /* @noEscape */ $html ?>
+                                                </div>
+                                            </div>
+                                        <?php endif ?>
+                                    <?php endif ?>
+                                <?php endif ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+                <?php endif ?>
+            <?php endforeach ?>
+        </div>
+    <?php endif ?>
+</div>

@@ -1,0 +1,51 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\View;
+
+/** @var View $block */
+
+$product = $block->getProduct();
+?>
+<section class="body-font container mb-4 md:mb-8">
+    <div class="flex lg:flex-row flex-col items-center">
+        <div class="grid grid-rows-auto grid-cols-1 md:gap-x-5 md:grid-cols-[49.4%_minmax(0,_1fr)] md:grid-rows-[min-content_minmax(0,_1fr)] lg:gap-x-16 w-full">
+            <?= $block->getChildHtml('product.media') ?>
+            <?= $block->getChildHtml('product.info') ?>
+        </div>
+    </div>
+</section>
+
+<?= $block->getChildHtml('product.cms.below_information') ?>
+
+<section>
+    <?= $block->getChildHtml('product_options_wrapper_bottom') ?>
+</section>
+
+<div class="bg-container-darker py-16 mt-16">
+    <div class="container">
+        <?= $block->getChildHtml('product.info.details'); ?>
+    </div>
+</div>
+
+<section class="container">
+    <?= $block->getChildHtml('related') ?>
+    <?= $block->getChildHtml('upsell') ?>
+</section>
+
+<section class="bg-container-darker py-16">
+    <div class="container">
+        <div class="max-w-[808px] mx-auto">
+            <?= $block->getChildHtml('review_list') ?>
+            <?= $block->getChildHtml('review_form') ?>
+        </div>
+    </div>
+</section>
+
+<?= $block->getChildHtml('product.cms.bottom') ?>

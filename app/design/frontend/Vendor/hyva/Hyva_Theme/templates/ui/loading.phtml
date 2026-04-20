@@ -1,0 +1,24 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\ViewModel\SvgIcons;
+
+/** @var SvgIcons $hyvaicons */
+$hyvaicons = $viewModels->require(SvgIcons::class);
+?>
+<div class="flex flex-row justify-center items-center w-full h-full fixed select-none z-50"
+    style="left: 50%;top: 50%;transform: translateX(-50%) translateY(-50%);background: rgba(255,255,255,0.7);"
+    x-show="isLoading"
+    x-cloak
+    x-transition:enter="ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="ease-in duration-200"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0">
+    <?= $hyvaicons->renderHtml('loader', 'animate-[spin_2s_linear_infinite] text-primary', 60, 60); ?>
+</div>

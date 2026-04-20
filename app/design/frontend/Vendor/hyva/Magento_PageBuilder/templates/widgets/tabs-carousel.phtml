@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$uniqueId = '_' . uniqid('');
+
+?>
+<script>
+    'use strict';
+
+    const initTabsSlider = (elements) => {
+        const initSlider = (slider) => {
+            slider.parentElement.classList.add('relative');
+            slider.classList.add('swiper');
+
+            const slidesWrapper = slider.querySelector('[data-content-type="block-tabs-wrapper"]')
+            slidesWrapper.classList.add('swiper-wrapper');
+
+            slider.insertAdjacentHTML(
+                'beforeend',
+                '<?= $escaper->escapeJs(
+                    $this->getLayout()
+                        ->createBlock('Magento\Framework\View\Element\Template')
+                        ->setTemplate('Scandiweb_ContentTypes::carousel-nav.phtml')
+                        ->setData('is_show_arrows', false)
+                        ->setData('pagination', 'progressbar')
+                        ->setData('unique_id', $uniqueId)
+                        ->toHtml()
+                ) ?>'
+            );
+
+            const slides = slider.querySelectorAll('[data-content-type="block-tabs-slide"]');
+
+            slides.forEach(slide => {
+                slide.classList.add('swiper-slide');
+            });
+
+            const swiperOptions = {
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                scrollbar: {
+                    el: '.swiper-scrollbar<?= $uniqueId ?>',
+                    draggable: true,
+                },
+            };
+
+            initSwiperSlider(slider, swiperOptions);
+        };
+
+        elements.forEach(element => {
+            initSlider(element);
+        });
+    }
+
+    document.addEventListener('alpine:init', () => {
+        const carouselElements = document.querySelectorAll(
+            `[data-content-type="block-tabs"]`
+        );
+
+        if (carouselElements.length > 0) {
+            initTabsSlider(carouselElements);
+        }
+    });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

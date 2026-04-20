@@ -1,0 +1,166 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\Navigation;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var Navigation $viewModelNavigation */
+$viewModelNavigation = $viewModels->require(Navigation::class, $block);
+
+$uniqueId = '_' . uniqid();
+$maxLevel = $block->getmaxLevel() ?: 3;
+
+// Order is important here: 1. build the menu data, 2. then set the cache tags from the view model identities
+$menu = $viewModelNavigation->getNavigation(2 + $maxLevel);
+$block->setData('cache_tags', $viewModelNavigation->getIdentities());
+
+$showSettingsNav = $block->getShowSettingsNav() !== null ? $block->getShowSettingsNav() : true;
+
+$itemClasses = "flex items-center gap-1 py-3 px-6 border-b border-slate-200 hover:text-slate-700 aria-[current=page]:text-blue-700 aria-[current=page]:font-bold -outline-offset-1";
+?>
+
+<nav aria-label="<?= __('Site navigation') ?>" class="navigation lg:hidden" x-data="initMobileMenu" @sub-menu-state-change.window="hasActiveSubMenu">
+    <button
+        type="button"
+        class="align-middle"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Open menu')) ?>"
+        aria-controls="mobileMenu"
+        x-ref="mobileMenuTrigger"
+        @click="open"
+    >
+        <?= $heroicons->menuHtml('', 24, 24, ["aria-hidden" => "true"]) ?>
+    </button>
+
+    <dialog
+        id="mobileMenu"
+        class="max-h-full h-screen max-sm:max-w-none w-full ms-0 top-0 flex-col transition ease-out duration-300 open:duration-500 open:flex me-0"
+        x-show="isOpen"
+        role="dialog"
+        aria-modal="true"
+        x-htmldialog.noscroll="close"
+        x-ref="mobileMenuNavLinks"
+        x-transition:enter-start="ltr:-translate-x-full rtl:translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="ltr:-translate-x-full rtl:translate-x-full"
+    >
+        <div class="border-b border-primary-alpha-15">
+            <div class="flex items-center gap-2 py-4 px-6">
+                <button
+                    type="button"
+                    @click="close"
+                    class="ms-auto"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close menu')) ?>"
+                >
+                    <?= $heroicons->xHtml('', 24, 24, ["aria-hidden" => "true"]) ?>
+                </button>
+            </div>
+        </div>
+        <div class="grow relative flex flex-col overflow-y-auto overflow-x-hidden" :style="lockWrapperScroll">
+            <nav class="grow" aria-label="<?= $escaper->escapeHtmlAttr(__('Mobile Main Menu')) ?>" role="navigation">
+                <ul class="list-none">
+                    <?php foreach ($menu as $item): ?>
+                        <?=
+                            $block->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Magento_Theme::html/header/menu/mobile-item.phtml')
+                            ->setData([
+                                'item' => $item,
+                                'level' => 0,
+                                'itemClass' => $itemClasses,
+                            ])
+                            ->toHtml();
+                        ?>
+                    <?php endforeach; ?>
+                </ul>
+            </nav>
+            <?php if ($showSettingsNav): ?>
+                <div class="sticky bottom-0 px-4 pt-5 pb-[52px] grid grid-cols-[60%_1fr] gap-4 bg-container-darker mt-auto md:hidden" :tabindex="isSubMenuOpen ? -1 : 0">
+                    <?= $block->getChildHtml('menu.store-language-switcher') ?>
+                    <?= $block->getChildHtml('menu.currency-switcher') ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?= $block->getChildHtml('additional') ?>
+    </dialog>
+</nav>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('initMobileMenu', () => ({
+            isOpen: false,
+            isSubMenuOpen: false,
+            isOverflowing: false,
+            init() {
+                Array.from(this.$root.querySelectorAll('a')).forEach(link => {
+                    if (link.href === `${window.location.origin}${window.location.pathname}`) {
+                        link.setAttribute('aria-current', 'page');
+                    }
+                });
+            },
+            open() {
+                this.isOpen = true;
+                this.$nextTick(() => hyva.trapFocus(this.$refs.mobileMenuNavLinks));
+            },
+            close() {
+                this.isOpen = false;
+                this.$nextTick(() => this.$refs.mobileMenuTrigger.focus() || hyva.releaseFocus());
+            },
+            lockWrapperScroll() {
+                return this.isSubMenuOpen ? { overflow: 'hidden' } : {}
+            },
+            hasActiveSubMenu() {
+                this.isSubMenuOpen = !!this.$root.querySelector('[data-open]');
+            }
+        }));
+
+        Alpine.data('initMobileSubMenu', () => ({
+            isOpen: false,
+            open() {
+                this.isOpen = true;
+                this.$root.setAttribute('data-open', '');
+                this.$nextTick(() => {
+                    this.$dispatch('sub-menu-state-change');
+                    this.$refs.closeSubMenuBtn.focus();
+                    hyva.trapFocus(this.$refs.subMenu);
+                    this.toggleInert();
+                })
+            },
+            close() {
+                this.isOpen = false;
+                this.$root.removeAttribute('data-open');
+                this.toggleInert();
+                this.$nextTick(() => {
+                    this.$dispatch('sub-menu-state-change')
+                    this.$refs.openSubMenuBtn.focus();
+                    hyva.trapFocus(this.$refs.mobileMenuNavLinks);
+                })
+            },
+            toggleInert() {
+                const items = this.$root.parentElement.children;
+
+                for (item of items) {
+                    if (item.hasAttribute('data-open')) continue;
+                    item.toggleAttribute('inert', this.isOpen);
+                }
+            }
+        }));
+    });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

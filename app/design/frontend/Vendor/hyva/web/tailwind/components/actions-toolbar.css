@@ -1,0 +1,18 @@
+@layer components {
+    .actions-toolbar {
+        @apply mt-6 flex gap-2 max-md:flex-col flex-wrap items-center;
+
+        button {
+            @apply max-md:w-full;
+        }
+
+        /* @deprecated */
+        & a.back {
+            @apply no-underline max-md:w-full;
+        }
+
+        & .primary button {
+            @apply btn btn-primary;
+        }
+    }
+}

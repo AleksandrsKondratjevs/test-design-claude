@@ -1,0 +1,105 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Magento\Framework\Escaper;
+use Magento\GiftMessage\Helper\Message;
+use Magento\Sales\Block\Order\View;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var View $block */
+/** @var Escaper $escaper */
+
+$giftMessageHelper = $this->helper(Message::class);
+
+$order = $block->getOrder();
+?>
+<div class="flex max-md:flex-col md:justify-between gap-4">
+    <div class="flex gap-5 justify-between items-center">
+        <div class="lg:inline-block">
+            <h4><?= $escaper->escapeHtml(__('Order # %1', $order->getRealOrderId())) ?></h4>
+            <?= $block->getChildHtml('order.date') ?>
+        </div>
+        <div>
+            <?= $block->getChildHtml('order.status') ?>
+        </div>
+    </div>
+    <div class="flex gap-3 max-lg:flex-col justify-end">
+        <?php if (!$block->getData('is_context_shipment')): ?>
+            <?= $block->getChildHtml('sales.order.buttons') ?>
+        <?php else: ?>
+            <?= $block->getChildHtml('sales.shipment.buttons') ?>
+        <?php endif; ?>
+    </div>
+</div>
+<div class="order-details-items ordered bg-container-lighter">
+    <div class="mt-6 mb-3">
+        <?= $block->getChildHtml('order_top_items') ?>
+    </div>
+    <div class="flex flex-col">
+        <?= $block->getChildHtml('sales.order.info') ?>
+
+        <?= $block->getChildHtml('order.comments') ?>
+
+        <?php if (!$block->getData('is_context_shipment')): ?>
+            <div class="account-card">
+                <div class="order-title flex justify-between items-center">
+                    <h4><?= $escaper->escapeHtml(__('Items Ordered')) ?></h4>
+                    <?php if (!empty($order->getTracksCollection()->getItems())): ?>
+                        <?= $block->getChildHtml('tracking-info-link') ?>
+                    <?php endif; ?>
+                </div>
+        <?php endif; ?>
+
+        <?= $block->getChildHtml('order_items') ?>
+
+        <?php if (!$block->getData('is_context_shipment')): ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="mt-0.5">
+            <?= $block->getChildHtml('order_totals') ?>
+        </div>
+        <?php if ($giftMessageHelper->isMessagesAllowed('order', $order) && $order->getGiftMessageId()): ?>
+            <div class="block block-order-details-gift-message">
+                <div class="block-title"><strong><?= $escaper->escapeHtml(__('Gift Message for This Order')) ?></strong>
+                </div>
+                <?php
+                $giftMessage =
+                    $giftMessageHelper->getGiftMessageForEntity($order);
+                ?>
+                <div class="block-content">
+                    <dl class="item-options">
+                        <dt class="item-sender">
+                            <strong class="label">
+                                <?= $escaper->escapeHtml(__('From')) ?>
+                            </strong>
+                            <?= $escaper->escapeHtml($giftMessage->getSender()) ?>
+                        </dt>
+                        <dt class="item-recipient">
+                            <strong class="label">
+                                <?= $escaper->escapeHtml(__('To')) ?>
+                            </strong>
+                            <?= $escaper->escapeHtml($giftMessage->getRecipient()) ?>
+                        </dt>
+                        <dd class="item-message">
+                            <?= /* @noEscape */ $giftMessageHelper->getEscapedGiftMessage($order) ?>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        <?php endif; ?>
+        <div class="actions-toolbar">
+            <div class="secondary">
+                <a class="action back" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                    <span><?= $escaper->escapeHtml($block->getBackTitle()) ?></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

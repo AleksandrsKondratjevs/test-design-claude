@@ -1,0 +1,73 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+// phpcs:disable Generic.Files.LineLength.TooLong
+?>
+<div :class="{'mx-0 w-full': config.isGridView}">
+    <div class="rating-summary cursor-pointer text-center flex items-center gap-3"
+         :title="product.rating_summary === 0 ? '<?= $escaper->escapeHtmlAttr(__('Be the first to review this product')) ?>' : ''">
+        <div class="flex">
+            <template x-for="starFilled in product.ratingData.starsFilled">
+                <svg xmlns="http://www.w3.org/2000/svg" class="fill-current w-5 h-5" viewBox="3 0 20 20"
+                     :style="`color: ${product.ratingData.yellowHex}`"
+                     fill="currentColor">
+                    <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371
+                        1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54
+                        1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1
+                        1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+            </template>
+            <template x-if="product.ratingData.starFragment > 0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="3 0 20 20" fill="currentColor" class="w-5 h-5">
+                    <defs>
+                        <linearGradient :id="'partialFill' + product.id">
+                            <stop offset="0%" :stop-color="product.ratingData.yellowHex"/>
+                            <stop :offset="product.ratingData.starFragment * 100 + '%'" :stop-color="product.ratingData.yellowHex"/>
+                            <stop :offset="product.ratingData.starFragment * 100 + '%'" :stop-color="product.ratingData.greyHex"/>
+                            <stop offset="100%" :stop-color="product.ratingData.greyHex"/>
+                        </linearGradient>
+                    </defs>
+                    <g :fill="'url(#partialFill' + product.id + ')'">
+                        <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969
+                        0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54
+                        1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1
+                        0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </g>
+                </svg>
+            </template>
+            <template x-for="starEmpty in product.ratingData.starsEmpty">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="fill-current w-5 h-5"
+                     :style="`color: ${product.ratingData.greyHex}`"
+                     viewBox="3 0 20 20"
+                     fill="currentColor">
+                    <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0
+                        1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54
+                        1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1
+                        1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                </svg>
+            </template>
+        </div>
+
+        <template x-if="product.rating_summary >= 0">
+            <a :href="`${getProductUrl(product)}`" class="inline-block reviews-link text-grey text-sm font-bold">
+                <span class="text-sm" x-html="'(' + product.reviews_count + ' <?= $escaper->escapeHtml(__('Reviews')) ?>)'"></span>
+            </a>
+        </template>
+    </div>
+</div>

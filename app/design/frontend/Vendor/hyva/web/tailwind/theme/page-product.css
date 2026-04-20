@@ -1,0 +1,9 @@
+.catalog-product-view {
+    .columns {
+        @apply max-w-none px-0 md:px-0 lg:px-0 2xl:px-0 gap-0;
+    }
+
+    .page-footer {
+        @apply mt-0;
+    }
+}

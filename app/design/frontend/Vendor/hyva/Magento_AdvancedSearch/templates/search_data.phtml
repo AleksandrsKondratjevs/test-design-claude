@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\AdvancedSearch\Block\SearchData;
+use Magento\Framework\Escaper;
+use Magento\Framework\Locale\LocaleFormatter;
+use Magento\Search\Model\QueryResult;
+
+/** @var Escaper $escaper */
+/** @var LocaleFormatter $localeFormatter */
+/** @var QueryResult[] $data */
+/** @var SearchData $block */
+
+// The translated title "Related search terms" returned by the \Magento\AdvancedSearch\Block\Suggestions::getTitle() originates in magento/module-advanced-search/etc/di.xml
+// It can be adjusted with di.xml or in the theme with layout XML by declaring `title` argument on the `search_recommendations` block.
+
+$title = $block->getData('title') ? __($block->getData('title')) : $block->getTitle();
+
+?>
+<?php if (count($block->getItems())): ?>
+    <dl class="mt-8">
+        <dt class="mb-3"><h4><?= $escaper->escapeHtml($title) ?></h4></dt>
+        <?php foreach ($block->getItems() as $additionalInfo): ?>
+            <dd class="mb-2 last-of-type:mb-0">
+                <a
+                    class="font-normal text-black no-underline"
+                    href="<?= $escaper->escapeUrl($block->getLink($additionalInfo->getQueryText())) ?>"
+                >
+                    <span><?= $escaper->escapeHtml($additionalInfo->getQueryText()) ?></span>
+                    <?php if ($block->isShowResultsCount()): ?>
+                        <?php $resultsCount = $localeFormatter->formatNumber((int) $additionalInfo->getResultsCount()) ?>
+                        <span
+                            class="count"
+                            aria-label="<?= $escaper->escapeHtmlAttr($resultsCount > 1
+                                ? __('%1 search results', $resultsCount)
+                                : __('1 search result')) ?>"
+                        >(<?= /* @noEscape */ $resultsCount ?>)</span>
+                    <?php endif; ?>
+                </a>
+            </dd>
+        <?php endforeach; ?>
+    </dl>
+<?php endif; ?>

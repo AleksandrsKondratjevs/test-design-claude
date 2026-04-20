@@ -1,0 +1,27 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+?>
+<div class="w-full mb-8">
+    <h4 class="mb-4 px-4" x-text="sections.recentSearches.title"></h4>
+
+    <div class="flex direction-row flex-wrap mx-4 gap-2">
+        <template x-for="(searchItem, index) in sections.recentSearches.items" :key="index">
+            <a class="text-base font-medium no-underline text-black py-1 px-3.5 rounded-sm border-2 transition-colors border-primary-alpha-50 hover:border-black"
+               :href="resultPageUrl + searchItem.name.toLowerCase().replace(/<[^>]*>?/gm, '')"
+               x-html="searchItem.name">
+            </a>
+        </template>
+    </div>
+</div>

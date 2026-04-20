@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd"
+>
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Messages" name="messages" template="Magento_Theme::messages.phtml" before="-"/>
+        </referenceContainer>
+
+        <referenceBlock name="header-content" template="Hyva_Checkout::page/header/checkout-header.phtml">
+              <block name="header-customer-support" template="Hyva_Checkout::page/header/customer-support.phtml" />
+       </referenceBlock>
+
+       <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="maybe_purged_tailwind_section_classes" xsi:type="string">container my-8</argument>
+                <argument name="css_class" xsi:type="string"></argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="checkout.price-summary.section">
+            <block name="checkout.quote-items.title"
+                    template="Hyva_Checkout::section/title.phtml"
+                    before="coupon-code"
+            >
+                <action method="setTitle">
+                    <argument name="title" translate="true" xsi:type="string">Order Summary</argument>
+                </action>
+            </block>
+        </referenceContainer>
+
+        <referenceBlock name="checkout.quote-summary.title">
+            <action method="setTitle">
+                <argument name="title" translate="true" xsi:type="string">Product Details</argument>
+            </action>
+        </referenceBlock>
+
+        <referenceContainer name="hyva.checkout.api-v1.after">
+            <!-- AlpineJS component: Street. -->
+            <block name="hyva.checkout.alpinejs.street"
+                    template="Hyva_Checkout::page/js/api/v1/alpinejs/street.phtml"
+            />
+
+            <!-- AlpineJS component: Sticky Summary. -->
+            <block name="hyva.checkout.alpinejs.sticky.summary"
+                    template="Hyva_Checkout::page/js/api/v1/alpinejs/sticky-summary.phtml"
+            />
+            
+            <!-- AlpineJS component: Checkout Dropdown. -->
+            <block name="hyva.checkout.alpinejs.dropdown"
+                    template="Hyva_Checkout::page/js/api/v1/alpinejs/dropdown.phtml"
+            />
+        </referenceContainer>
+
+        <referenceContainer name="footer">
+            <container name="footer.wrapper" htmlTag="div">
+                <block class="Magento\Cms\Block\Block" name="footer-content">
+                    <arguments>
+                        <argument name="block_id" xsi:type="string">footer-checkout-sample-1</argument>
+                    </arguments>
+                </block>
+            </container>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,76 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+use Magento\Framework\Escaper;
+use Magento\LayeredNavigation\Block\Navigation\State;
+
+/** @var State $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsSolid $heroiconsSolid */
+$heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
+
+$filters = $block->getActiveFilters();
+$isFilterStyleChips = (string) $block->getFilterStyle() === "chips";
+$filterChipStyle = 'px-2 py-0.5 flex gap-2 bg-container-darker';
+
+if (empty($filters)) {
+    return '';
+}
+?>
+
+<div class="filter-current p-4 border-b border-primary-alpha-15 last:border-b-0">
+    <div
+        id="active-filtering-heading"
+    >
+        <h4><?= $escaper->escapeHtml(__('Active filtering')) ?></h4>
+    </div>
+    <ul
+        id="active-filtering-content"
+        class="list-none flex flex-wrap gap-2 my-4"
+        aria-labelledby="active-filtering-heading"
+    >
+        <?php foreach ($filters as $filter): ?>
+            <?php
+                $filterName = $filter->getName();
+                $filterLabel = $block->stripTags($filter->getLabel());
+                $filterIsBool = $filter->getValue() === "0" || $filter->getValue() === "1";
+            ?>
+            <li>
+                <a
+                    href="<?= $escaper->escapeUrl($filter->getRemoveUrl()) ?>"
+                    class="px-2 py-0.5 flex gap-2 bg-container-darker text-black no-underline text-sm items-center rounded-xs"
+                    title="<?= $escaper->escapeHtmlAttr(__('Remove filter for %1: %2', $filterName, $filterLabel)) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Remove filter for %1: %2', $filterName, $filterLabel)) ?>"
+                >
+                    <span>
+                        <span class="filter-label <?= $isFilterStyleChips
+                            ? ($filterIsBool ? 'opacity-60' : 'sr-only')
+                            : 'font-normal' ?>"><?= $escaper->escapeHtml(__($filterName)) ?>:</span>
+                        <span class="filter-value <?= $isFilterStyleChips
+                            ? 'font-normal'
+                            : 'font-bold' ?>"><?= $escaper->escapeHtml($filterLabel) ?></span>
+                    </span>
+                    <?= $heroiconsSolid->xHtml('action remove', 12, 12, ["aria-hidden" => "true"]); ?>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php if ($block->getLayer()->getState()->getFilters()): ?>
+        <a
+            class="text-sm"
+            href="<?= $escaper->escapeUrl($block->getClearUrl()) ?>"
+            title="<?= $escaper->escapeHtmlAttr(__('Remove all filters')) ?>"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Remove all filters')) ?>"
+        ><?= $escaper->escapeHtml(__('Clear All')) ?></a>
+    <?php endif; ?>
+</div>

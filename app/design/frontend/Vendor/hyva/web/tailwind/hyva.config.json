@@ -1,0 +1,27 @@
+{
+    "tailwind": {
+        "include": [
+            {
+                "src": "app/code/Scandiweb/AjaxActions"
+            },
+            {
+                "src": "app/code/Scandiweb/ContentTypes"
+            },
+            {
+                "src": "app/code/Scandiweb/RtlSupport"
+            },
+            {
+                "src": "app/code/Scandiweb/SampleData"
+            },
+            {
+                "src": "app/code/Scandiweb/StyleGuide"
+            },
+            {
+                "src": "app/code/Scandiweb/Theme"
+            },
+            {
+                "src": "app/code/Scandiweb/HyvaCmsComponents"
+            }
+        ]
+    }
+}

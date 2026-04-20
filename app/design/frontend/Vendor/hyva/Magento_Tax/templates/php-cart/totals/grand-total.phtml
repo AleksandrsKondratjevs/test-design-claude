@@ -1,0 +1,56 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\MagentoMetadata;
+
+/** @var ViewModelRegistry $viewModels */
+$magento = $viewModels->require(MagentoMetadata::class);
+
+/**
+ * The AlpineJS scope of this file is the method `initCartTotals()` in Magento_Checkout::php-cart/totals.phtml
+ */
+?>
+<!-- display subtotal excluding tax -->
+<template x-if="segment.code === 'grand_total' && checkoutConfig.includeTaxInGrandTotal">
+    <div>
+        <div :class="wrapperClassTotals" class="mb-2">
+            <div class="text-left font-bold"
+                 x-html="`${segment.title} ${includingTaxMessage}` "
+            ></div>
+            <div class="text-right font-bold"
+                 x-text="hyva.formatPrice(segment.value)"
+            ></div>
+        </div>
+
+        <div :class="wrapperClassTotals">
+            <div class="text-left font-bold"
+                 x-html="`${segment.title} ${excludingTaxMessage}` "
+            ></div>
+            <div class="text-right font-bold"
+                 <?php /* All Mage-OS releases with a version < 2.4.6 match Magento code >= 2.4.6 */ ?>
+                 <?php if ($magento->versionCompare('<', '2.4.6') && $magento->getDistributionName() === 'Magento'): ?>
+                 x-text="hyva.formatPrice(totalsData.grand_total)"
+                 <?php else: ?>
+                 x-text="hyva.formatPrice(totalsData.grand_total - totalsData.tax_amount)"
+                 <?php endif; ?>
+            ></div>
+        </div>
+    </div>
+</template>
+
+<!-- display subtotal including tax -->
+<template x-if="segment.code === 'grand_total' && !checkoutConfig.includeTaxInGrandTotal">
+    <div :class="wrapperClassTotals">
+        <div class="text-left font-bold"
+             x-html="`${segment.title}`"
+        ></div>
+        <div class="text-right font-bold"
+             x-text="hyva.formatPrice(segment.value)"
+        ></div>
+    </div>
+</template>

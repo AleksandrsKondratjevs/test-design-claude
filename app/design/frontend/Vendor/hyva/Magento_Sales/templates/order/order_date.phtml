@@ -1,0 +1,16 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+?>
+<div class="order-date flex gap-1 text-sm">
+    <?= $block->escapeHtml(
+        __(
+            '<span class="label text-grey">Order Date:</span> %1',
+            '<span>' . $block->formatDate($block->getOrder()->getCreatedAt(), \IntlDateFormatter::LONG) . '</span>'
+        ),
+        ['span']
+    )?>
+</div>

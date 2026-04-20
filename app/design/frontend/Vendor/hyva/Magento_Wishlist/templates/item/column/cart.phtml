@@ -1,0 +1,82 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Wishlist\Block\Customer\Wishlist\Item\Column\Cart;
+use Magento\Wishlist\Model\Item;
+use Magento\Wishlist\ViewModel\AllowedQuantity;
+
+/** @var Cart $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var Item $item */
+$item = $block->getItem();
+$product = $item->getProduct();
+/** @var AllowedQuantity $viewModel */
+$viewModel = $viewModels->require(AllowedQuantity::class);
+$allowedQty = $viewModel->setItem($item)->getMinMaxQty();
+?>
+<div class="box-tocart mt-3">
+    <fieldset class="fieldset flex flex-col gap-3">
+        <div class="flex gap-4 justify-between flex-wrap">
+            <?php if ($item->canHaveQty() && $product->isVisibleInSiteVisibility()): ?>
+                <span class="sr-only">
+                    <?= $escaper->escapeHtml(__('Qty')) ?>
+                </span>
+                <div class="field qty" x-data="{ qty: <?= /* @noEscape */ $block->getAddToCartQty($item) * 1 ?> }">
+                    <div class="control qty flex gap-2 md:justify-center">
+                        <button @click.prevent="qty--" class="btn btn-secondary p-3" :disabled="qty <= 1" <?= $product->isSaleable() ? '' : 'disabled' ?>>
+                            <?= $heroicons->minusHtml("w-5 h-5", 20, 20) ?>
+                        </button>
+                        <input type="number"
+                            x-ref="product-qty-<?= $escaper->escapeHtmlAttr($item->getId()) ?>"
+                            data-role="qty"
+                            id="qty[<?= $escaper->escapeHtmlAttr($item->getId()) ?>]"
+                            class="w-9 border-none bg-transparent p-0 text-center ring-0! outline-hidden! appearance-none font-bold"
+                            x-model.number="qty"
+                            min="1"
+                            name="qty[<?= $escaper->escapeHtmlAttr($item->getId()) ?>]"
+                            :value="qty"
+                            <?= $product->isSaleable() ? '' : 'disabled' ?>
+                        >
+                        <button @click.prevent="qty++" class="btn btn-secondary p-3" <?= $product->isSaleable() ? '' : 'disabled' ?>>
+                            <?= $heroicons->plusHtml("w-5 h-5", 20, 20) ?>
+                        </button>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <div class="flex gap-3">
+                <?php foreach ($block->getChildNames() as $childName): ?>
+                    <?= /* @noEscape */ $block->getLayout()->renderElement($childName, false) ?>
+                <?php endforeach;?>
+            </div>
+        </div>
+        <div class="product-item-actions">
+            <div class="actions-primary">
+                <button type="button"
+                        data-role="tocart"
+                        @click.prevent='addToCart("<?= $escaper->escapeHtmlAttr($item->getId()) ?>",
+                            <?= /* @noEscape */ $block->getItemAddToCartParams($item) ?>)'
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart %1', $product->getName())) ?>"
+                        class="action tocart primary btn btn-primary w-full"
+                        data-addto="cart"
+                        <?php if (!$product->isSaleable()): ?>
+                            disabled
+                        <?php endif; ?>
+                >
+                    <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                </button>
+            </div>
+        </div>
+    </fieldset>
+</div>

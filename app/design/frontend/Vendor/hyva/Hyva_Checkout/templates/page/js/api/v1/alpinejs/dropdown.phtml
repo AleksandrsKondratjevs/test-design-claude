@@ -1,0 +1,196 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+?>
+<script>
+    (function() {
+        if (window.hyvaCheckoutDropdownInitialized) {
+            return;
+        }
+        window.hyvaCheckoutDropdownInitialized = true;
+        
+        function initHyvaCheckoutDropdown() {
+            return {
+                isOpen: false,
+                selectedOptionValue: '',
+                activeIndex: -1,
+                options: [],
+                ref: 'select',
+                isOptionsAsUrl: false,
+
+                handleOptionSelect(event) {
+                    const value = event.target.closest('li').getAttribute('data-value');
+                    this.isOpen = false;
+                    this.selectedOptionValue = value;
+
+                    const selectEl = this.$refs[this.ref];
+                    const oldValue = selectEl.value;
+                    selectEl.value = value;
+                    
+                    if (oldValue !== value) {
+                        const changeEvent = new Event('change', { bubbles: true, cancelable: false });
+                        selectEl.dispatchEvent(changeEvent);
+                        
+                        const inputEvent = new Event('input', { bubbles: true, cancelable: false });
+                        selectEl.dispatchEvent(inputEvent);
+                    }
+                    
+                    this.updateSelectedClass();
+                },
+                closeDropdown() {
+                    this.isOpen = false;
+                },
+                handleClick(event) {
+                    this.isOpen = !this.isOpen;
+                },
+                handleMouseDown(event) {
+                    const isDesktop = Alpine.store('device')?.isDesktop;
+                    if (isDesktop !== false) {
+                        event.preventDefault();
+                    }
+                },
+                handleMouseUp(event) {
+                    const isDesktop = Alpine.store('device')?.isDesktop;
+                    if (isDesktop !== false) {
+                        event.preventDefault();
+                    }
+                },
+                updateSelectedClass() {
+                    if (!this.$refs.dropdown) return;
+                    
+                    const items = this.$refs.dropdown.querySelectorAll('.form-select-option');
+                    items.forEach(item => {
+                        if (item.getAttribute('value') === this.selectedOptionValue) {
+                            item.classList.add('form-select-option-selected');
+                        } else {
+                            item.classList.remove('form-select-option-selected');
+                        }
+                    });
+                },
+                updateChevron() {
+                    if (!this.$refs.chevron) return;
+                    
+                    if (this.isOpen) {
+                        this.$refs.chevron.classList.add('chevron-opened');
+                    } else {
+                        this.$refs.chevron.classList.remove('chevron-opened');
+                    }
+                },
+                select() {
+                    const selectedOption = this.$refs.dropdown?.getElementsByClassName('form-select-option-selected');
+
+                    if (!selectedOption || !Array.from(selectedOption).length) {
+                        return;
+                    }
+
+                    this.$refs.dropdown.scrollTo(0, selectedOption[0].offsetTop);
+                },
+                init() {
+                    this.ref = this.$el.dataset.ref || 'select';
+                    this.isOptionsAsUrl = this.$el.dataset.isOptionsAsUrl === 'true';
+                    
+                    const selectEl = this.$refs[this.ref];
+                    if (selectEl && selectEl.value) {
+                        this.selectedOptionValue = selectEl.value;
+                    }
+                    
+                    this.options = Array.from(selectEl.options).map(opt => ({
+                        value: opt.value,
+                        label: opt.text,
+                        disabled: opt.disabled
+                    }));
+                    
+                    const observer = new MutationObserver(() => {
+                        const newOptions = Array.from(selectEl.options).map(opt => ({
+                            value: opt.value,
+                            label: opt.text,
+                            disabled: opt.disabled
+                        }));
+                        this.options = newOptions;
+                        
+                        if (selectEl.value && selectEl.value !== this.selectedOptionValue) {
+                            this.selectedOptionValue = selectEl.value;
+                        }
+                        
+                        this.rebuildDropdownList();
+                    });
+                    
+                    observer.observe(selectEl, { childList: true, subtree: true });
+                    
+                    this.$watch('isOpen', value => {
+                        if (!value) {
+                            this.activeIndex = -1;
+                        } else {
+                            this.$nextTick(() => {
+                                this.$refs[this.ref]?.focus();
+                                this.updateSelectedClass();
+                                this.select();
+                            });
+                        }
+                        this.$nextTick(() => {
+                            this.updateChevron();
+                        });
+                    });
+                    
+                    this.$nextTick(() => {
+                        this.updateSelectedClass();
+                    });
+
+                    if (this.isOptionsAsUrl) {
+                        this.$watch('selectedOptionValue', (value) => {
+                            const url = this.options.find((option) => option.value === value)?.url;
+
+                            if (url) {
+                                window.location.href = url;
+                            }
+                        });
+                    }
+                },
+                rebuildDropdownList() {
+                    const dropdownEl = this.$refs.dropdown;
+                    if (!dropdownEl) return;
+                    
+                    dropdownEl.innerHTML = '';
+                    
+                    this.options.forEach((option, index) => {
+                        const li = document.createElement('li');
+                        li.setAttribute('data-value', option.value);
+                        li.setAttribute('value', option.value);
+                        li.setAttribute('tabindex', index);
+                        li.className = 'form-select-option' + (option.disabled ? ' form-select-option-disabled' : '');
+                        if (option.disabled) li.setAttribute('disabled', '');
+                        li.textContent = option.label;
+                        
+                        li.addEventListener('click', (e) => this.handleOptionSelect(e));
+                        
+                        dropdownEl.appendChild(li);
+                    });
+                    
+                    this.$nextTick(() => {
+                        this.updateSelectedClass();
+                    });
+                }
+            }
+        }
+        
+        if (typeof Alpine !== 'undefined') {
+            Alpine.data('hyvaCheckoutDropdown', initHyvaCheckoutDropdown);
+        } else {
+            window.addEventListener('alpine:init', () => {
+                Alpine.data('hyvaCheckoutDropdown', initHyvaCheckoutDropdown);
+            });
+        }
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -1,0 +1,32 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Sales\Block\Order\Info\Buttons;
+
+/** @var Escaper $escaper */
+/** @var Buttons $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<div class="grid md:flex flex-col lg:flex-row gap-3">
+    <?php $order = $block->getOrder() ?>
+    <a href="<?= $escaper->escapeUrl($block->getUrl('*/*/printShipment', ['order_id' => $order->getId()])) ?>"
+       class="btn btn-secondary px-4.5 py-2 "
+       target="_blank"
+       rel="noopener">
+        <?= $heroicons->printerHtml('me-1 inline-block'); ?>
+        <span><?= $escaper->escapeHtml(__('Print All Shipments')) ?></span>
+    </a>
+    <?= $block->getChildHtml() ?>
+</div>

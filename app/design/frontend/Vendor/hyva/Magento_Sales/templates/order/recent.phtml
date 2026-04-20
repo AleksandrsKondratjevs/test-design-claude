@@ -1,0 +1,194 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Data\Helper\PostHelper;
+use Magento\Framework\Escaper;
+use Magento\Sales\Block\Order\Recent;
+use Magento\Sales\Helper\Reorder;
+use Magento\Sales\Model\Order;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Escaper $escaper */
+/** @var Recent $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+/** @var Order[] $orders */
+$orders = $block->getOrders();
+$count  = count($orders);
+
+$extraActions = [];
+if ($extraActionTitleBlocks = $block->getLayout()->getChildBlocks('order-list-extra-action-titles')) {
+    foreach ($extraActionTitleBlocks as $alias => $extraActionTitleBlock) {
+        $extraActions[$alias] = $extraActionTitleBlock->toHtml();
+    }
+    $extraActions = array_filter($extraActions, function ($output, string $alias) use ($block): bool {
+        return trim($output) && $block->getLayout()->getChildBlock('order-list-extra-action-buttons', $alias);
+    }, ARRAY_FILTER_USE_BOTH);
+}
+
+?>
+<div
+    class="block block-dashboard-orders"
+    x-data="{ tabIndex: -1 }"
+>
+    <div class="block-title order flex justify-between items-center mb-4 mt-8 md:mb-6 md:mt-16">
+        <h3
+            id="recentOrders"
+            @focus="tabIndex = 0;"
+            @blur="tabIndex = -1"
+            :tabindex="tabIndex"
+        ><?= $escaper->escapeHtml(__('Recent Orders')) ?></h3>
+        <?php if ($count > 0): ?>
+            <a
+                class="action view inline-block underline"
+                href="<?= $escaper->escapeUrl($block->getUrl('sales/order/history')) ?>"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('View all orders')) ?>"
+            ><?= $escaper->escapeHtml(__('View All')) ?></a>
+        <?php endif; ?>
+    </div>
+    <div class="overflow-x-auto">
+        <?= $block->getChildHtml() ?>
+        <?php if ($count > 0): ?>
+            <div class="flex flex-col lg:account-card">
+                <div class="grid grid-cols-6 gap-2 pb-2 px-3 [&>*]:max-lg:hidden [&>*]:text-sm [&>*]:font-bold max-lg:hidden">
+                        <div>
+                            <?= $escaper->escapeHtml(__('Order #')) ?>
+                        </div>
+                        <div>
+                            <?= $escaper->escapeHtml(__('Date')) ?>
+                        </div>
+                        <div>
+                            <?= $escaper->escapeHtml(__('Ship To')) ?>
+                        </div>
+                        <div>
+                            <?= $escaper->escapeHtml(__('Order Total')) ?>
+                        </div>
+                        <div>
+                            <?= $escaper->escapeHtml(__('Status')) ?>
+                        </div>
+                        <div class="text-end">
+                            <?= $escaper->escapeHtml(__('View')) ?>
+                            <?php if ($this->helper(Reorder::class)->isAllow()): ?>
+                                / <?= $escaper->escapeHtml(__('Reorder')) ?>
+                            <?php endif; ?>
+                            <?php foreach ($extraActions as $extraActionTitle): ?>
+                                / <?= /** @noEscape  */ $extraActionTitle ?>
+                            <?php endforeach; ?>
+                        </div>
+                </div>
+                <?php foreach ($orders as $order): ?>
+                    <div
+                        class="
+                            grid lg:grid-cols-6 max-lg:[&>*]:px-3 px-3 max-lg:[&>*]:py-2.5 lg:py-2 [&>*]:grid lg:gap-2 max-lg:[&>*]:grid-cols-2
+                            [&>*]:gap-4  [&>*]:rounded-xs max-lg:odd:[&>*]:bg-white lg:even:bg-white max-lg:mb-4 max-lg:last-of-type:mb-0 max-lg:account-card"
+                    >
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Order #')) ?></span>
+                            <div
+                                id="order<?= $escaper->escapeHtmlAttr($order->getRealOrderId()) ?>"
+                            >
+                                <?= $escaper->escapeHtml($order->getRealOrderId()) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Date')) ?></span>
+                            <div>
+                                <?php
+                                    $date = $order->getCreatedAt();
+                                    $format = $block->getDateFormat() ?: \IntlDateFormatter::SHORT;
+                                    $formatLong = $block->getDateFormat() ?: \IntlDateFormatter::LONG;
+                                ?>
+                                <span aria-hidden="true">
+                                    <?= $escaper->escapeHtmlAttr($block->formatDate($date, $format)); ?>
+                                </span>
+                                <span class="sr-only">
+                                    <?= $escaper->escapeHtml($block->formatDate($date, $formatLong)); ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Ship To')) ?></span>
+                            <div>
+                                <?= $order->getShippingAddress() ? $escaper->escapeHtml($order->getShippingAddress()->getName()) : '&nbsp;' ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Order Total')) ?></span>
+                            <div>
+                                <?= /* @noEscape */ $order->formatPrice($order->getGrandTotal()) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('Status')) ?></span>
+                            <div>
+                                <?= $escaper->escapeHtml($order->getStatusLabel()) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-bold lg:hidden"><?= $escaper->escapeHtml(__('View')) ?></span>
+                            <div>
+                                <?php // 'received' is an order status added in Magento_AsyncOrder in Adobe Commerce ?>
+                                <?php // The condition will always return 'true' in Magento Open Source ?>
+                                <?php if ($order->getStatus() !== 'received'): ?>
+                                    <div class="flex gap-6 lg:justify-end">
+                                        <a
+                                            href="<?= $escaper->escapeUrl($block->getViewUrl($order)) ?>"
+                                            class="inline-block text-sm text-black"
+                                            title="<?= $escaper->escapeHtmlAttr(__('View Order')) ?>"
+                                            aria-label="<?= $escaper->escapeHtmlAttr(__('View order') . ' ' . ltrim($order->getRealOrderId(), '0')) ?>"
+                                        >
+                                            <?= $heroicons->eyeHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                                        </a>
+                                        <?php if ($this->helper(Reorder::class)->canReorder($order->getEntityId())): ?>
+                                            <?php $formData = json_decode(
+                                                $this->helper(PostHelper::class)->getPostData(
+                                                    $block->getReorderUrl($order)
+                                                ),
+                                                true
+                                            ) ?>
+                                            <form
+                                                action="<?= $escaper->escapeUrl($formData['action']) ?>"
+                                                method="post"
+                                                class="inline-flex items-center"
+                                            >
+                                                <?= $block->getBlockHtml('formkey'); ?>
+                                                <input type="hidden" name="data" value='<?= /* @noEscape */ json_encode($formData['data']) ?>'>
+                                                <button
+                                                    type="submit"
+                                                    class="inline-block text-sm text-black"
+                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Reorder') . ' ' . ltrim($order->getRealOrderId(), '0')) ?>"
+                                                >
+                                                    <?= $heroicons->refreshHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <?= $heroicons->refreshHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                                        <?php endif ?>
+                                        <?php foreach (array_keys($extraActions) as $alias): ?>
+                                            <?php $button = $block->getLayout()->getChildBlock('order-list-extra-action-buttons', $alias) ?>
+                                            <?= $button->assign('order', $order)->setData('order', $order)->toHtml() ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="message info empty">
+                <span><?= $escaper->escapeHtml(__('You have placed no orders.')) ?></span>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>

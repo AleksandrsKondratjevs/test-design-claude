@@ -1,0 +1,55 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\ProductCompare;
+use Hyva\Theme\ViewModel\ProductPrice;
+use Hyva\Theme\ViewModel\Wishlist;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var Wishlist $wishlistViewModel */
+$wishlistViewModel = $viewModels->require(Wishlist::class);
+/** @var ProductCompare $compareViewModel */
+$compareViewModel = $viewModels->require(ProductCompare::class);
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+/** @var ProductPrice $productPrice */
+$productPrice = $viewModels->require(ProductPrice::class);
+// phpcs:disable Generic.Files.LineLength.TooLong
+?>
+<div class="w-full bg-white max-md:pt-6 max-md:px-2 max-md:pb-8">
+    <div class="flex row justify-between w-full mb-2 md:mb-4 pb-4 p-2 items-center">
+        <template x-if="sections.products.title && sections.products.title !== ''">
+            <h4>
+                <span x-text="sections.products.title"></span> (<span x-text="sections.products.total_count"></span>)
+            </h4>
+        </template>
+
+        <div class="am-search-view-all" x-show="getResultProductsCount() >= 1">
+            <a :href="getViewAllUrl()" class="text-base">
+                <?= $escaper->escapeHtml(__('View All')) ?> <span x-show="getResultProductsCount() > 0">(+<span x-text="getResultProductsCount()"></span>)</span>
+            </a>
+        </div>
+    </div>
+
+    <div
+        class="relative grid gap-x-4 gap-y-8 w-full"
+        :class="{'2xl:grid-cols-3 lg:grid-cols-2': !config.isGridView}"
+    >
+        <template x-for="(product, index) in (sections.products.items || [])" :key="index">
+            <?= /** @noEscape  */ $block->fetchView(
+                $block->getTemplateFile('Amasty_XsearchHyvaCompatibility::header-search/components/product.phtml')
+            ) ?>
+        </template>
+    </div>
+</div>

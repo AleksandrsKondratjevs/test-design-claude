@@ -1,0 +1,125 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2020-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+
+declare(strict_types=1);
+
+use Hyva\Checkout\Magewire\Checkout\PriceSummary\CartItems;
+use Hyva\Checkout\ViewModel\Checkout\PriceSummary\CartItems as CartItemsViewModel;
+use Hyva\Checkout\ViewModel\Checkout\Formatter as FormatterViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Tax\Helper\Data as TaxHelper;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var FormatterViewModel $formatterViewModel */
+/** @var ViewModelRegistry $viewModels */
+/** @var CartItems $magewire */
+/** @var CartItemsViewModel $cartItemsViewModel */
+/** @var TaxHelper $taxHelper */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$formatterViewModel = $viewModels->require(FormatterViewModel::class);
+$cartItemsViewModel = $viewModels->require(CartItemsViewModel::class);
+$taxHelper = $this->helper(TaxHelper::class);
+
+$quoteItems = $magewire->getQuoteItemData();
+$quoteItemsCount = $quoteItems ? count($quoteItems) : 0;
+?>
+
+<div
+    class="pb-6 md:pb-8">
+    <div
+        id="checkout-cart-details"
+        class="cart-items"
+    >
+        <div class="flex flex-col space-y-6">
+            <div class="relative grid bg-container-darker p-0.5 py-0 border-y-2 border-container-darker gap-0.5 h-full max-h-[343px] md:max-h-[424px] overflow-auto scrollbar-custom">
+                <?php if ($quoteItems): ?>
+                    <?php foreach ($quoteItems as $item): ?>
+                        <div class="flex gap-3 py-4 px-3 bg-white">
+                            <div class="flex-none relative">
+                                <img
+                                    src="<?= $escaper->escapeUrl($item['thumbnail']) ?>"
+                                    width="88"
+                                    height="88"
+                                    alt="<?= $escaper->escapeHtmlAttr($item['name']) ?>"
+                                >
+                                <div class="absolute -top-1 -left-1 flex justify-center items-center px-1 min-w-5 bg-primary rounded-full">
+                                    <span
+                                        class="text-white text-sm font-bold"
+                                    >
+                                        <?= /* @noEscape */ $item['qty'] ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex-grow space-y-2.5">
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex justify-between items-center gap-8">
+                                        <p class="font-bold line-clamp-2">
+                                            <?= $escaper->escapeHtml($item['name']) ?>
+                                        </p>
+                                        <span class="text-right">
+                                            <?php if ($taxHelper->displayCartPriceInclTax() || $taxHelper->displayCartBothPrices()): ?>
+                                                <span class="price-including-tax product-price block" data-label="<?= $escaper->escapeHtmlAttr(__('Incl. Tax')) ?>">
+                                                    <?= /* @noEscape */ $formatterViewModel->currency($item['row_total_incl_tax']) ?>
+                                                </span>
+                                            <?php endif ?>
+
+                                            <?php if ($taxHelper->displayCartPriceExclTax() || $taxHelper->displayCartBothPrices()): ?>
+                                                <span class="price-excluding-tax product-price block" data-label="<?= $escaper->escapeHtmlAttr(__('Excl. Tax')) ?>">
+                                                    <?= /* @noEscape */ $formatterViewModel->currency($item['row_total']) ?>
+                                                </span>
+                                            <?php endif ?>
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-grey">
+                                        <?= $escaper->escapeHtml($item['sku']) ?>
+                                    </p>
+                                    <?php 
+                                        // Price per item
+                                    ?>
+                                    <!-- <div class="product-price flex justify-between flex-wrap gap-x-1.5 self-start text-right">
+                                        <span class="text-slate-600 text-left">
+                                            <?php if ($taxHelper->displayCartPriceInclTax() || $taxHelper->displayCartBothPrices()): ?>
+                                                <span class="price-including-tax" data-label="<?= $escaper->escapeHtmlAttr(__('Incl. Tax')) ?>">
+                                                    <?= /* @noEscape */ $formatterViewModel->currency($item['base_price_incl_tax']) ?>
+                                                </span>
+                                            <?php endif; ?>
+
+                                            <?php if ($taxHelper->displayCartPriceExclTax() || $taxHelper->displayCartBothPrices()): ?>
+                                                <span
+                                                    class="price-excluding-tax <?php if ($taxHelper->displayCartPriceExclTax()): ?> inline <?php endif ?>"
+                                                    data-label="<?= $escaper->escapeHtmlAttr(__('Excl. Tax')) ?>"
+                                                >
+                                                    <?= /* @noEscape */ $formatterViewModel->currency($item['base_price']) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </span>
+                                    </div> -->
+                                </div>
+
+                                <?php $optionsRenderer = $cartItemsViewModel->getProductOptionsRenderer($block, $item['product_type']) ?>
+
+                                <?php if ($optionsRenderer): ?>
+                                    <?= /* @noEscape */ $optionsRenderer->setData('quote_item', $item)->toHtml() ?>
+                                <?php endif ?>
+                            </div>
+                        </div>
+                    <?php endforeach ?>
+                <?php endif ?>
+            </div>
+        </div>
+    </div>
+</div>

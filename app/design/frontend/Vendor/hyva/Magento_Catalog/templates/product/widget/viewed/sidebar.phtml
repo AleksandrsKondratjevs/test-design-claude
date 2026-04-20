@@ -1,0 +1,70 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$uniqueId = '_' . uniqid();
+$title = __('Recently Viewed');
+
+$jsTemplate = 'Magento_Catalog::product/widget/viewed/js/recently-viewed-products.phtml';
+/* @noEscape */ echo $block->assign(['uniqueId' => $uniqueId, 'title' => $title])
+           ->fetchView($block->getTemplateFile($jsTemplate));
+
+?>
+<div x-data="initRecentlyViewedProductsComponent<?= /** @noEscape */ $uniqueId?>({isSlider: false})"
+     x-init="getProducts();"
+     class="recently-viewed-widget"
+>
+    <template x-if="products && products.length">
+        <div class="mt-8">
+            <h4 class="content-block-title"
+                id="recently-viewed-sidebar"
+            >
+                <?= $escaper->escapeHtml($title) ?>
+            </h4>
+            <ul class="my-4" aria-labelledby="recently-viewed-sidebar">
+                <template x-for="product in products">
+                    <li class="flex items-start mb-4">
+                        <a
+                            :href="product.url_key ? (BASE_URL + product.url_key + (product.url_suffix || '')) : '#'"
+                            class="mb-3 w-10 h-10 shrink-0 me-4"
+                            aria-hidden="true"
+                            tabindex="-1"
+                        >
+                            <img
+                                :src="product.small_image?.url || ''"
+                                :alt="product.small_image?.label || ''"
+                                loading="lazy"
+                                class="w-full h-full object-cover"
+                            >
+                        </a>
+                        <strong class="me-2 text-sm font-normal">
+                            <a 
+                                :href="product.url_key ? (BASE_URL + product.url_key + (product.url_suffix || '')) : '#'" 
+                                :title="product.name" 
+                                x-html="product.name" 
+                                class="text-black no-underline hover:underline"
+                            ></a>
+                        </strong>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </template>
+</div> 

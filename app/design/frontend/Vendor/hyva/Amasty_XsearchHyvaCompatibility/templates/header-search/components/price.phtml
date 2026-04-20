@@ -1,0 +1,116 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\ProductPrice;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ProductPrice $productPrice */
+/** @var ViewModelRegistry $viewModels */
+
+$productPrice = $viewModels->require(ProductPrice::class);
+?>
+
+<template x-if="!product?.hide_price_html">
+    <div class="price-container flex flex-col justify-center items-center">
+        <div class="final-price" x-ref="finalPrice">
+            <template x-if="product.price_range.minimum_price.final_price.value < product.price_range.maximum_price.final_price.value">
+                <span class="price-label">
+                    <?= $escaper->escapeHtml(__('As low as')) ?>
+                </span>
+            </template>
+
+            <span class="price-wrapper title-font">
+                <span class="price" x-html="hyva.formatPrice(product.price_range.minimum_price.final_price.value)"></span>
+            </span>
+
+            <template x-if="product.price_range.minimum_price.regular_price.value !== product.price_range.minimum_price.final_price.value">
+                <div class="old-price">
+                    <span class="price-container">
+                        <span class="price-label"><?= $escaper->escapeHtml(__('Regular Price')) ?>: </span>
+                        <span class="price-wrapper" x-html="hyva.formatPrice(product.price_range.minimum_price.regular_price.value)"></span>
+                    </span>
+                </div>
+            </template>
+        </div>
+
+        <?php if ($productPrice->displayPriceInclAndExclTax()): ?>
+            <template x-if="product.price_range?.minimum_price?.regular_price && !product?.hide_price_html">
+                <div class="final-price-excl-tax" x-ref="regularPrice">
+                    <span class="font-regular">
+                        <span><?= $escaper->escapeHtml(__('Excl. Tax')) ?>:</span>
+                        <span class="price" x-html="hyva.formatPrice(product.price_range.minimum_price.regular_price.value)"></span>
+                    </span>
+                </div>
+            </template>
+        <?php endif ?>
+    </div>
+</template>
+
+<template x-if="product?.hide_price_html">
+    <div :data-product-id="product.id" :data-name="product.name">
+        <div x-html="product.hide_price_html"></div>
+
+        <script>
+            (function () {
+                const parentElement = document.currentScript?.parentNode;
+                let productId;
+
+                function cleanText(input) {
+                    const div = document.createElement("div");
+                    div.innerHTML = input;
+
+                    let text = div.textContent || div.innerText || "";
+
+                    return text.replace(/\s+/g, " ").trim();
+                }
+
+                function handlePopupLinkClick() {
+                    const event = new CustomEvent('open-am-hideprice-popup', {
+                        detail: {
+                            productId: productId,
+                            productName: cleanText(parentElement.dataset.name)
+                        }
+                    });
+                    window.dispatchEvent(event);
+                }
+
+                // Function to attach event to the element
+                function attachEventToElement(element) {
+                    element.onclick = handlePopupLinkClick;
+                }
+
+                // Create a MutationObserver to watch for changes in the DOM
+                const observer = new MutationObserver(mutations => {
+                    for (const mutation of mutations) {
+                        if (mutation.type === 'childList') {
+                            productId = parentElement.dataset.productId;
+                            const selector = `a[data-amhide="AmastyHidePricePopup"][data-product-id="${productId}"]`;
+                            
+                            const linkNode = document.currentScript?.parentNode?.querySelector(selector)
+                                ?? document.querySelector(selector);
+
+                            if (linkNode) {
+                                attachEventToElement(linkNode);
+                                observer.disconnect(); // Stop observing once the element is found and event is attached
+                            }
+                        }
+                    }
+                });
+
+                // Start observing the document body for changes
+                observer.observe(document.body, { childList: true, subtree: true });
+            })()
+        </script>
+    </div>
+</template>
+
+
+

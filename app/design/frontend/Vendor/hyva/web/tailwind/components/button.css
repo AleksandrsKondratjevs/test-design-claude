@@ -1,0 +1,175 @@
+/**
+ * Button styles for Hyva theme
+ * This file contains component class for buttons with different styles and sizes.
+ *
+ * Please avoid using `@apply` for the button styles to ensure compatibly for future versions.
+ * Instead, use the component class directly in your HTML.
+ * The `@utility` directive is used, for backwards compatibility, to define button styles.
+ */
+
+@utility btn {
+    --btn-stroke: var(--button-tritical-border-color);
+    --btn-bg: var(--button-tritical-background-color);
+    --btn-hover-bg: var(--button-tritical-hover-background-color);
+    --btn-active-bg: var(--button-tritical-active-background-color);
+    --btn-color: var(--button-tritical-color);
+
+    --btn-radius: var(--button-tritical-border-radius);
+    --btn-border-width: var(--button-tritical-border-width);
+    --btn-hover-border-width: var(--button-tritical-hover-border-width);
+    --btn-active-border-width: var(--button-tritical-active-border-width);
+    --btn-disabled-border-width: var(--button-tritical-disabled-border-width);
+
+    --btn-hover-stroke: var(--button-tritical-hover-border-color);
+    --btn-hover-color: var(--button-tritical-hover-color);
+
+    --btn-active-stroke: var(--button-tritical-active-border-color);
+    --btn-active-color: var(--button-tritical-active-color);
+
+    --btn-disabled-stroke: var(--button-tritical-disabled-border-color);
+    --btn-disabled-bg: var(--button-tritical-disabled-background-color);
+    --btn-disabled-color: var(--button-tritical-disabled-color);
+    --btn-disabled-opacity: var(--button-tritical-disabled-opacity);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--button-tritical-gap);
+    padding: calc(var(--button-tritical-padding-block) - var(--button-tritical-border-width)) calc(var(--button-tritical-padding-inline) - var(--button-tritical-border-width));
+    border-radius: var(--btn-radius);
+    border-style: solid;
+    border-width: var(--btn-border-width);
+    border-color: var(--btn-stroke);
+    background-color: var(--btn-bg);
+    color: var(--btn-color);
+    font-family: var(--button-tritical-font-family);
+    font-size: var(--button-tritical-font-size);
+    line-height: var(--button-tritical-line-height);
+    font-weight: var(--button-tritical-font-weight);
+    letter-spacing: var(--button-tritical-letter-spacing);
+    user-select: none;
+    vertical-align: middle;
+    cursor: pointer;
+    text-decoration: none;
+    transition-property: color, background-color, border-color, outline-color;
+    transition-timing-function: var(
+        --default-transition-timing-function,
+        cubic-bezier(0.4, 0, 0.2, 1)
+    );
+    transition-duration: var(--default-transition-duration, 150ms);
+
+    svg {
+        flex-shrink: 0;
+        width: var(--button-icon-width);
+        height: var(--button-icon-height);
+    }
+
+    &:hover {
+        border-width: var(--btn-hover-border-width);
+        border-color: var(--btn-hover-stroke, var(--btn-stroke));
+        background-color: var(--btn-hover-bg, var(--btn-bg));
+        color: var(--btn-hover-color, var(--btn-color));
+        text-decoration: none;
+    }
+
+    &:active {
+        border-width: var(--btn-active-border-width);
+        border-color: var(--btn-active-stroke, var(--btn-stroke));
+        background-color: var(--btn-active-bg, var(--btn-bg));
+        color: var(--btn-active-color, var(--btn-color));
+    }
+
+    &:disabled {
+        border-width: var(--btn-disabled-border-width);
+        border-color: var(--btn-disabled-stroke, var(--btn-stroke));
+        background-color: var(--btn-disabled-bg, var(--btn-bg));
+        color: var(--btn-disabled-color, var(--btn-color));
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: calc(var(--btn-disabled-opacity) / 100);
+    }
+}
+
+@utility btn-primary {
+    --btn-stroke: var(--button-primary-border-color);
+    --btn-bg: var(--button-primary-background-color);
+    --btn-hover-bg: var(--button-primary-hover-background-color);
+    --btn-active-bg: var(--button-primary-active-background-color);
+    --btn-color: var(--button-primary-color);
+
+    --btn-radius: var(--button-primary-border-radius);
+    --btn-border-width: var(--button-primary-border-width);
+    --btn-hover-border-width: var(--button-primary-hover-border-width);
+    --btn-active-border-width: var(--button-primary-active-border-width);
+    --btn-disabled-border-width: var(--button-primary-disabled-border-width);
+
+    --btn-hover-stroke: var(--button-primary-hover-border-color);
+    --btn-hover-color: var(--button-primary-hover-color);
+
+    --btn-active-stroke: var(--button-primary-active-border-color);
+    --btn-active-color: var(--button-primary-active-color);
+
+    --btn-disabled-stroke: var(--button-primary-disabled-border-color);
+    --btn-disabled-bg: var(--button-primary-disabled-background-color);
+    --btn-disabled-color: var(--button-primary-disabled-color);
+    --btn-disabled-opacity: var(--button-primary-disabled-opacity);
+
+    gap: var(--button-primary-gap);
+    padding: calc(var(--button-primary-padding-block) - var(--button-primary-border-width)) calc(var(--button-primary-padding-inline) - var(--button-primary-border-width));
+    font-family: var(--button-primary-font-family);
+    font-size: var(--button-primary-font-size);
+    line-height: var(--button-primary-line-height);
+    font-weight: var(--button-primary-font-weight);
+    letter-spacing: var(--button-primary-letter-spacing);
+}
+
+@utility btn-secondary {
+    --btn-stroke: var(--button-secondary-border-color);
+    --btn-bg: var(--button-secondary-background-color);
+    --btn-hover-bg: var(--button-secondary-hover-background-color);
+    --btn-active-bg: var(--button-secondary-active-background-color);
+    --btn-color: var(--button-secondary-color);
+
+    --btn-radius: var(--button-secondary-border-radius);
+    --btn-border-width: var(--button-secondary-border-width);
+    --btn-hover-border-width: var(--button-secondary-hover-border-width);
+    --btn-active-border-width: var(--button-secondary-active-border-width);
+    --btn-disabled-border-width: var(--button-secondary-disabled-border-width);
+
+    --btn-hover-stroke: var(--button-secondary-hover-border-color);
+    --btn-hover-color: var(--button-secondary-hover-color);
+
+    --btn-active-stroke: var(--button-secondary-active-border-color);
+    --btn-active-color: var(--button-secondary-active-color);
+
+    --btn-disabled-stroke: var(--button-secondary-disabled-border-color);
+    --btn-disabled-bg: var(--button-secondary-disabled-background-color);
+    --btn-disabled-color: var(--button-secondary-disabled-color);
+    --btn-disabled-opacity: var(--button-secondary-disabled-opacity);
+
+    gap: var(--button-secondary-gap);
+    padding: calc(var(--button-secondary-padding-block) - var(--button-secondary-border-width)) calc(var(--button-secondary-padding-inline) - var(--button-secondary-border-width));
+    font-family: var(--button-secondary-font-family);
+    font-size: var(--button-secondary-font-size);
+    line-height: var(--button-secondary-line-height);
+    font-weight: var(--button-secondary-font-weight);
+    letter-spacing: var(--button-secondary-letter-spacing);
+}
+
+.btn-size-lg {
+    @apply px-10 py-4 text-lg;
+}
+
+.btn-size-sm {
+    @apply px-2 py-2 text-sm;
+}
+
+@layer base {
+    button {
+        @apply cursor-pointer;
+
+        &:disabled {
+            @apply cursor-not-allowed;
+        }
+    }
+}

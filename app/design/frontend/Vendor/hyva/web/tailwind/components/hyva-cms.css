@@ -1,0 +1,8 @@
+.hero-banner-content {
+    @apply container max-md:px-0 z-10 absolute bottom-0 w-full flex md:bottom-1/2 md:translate-y-1/2 md:left-1/2 md:-translate-x-1/2;
+}
+
+.swiper-slide .featured-block {
+    /* Override the default negative margin for featured block if inside swiper slide */
+    @apply mx-0!;
+}

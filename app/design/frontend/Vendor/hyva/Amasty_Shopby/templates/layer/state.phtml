@@ -1,0 +1,137 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Amasty\Shopby\Block\Navigation\State;
+use Amasty\ShopbyHyvaCompatibility\ViewModel\ProductListAjax;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var State $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var ProductListAjax $productListAjax */
+$productListAjax = $viewModels->require(ProductListAjax::class);
+
+$filters = $block->getActiveFilters();
+$value = [];
+$pageLayout = $productListAjax->getPageLayout() ?: $block->getLayout()->getUpdate()->getPageLayout();
+$isOneColumn = $pageLayout === '1column' || $pageLayout === 'cms-full-width' || $pageLayout === 'product-full-width';
+$unfoldedCount = $block->getUnfoldedCount();
+// phpcs:disable Generic.Files.LineLength.TooLong
+?>
+
+<?php if (!empty($filters)): ?>
+    <div class="am-filter-state filter-current filter-options-content md:p-4 border-b border-primary-alpha-15
+        <?= /* @noEscape */ $isOneColumn ? 'max-w-[500px]' : ''; ?>"
+         x-data="{ open: window.innerWidth > 768 }">
+        <div class="filter-options-title flex justify-between items-left max-md:px-4">
+            <span class="text-h4-sm lg:text-h4">
+                <?= $escaper->escapeHtml(__('Ative filtering')) ?>
+            </span>
+        </div>
+        <div class="items am-filter pt-4 max-md:p-4" data-amshopby-filter-request-var="state">
+            <div class="list-none flex flex-col gap-3">
+                <?php
+                    $sortedFilters = [];
+
+                    foreach ($filters as $filter) {
+                        $value = $value ?: $filter->getValue();
+                        $resultValue = $block->getFilterValue($value, $filter);
+
+                        if (is_object($filter->getFilter()->getData('attribute_model'))) {
+                            $attributeId = $filter->getFilter()->getData('attribute_model')->getAttributeId();
+
+                            if (!isset($sortedFilters[$attributeId])) {
+                                $sortedFilters[$attributeId] = [
+                                    'name' => $escaper->escapeHtml(__($filter->getName())),
+                                    'filters' => []
+                                ];
+                            }
+
+                            $sortedFilters[$attributeId]['filters'][] = $filter;
+                        }
+
+                        $value = $block->changeValueForMultiselect($filter->getFilter(), $value);
+                    }
+                ?>
+                <?php foreach ($sortedFilters as $sortedFilter): ?>
+                    <div class="flex flex-col">
+                        <span class="mb-1 text-xs">
+                            <?= /** @noEscape */ $sortedFilter['name'] ?>:
+                        </span>
+                        <div class="flex flex-wrap gap-2">
+                            <?php foreach ($sortedFilter['filters'] as $filter): ?>
+                                <?php
+                                    $filterSetting = $block->getFilterSetting($filter->getFilter());
+
+                                    /** @var \Magento\Catalog\Model\Layer\Filter\Item $filter */
+                                    $value = $value ?: $filter->getValue();
+                                    $resultValue = $block->getFilterValue($value, $filter);
+                                ?>
+                                <div class="amshopby-remove-item pl-2 py-0.5 pr-1.5 flex gap-2 bg-container-darker text-black no-underline text-sm items-center rounded-sm"
+                                    data-container="<?= /* @noEscape */ $filter->getFilter()->getRequestVar() ?>"
+                                    data-value="<?= /* @noEscape */ $block->getDataValue($resultValue) ?>"
+                                    <?php $resultValue = is_array($resultValue) ? $block->getDataValue($resultValue) : $resultValue ?>
+                                    <?php if (is_object($filter->getFilter()->getData('attribute_model')) && is_string($resultValue)): ?>
+                                        <?php $attributeId = $filter->getFilter()->getData('attribute_model')->getAttributeId() ?>
+                                        <?php $value = $productListAjax->getGroupsByAttributeId((int)$attributeId, $resultValue) ?>
+                                        data-attribute-id="<?= /* @noEscape */ $attributeId ?>"
+
+                                        <?php if ($value): ?>
+                                            data-massset="<?= $escaper->escapeHtmlAttr($value) ?>"
+                                        <?php else: ?>
+                                            data-swatchset="<?= $escaper->escapeHtmlAttr($resultValue) ?>"
+                                        <?php endif ?>
+                                    <?php endif ?>
+                                >
+                                    <span class="flex flex-wrap">
+                                        <span class="filter-value block">
+                                            <?= /** @noEscape */ $block->viewLabel($filter) ?>
+                                        </span>
+                                    </span>
+                                    <span>
+                                        <a class="amshopby-remove py-1 text-center block action remove text-black hover:text-primary-darker"
+                                        href="<?= $escaper->escapeUrl($filter->getRemoveUrl()) ?>"
+                                        title="<?= $escaper->escapeHtmlAttr(__('Remove This Item')) ?>"
+                                        @click.prevent.stop="if (document.querySelector('[x-data=\'shopBy()\']')) {
+                                                window.dispatchEvent(new CustomEvent('amRemoveElement', {detail: {element: $event.currentTarget}}));
+                                            } else {
+                                                window.location.href = '<?= $escaper->escapeUrl($filter->getRemoveUrl()) ?>';}">
+                                        <?= $heroicons->xHtml('action remove', 12, 12, ["aria-hidden" => "true"]); ?>
+                                        </a>
+                                    </span>
+                                </div>
+                                <?php $value = $block->changeValueForMultiselect($filter->getFilter(), $value) ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if ($block->getLayer()->getState()->getFilters()): ?>
+                <div class="block-actions filter-actions mt-4">
+                    <a
+                        href="<?= $escaper->escapeUrl($block->getClearUrl()) ?>"
+                        class="text-sm text-primary"
+                    ><?= $escaper->escapeHtml(__('Clear all')) ?></a>
+                </div>
+            <?php endif; ?>
+            <div class="amshopby-button-wrap">
+                <?php if ($unfoldedCount && $unfoldedCount < count($filters)): ?>
+                    <?= /* @noEscape */ $block->createShowMoreButtonBlock() ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>

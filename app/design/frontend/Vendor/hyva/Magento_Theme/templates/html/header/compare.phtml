@@ -1,0 +1,80 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $HeroiconsOutline */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+
+<a
+    id="compare-link"
+    class="max-md:fixed max-md:shadow-tooltip max-md:bottom-4 max-md:end-4 max-md:p-3 max-md:rounded-full max-md:bg-white md:relative hidden md:inline-block no-underline outline-hidden"
+    :class="{ 'max-md:hidden': itemCount === 0, 'max-md:inline-block': itemCount > 0 }"
+    href="<?= $escaper->escapeUrl($block->getUrl('catalog/product_compare/index')) ?>"
+    title="<?= $escaper->escapeHtmlAttr(__('Compare Products')) ?>"
+    x-data="initCompareHeader"
+    @private-content-loaded.window="receiveCompareData"
+    :aria-label="linkAriaLabel"
+>
+    <?= $heroicons->switchHorizontalHtml('text-black', 24, 24, ["aria-hidden" => "true"]) ?>
+    <template x-if="itemCount">
+        <span
+            x-text="itemCount"
+            class="absolute top-3 md:top-0 end-3 md:end-0 px-0.5 min-h-4 min-w-4 -mt-3.5 -me-1.5 flex justify-center items-center text-xs font-bold
+                leading-none text-center text-white uppercase transform
+                translate-y-1/2 rounded-full bg-primary"
+            aria-hidden="true"
+        ></span>
+    </template>
+</a>
+
+<script>
+    function initCompareHeader() {
+        return {
+            compareProducts: null,
+            itemCount: 0,
+            hiddenIfEmpty() {
+                return {
+                    'invisible': this.itemCount < 1
+                }
+            },
+            linkAriaLabel() {
+                const countLabel = this.itemCount > 1
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 Items')) ?>', this.itemCount)
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 Item')) ?>', this.itemCount);
+                return `<?= $escaper->escapeJs(__('Compare Products')) ?> (${countLabel})`;
+            },
+            receiveCompareData() {
+                const data = this.$event.detail.data;
+                if (data['compare-products'] && data['compare-products'].count) {
+                    this.compareProducts = data['compare-products'];
+                    this.itemCount = this.compareProducts.count;
+                }
+            },
+            itemCountLabel() {
+                return `(${this.itemCount})`;
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initCompareHeader', initCompareHeader);
+    }, { once: true })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

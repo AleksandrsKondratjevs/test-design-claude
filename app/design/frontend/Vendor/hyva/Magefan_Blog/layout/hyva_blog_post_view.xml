@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="maybe_purged_tailwind_section_classes" xsi:type="string">container my-4 font-bold lg:mt-0 lg:mb-8</argument>
+                <argument name="css_class" xsi:type="string">justify-start lg:max-w-[608px]</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="blog.sidebar.search">
+            <arguments>
+                <argument name="visible_always" xsi:type="boolean">true</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

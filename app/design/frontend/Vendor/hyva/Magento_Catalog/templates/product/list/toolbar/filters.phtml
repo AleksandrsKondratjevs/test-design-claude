@@ -1,0 +1,91 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+?>
+
+<script>
+    function initLayeredNavigationMobile() {
+        return {
+            isOpen: false,
+
+            init() {
+
+                if (this.$store.device.isMobile) {
+                    this.handleMoveLayeredNavigation(true);
+                }
+
+                this.$watch('$store.device.isMobile', (isMobile) => {
+                    this.handleMoveLayeredNavigation(isMobile);
+                })
+            },
+            open() {
+                this.isOpen = true;
+                this.$nextTick(() => hyva.trapFocus(this.$refs.mobileFiltersContent));
+            },
+            close() {
+                this.isOpen = false;
+                this.$nextTick(() => hyva.releaseFocus());
+            },
+            handleMoveLayeredNavigation(isMobile) {
+                if (isMobile) {
+                    const layeredNavigationContent = document.getElementById('layered-navigation-content');
+                    if (layeredNavigationContent) {
+                        this.$refs.layeredNavigationDesktop.appendChild(document.getElementById('layered-navigation-content'));
+                    }
+                } else {
+                    const desktopLayeredNavigationContainer = document.getElementById('layered-navigation-desktop');
+                    if (desktopLayeredNavigationContainer.firstElementChild) {
+                        desktopLayeredNavigationContainer.replaceChild(document.getElementById('layered-navigation-content'), desktopLayeredNavigationContainer.firstElementChild);
+                    } else {
+                        desktopLayeredNavigationContainer.appendChild(document.getElementById('layered-navigation-content'));
+                    }
+                }
+            },
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div class="toolbar-filters md:hidden" x-data="initLayeredNavigationMobile">
+    <button class="btn btn-secondary w-full h-11" @click="open" aria-label="<?= __('Show product list filters') ?>">
+        <?= __('Filters') ?>
+    </button>
+    <dialog
+        class="max-h-full max-sm:max-w-none h-screen w-full ms-0 top-0 flex-col transition ease-out duration-300 open:duration-500 open:flex me-0"
+        x-defer="interact"
+        x-show="isOpen"
+        role="dialog"
+        x-ref="mobileFiltersContent"
+        x-htmldialog.noscroll="close"
+        x-transition:enter-start="ltr:-translate-x-full rtl:translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="ltr:-translate-x-full rtl:translate-x-full"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Filters overlay')) ?>"
+    >
+        <div class="flex gap-4 justify-between items-center p-4 w-full">
+            <h2><?= __('Filters') ?></h2>
+            <button @click="close">
+                <?= $heroicons->xHtml('', 24, 24) ?>
+            </button>
+        </div>
+        <div x-ref="layeredNavigationDesktop">
+        </div>
+    </dialog>
+</div>

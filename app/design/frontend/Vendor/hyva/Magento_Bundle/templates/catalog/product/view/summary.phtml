@@ -1,0 +1,88 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Block\Product\View as ProductView;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ProductView $block */
+/** @var HyvaCsp $hyvaCsp */
+
+$product = $block->getProduct();
+?>
+<?php if ($product->isSaleable() && $block->hasOptions()): ?>
+<div id="bundleSummary"
+     class="w-full block-bundle-summary md:w-1/2 lg:w-1/3 md:my-16 h-min sticky top-40">
+    <div class="mb-8 title">
+        <h3 class="w-full text-h3">
+            <?= $escaper->escapeHtml(__('Your Customization')) ?>
+        </h3>
+    </div>
+    <div class="content">
+        <div class="bundle-info">
+            <div class="product-details">
+                <?= $block->getChildHtml('product.info.form') ?>
+            </div>
+
+            <div class="py-1 my-2 tier-price-container">
+                <?= $block->getChildHtml("product.price.tier") ?>
+            </div>
+
+        </div>
+        <div x-data="initBundleSummary()"
+             x-bind="eventListeners"
+             class="bundle-summary"
+        >
+            <div x-show="selectedOptions.length">
+                <h4 class="mb-3">
+                    <?= $escaper->escapeHtml(__('Summary')) ?>
+                </h4>
+                <div>
+                    <ul class="bundle items">
+                        <template x-for="option in selectedOptions">
+                            <li class="mb-0.5 px-3 py-2 flex flex-col gap-1 bg-container-darker rounded-xs" x-show="option.products.length">
+                                <span class="text-base font-bold" x-html="option.label"></span>
+                                <template x-for="product in option.products">
+                                    <div><span x-html="product.qty"></span> x <span x-html="product.name"></span></div>
+                                </template>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-container-darker rounded-xs p-3 flex flex-col gap-4">
+                <?= $block->getChildHtml("product.info.bundle.price") ?>
+
+                <?php if ($product->isSaleable()): ?>
+                    <div class="flex gap-4">
+                        <?= $block->getChildHtml("product.info.quantity") ?>
+                        <?= $block->getChildHtml("product.info.addtocart") ?>
+                    </div>
+                    <?= $block->getChildHtml("addtocart.shortcut.buttons") ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <script>
+            function initBundleSummary() {
+                return {
+                    selectedOptions: [],
+                    eventListeners: {
+                        ['@update-bundle-option-selection.window'](event) {
+                            this.selectedOptions = event.detail;
+                        }
+                    }
+                }
+            }
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    </div>
+</div>
+<?php endif; ?>

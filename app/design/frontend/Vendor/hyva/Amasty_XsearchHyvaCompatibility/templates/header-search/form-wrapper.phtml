@@ -1,0 +1,274 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Amasty\XsearchHyvaCompatibility\ViewModel\SearchPopup;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Amasty\XsearchHyvaCompatibility\ViewModel\ComponentsRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var ComponentsRegistry $componentRegistry */
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$popupViewModel = $viewModels->require(SearchPopup::class);
+$blocks = $popupViewModel->getBlockPositions();
+$componentRegistry = $viewModels->require(ComponentsRegistry::class);
+$hyvaUIHeaderVariant = $popupViewModel->getHyvaUIHeaderVariant();
+?>
+<?=
+/** @noEscape */
+$componentRegistry->renderOnce('search-js-products') ?>
+<?=
+/** @noEscape */
+$componentRegistry->renderOnce('search-js-autocomplete') ?>
+<?=
+/** @noEscape */
+$componentRegistry->renderOnce('search-js-carousel') ?>
+
+<?php if (!empty($popupViewModel->getHyvaUIHeaderVariant())): ?>
+    <?=
+    /** @noEscape  */
+    $componentRegistry->renderOnce('search-js-hyva-ui-header-compat') ?>
+<?php endif ?>
+
+<div :class="{
+            'container': !config.isFullScreenMode,
+            'relative py-2 mx-auto text-black z-20': true,
+            'max-w-none px-0': isHyvaUiHeader() && isFullWidthSearch,
+            'px-0': isHyvaUiHeader() && isHorizontalView
+     }"
+    x-data="Object.assign(
+        {amXsearchCarouselComponent},
+         amXsearchProductsComponent(),
+         amXsearchAutocompleteComponent(),
+         <?php if (!empty($hyvaUIHeaderVariant)): ?>
+            amXsearchAutocompleteHyvaUIHeaderCompat(),
+         <?php endif ?>
+     )"
+    x-init="dynamicLayout($el)"
+    @resize.window.debounce="calculateOverlayPosition"
+    @scroll.window.debounce="calculateOverlayPosition"
+    @click.away="closeSearch()">
+    <div x-show="showOverlay"
+        class="fixed inset-0 max-lg:mt-4 bg-black/25 z-20 w-full h-full top-0 left-0 right-0 bottom-0"
+        :style="{top: !$store.device.isDesktop ? `${overlayPosition}px` : 0 }"
+        @click.prevent="closeSearch()"
+        @keydown.window.escape="closeSearch()"
+        x-transition:enter="ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" x-cloak></div>
+
+    <div class="form mini-search z-20 relative"
+        :class="{
+         'right-0': !isHyvaUiHeader(),
+         'md:flex md:justify-center': checkHyvaUiHeaderVariant('c') && !isDefaultSearchInput && !isFullWidthSearch
+         }">
+        <form id="search_mini_form" @submit.prevent="redirect()"
+            action="<?= $escaper->escapeUrl($popupViewModel->getResultsPageUrl()) ?>"
+            :class="{
+              'w-full absolute right-0': checkHyvaUiHeaderVariant('a') && !isDefaultSearchInput && !isFullWidthSearch,
+              'justify-end': !checkHyvaUiHeaderVariant('c')
+              }"
+            class="flex" method="GET">
+            <label class="sr-only" for="search" data-role="mini-search-label">
+                <span><?= $escaper->escapeHtml(__('Search')) ?></span>
+            </label>
+            <div class="w-full flex align-center justify-center"
+                :style="`max-width: ${!isDefaultSearchInput && !isFullWidthSearch ? searchPopupWidth + 'px' : '100%'}`">
+                <div class="relative w-full">
+                    <input id="search"
+                        x-ref="searchInput"
+                        maxlength="<?= $escaper->escapeHtml($popupViewModel->getMaxQueryLength()) ?>"
+                        form="search_mini_form"
+                        type="text"
+                        name="<?= $escaper->escapeHtml($popupViewModel->getQueryParamName()) ?>"
+                        value="<?= $escaper->escapeHtml($popupViewModel->getQueryText()) ?>"
+                        autocomplete="off"
+                        placeholder="<?= $escaper->escapeHtmlAttr(__('What are you looking for?')) ?>"
+                        class="form-input pe-20 ps-3 py-2 rounded-sm outline-none w-full min-h-12 hover:border-primary focus:border-primary !ring-0 focus:shadow-none"
+                        :style="`width: ${checkHyvaUiHeaderVariant('c') && !isDefaultSearchInput && !isFullWidthSearch ? searchPopupWidth + 'px' : '100%'}`"
+                        @focus="doSearch()"
+                        @search="checkSearchInput()"
+                        @keydown.enter="redirect()"
+                        @input.debounce.<?= $escaper->escapeHtml($popupViewModel->getSearchInputDelayInMS()) ?>="doSearch()"
+                        @keydown.arrow-down.prevent="focusElement($el.querySelector('[tabindex]'))" />
+
+                    <button
+                        @click.prevent="clearSearchQuery"
+                        x-cloak
+                        x-show="searchQuery.length"
+                        title="<?= $escaper->escapeHtmlAttr(__('Clear')) ?>"
+                        class="px-3 outline-none absolute end-12 top-0 h-full"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Clear')) ?>">
+                        <?= $heroicons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                    </button>
+                </div>
+                <?php if ($popupViewModel->showSearchButton()): ?>
+                    <button type="submit"
+                        title="<?= $escaper->escapeHtml(__('Search')) ?>"
+                        aria-live="polite"
+                        class="bg-primary text-white rounded-e-sm px-3 outline-none absolute end-0 top-0 h-full"
+                        x-bind:disabled="isLoading || latestQuery.length < minSearchLength"
+                        :class="{
+                                'am-custom-search-button': <?= $escaper->escapeHtml($popupViewModel->isCustomLayoutEnabled() ? 'true' : 'false') ?>,
+                                'rounded-tr': isHyvaUiHeader()
+                            }"
+                        aria-label="Search"
+                        :aria-disabled="isLoading || latestQuery.length < minSearchLength">
+                        <?php if (!empty($hyvaUIHeaderVariant)): ?>
+                            <?= $heroicons->searchHtml(
+                                "w-8 h-8 md:h-6 md:w-6",
+                                25,
+                                25,
+                                [
+                                    "aria-hidden" => "true"
+                                ]
+                            ) ?>
+                        <?php else: ?>
+                            <?= $escaper->escapeHtml(__('Search')) ?>
+                        <?php endif; ?>
+                    </button>
+                <?php endif; ?>
+            </div>
+        </form>
+        <div
+            class="w-full mt-4 lg:mt-1 left-0 -bottom-position md:max-h-screen-75 overflow-auto text-sm"
+            :class="{
+                    'fixed': !config.isFullScreenMode || isHyvaUiHeader(),
+                    'rounded-br rounded-bl': isHyvaUiHeader(),
+                }"
+            tabindex="-1"
+            x-cloak
+            :style="{top: `${overlayPosition}px`, maxHeight: !$store.device.isDesktop ? `${overlayMaxHeightMobile}px` : '75vh'}"
+            x-show="showOverlay"
+            x-transition:enter="ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            @click.self.prevent="closeSearch()">
+            <div class="md:container md:max-h-screen-75 overflow-hidden" @click.self.prevent="closeSearch()">
+                <div class="relative">
+                    <?= $this->getLayout()
+                    ->createBlock('Magento\Framework\View\Element\Template')
+                    ->setTemplate('Hyva_Theme::ui/loading-block.phtml')
+                    ->toHtml(); ?>
+                    <div
+                        x-init="$nextTick(() => initSimplebar())"
+                        data-simplebar
+                        data-simplebar-auto-hide="false"
+                        data-simplebar-scrollbar-max-size="191"
+                        class="simplebar-scrollable-y md:max-h-screen-75 w-full bg-white shadow-[0_4px_20px_4px_rgba(16,22,37,0.10)] rounded-b-sm lg:rounded-t-sm"
+                    >
+                    <div
+                        class="md:max-h-screen-75 flex w-full content-start flex-wrap box-border relative rounded-b-sm lg:rounded-t-sm"
+                        :class="{
+                            'flex-col': isHorizontalView,
+                            'flex-col md:flex-row': !isHorizontalView,
+                        }">
+                        <div class="w-full bg-container-darker md:pt-8 am-search-sidebar"
+                            :class="{
+                                    'border-gray-600': showSideBar() && getResultProductsCount() > 0,
+                                    'hidden': latestQuery.length < minSearchLength && (
+                                        !showOnFirstClick('recentSearches') && !showOnFirstClick('popularSearches') && !showOnFirstClick('browsingHistory')
+                                    ) || isSidebarSectionsDisabled(),
+                                    'am-search-horizontal-view': isHorizontalView,
+                                }">
+                            <?php foreach ($blocks as $blockName => $position): ?>
+                                <template
+                                    x-if="<?= $escaper->escapeHtml($blockName === 'products' ? 'isHorizontalView && !noResultsFound && ' : '') ?>
+                                                sections?.<?= $escaper->escapeHtml($blockName) ?>?.items?.length">
+                                    <div
+                                        x-show="(latestQuery.length >= minSearchLength || showOnFirstClick('<?= $escaper->escapeHtml($blockName) ?>'))"
+                                        x-cloak
+                                    >
+                                        <?=
+                                        /** @noEscape */
+                                        $componentRegistry->render('search-' . $blockName) ?>
+                                    </div>
+                                </template>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="relative"
+                            :class="{
+                                    'am-search-content px-4 md:py-6': latestQuery.length >= minSearchLength || (
+                                        showOnFirstClick('recentSearches') || showOnFirstClick('popularSearches') || showOnFirstClick('browsingHistory')
+                                    ),
+                                    'w-full': latestQuery.length < minSearchLength && (
+                                        !showOnFirstClick('recentSearches') && !showOnFirstClick('popularSearches') && !showOnFirstClick('browsingHistory')
+                                    ),
+                                    'am-search-horizontal-view': isHorizontalView,
+                                    'px-4 py-6': slider.recentlyViewed || slider.bestsellers,
+                                    'am-search-sidebar-disabled': isSidebarSectionsDisabled(),
+                                }">
+                            <div class="flex flex-nowrap flex-col" x-show="latestQuery.length < minSearchLength" x-cloak>
+                                <template x-for="component in getBlockOrder()" :key="component">
+                                    <div>
+                                        <?php if ($popupViewModel->isBestsellersEnabled()): ?>
+                                            <template x-if="component === 'bestsellers'">
+                                                <template x-if="slider.bestsellers">
+                                                    <?=
+                                                    /** @noEscape */
+                                                    $componentRegistry->render('search-bestsellers') ?>
+                                                </template>
+                                            </template>
+                                        <?php endif; ?>
+
+                                        <?php if ($popupViewModel->isRecentlyViewedEnabled()): ?>
+                                            <template x-if="component === 'recentlyViewed'">
+                                                <template x-if="slider.recentlyViewed">
+                                                    <?=
+                                                    /** @noEscape */
+                                                    $componentRegistry->render('search-recentlyViewed') ?>
+                                                </template>
+                                            </template>
+                                        <?php endif; ?>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <template x-if="!noResultsFound && !isHorizontalView && latestQuery.length >= minSearchLength">
+                                <?=
+                                /** @noEscape */
+                                $componentRegistry->render('search-products') ?>
+                            </template>
+
+                            <div class="p-4 box-border w-full h-full flex" x-show="noResultsFound && !errorMessage" role="alert" aria-live="assertive" x-cloak>
+                                <div class="flex justify-center content-center flex-row items-center flex-wrap align-center
+                                        w-full h-full max-h-[90vh] text-center text-xl word-break"
+                                    x-html="'<?= $escaper->escapeHtml(__('😔 We could not find anything for&nbsp;<strong>"%s"</strong>'), ['strong']) ?>'.replace('%s', latestQuery)">
+                                </div>
+                            </div>
+
+                            <div class="p-4 box-border w-full h-full flex" x-show="noResultsFound && errorMessage" x-cloak>
+                                <div
+                                    class="text-center flex align-center w-full text-xl justify-center content-center flex-row bg-gray-100 items-center flex-wrap h-full max-h-[90vh] word-break"
+                                    x-html="errorMessage">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

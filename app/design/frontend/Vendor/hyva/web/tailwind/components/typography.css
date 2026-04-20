@@ -1,0 +1,127 @@
+@layer utilities {
+    /* This class only exists for backwards compatibility, */
+    /* The default is applied in tailwind.config.js since Hyvä 1.2.0 */
+    .text-sans-serif {
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    @font-face {
+        font-family: "Golos Text";
+        src: url("../fonts/GolosText-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: "Inter";
+        src: url("../fonts/Inter-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: "Inter";
+        src: url("../fonts/Inter-Medium.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: "Inter";
+        src: url("../fonts/Inter-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+}
+
+@layer base {
+    html {
+        @apply antialiased font-family-body-caption;
+    }
+
+    body {
+        @apply text-body-regular;
+        color: var(--text-body-regular-color);
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: var(--text-h1-font-family);
+            font-weight: var(--text-h1-font-weight);
+        }
+
+        h1 {
+            @apply text-h1-sm lg:text-h1;
+            color: var(--text-h1-color);
+        }
+
+        h2 {
+            @apply text-h2-sm lg:text-h2;
+            color: var(--text-h2-color);
+        }
+
+        h3 {
+            @apply text-h3-sm lg:text-h3;
+            color: var(--text-h3-color);
+        }
+
+        h4 {
+            @apply text-h4-sm lg:text-h4;
+            color: var(--text-h4-color);
+        }
+
+
+        ul,
+        ol {
+            @apply list-inside;
+        }
+
+        ul {
+            @apply list-disc;
+        }
+
+        ol {
+            @apply list-decimal;
+        }
+
+        a {
+            @apply underline transition-colors;
+            font-size: var(--text-anchor);
+            line-height: var(--text-anchor-line-height);
+            font-family: var(--text-anchor-font-family);
+            font-weight: var(--text-anchor-font-weight);
+            color: var(--text-anchor-color);
+
+            &:hover {
+                font-size: var(--text-anchor-hover);
+                line-height: var(--text-anchor-hover-line-height);
+                font-family: var(--text-anchor-hover-font-family);
+                font-weight: var(--text-anchor-hover-font-weight);
+                color: var(--text-anchor-hover-color);
+            }
+        }
+
+        caption,
+        small {
+            @apply text-caption-regular text-left;
+            color: var(--text-caption-regular-color);
+        }
+
+        sub {
+            @apply text-sub-text-regular;
+            line-height: var(--text-sub-text-regular-line-height);
+            font-family: var(--text-sub-text-regular-font-family);
+            font-weight: var(--text-sub-text-regular-font-weight);
+            color: var(--text-sub-text-regular-color);
+        }
+
+        address {
+            @apply not-italic;
+        }
+    }
+}

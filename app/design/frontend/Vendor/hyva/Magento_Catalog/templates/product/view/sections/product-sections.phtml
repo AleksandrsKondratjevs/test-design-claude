@@ -1,0 +1,68 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+/** @var Details $block */
+/** @var Escaper $escaper */
+
+use Magento\Catalog\Block\Product\View\Details;
+use Magento\Framework\Escaper;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$titleRenderer = $block->getChildBlock('product.section.title.renderer');
+$defaultTitleTemplate = $titleRenderer->getTemplate();
+
+?>
+<div class="flex flex-col gap-0.5 max-w-[808px] mx-auto">
+    <?php
+    $index = 0;
+
+    foreach ($block->getGroupSortedChildNames('detailed_info', '') as $sectionName) {
+        $sectionBlock  = $block->getLayout()->getBlock($sectionName);
+        $sectionHtml   = (string) $sectionBlock->toHtml();
+        $titleTemplate = $sectionBlock->getData('title_template') ?? $defaultTitleTemplate;
+
+        if (empty(trim($sectionHtml))) {
+            continue;
+        }
+
+        $index++;
+
+        ?>
+        <section
+            class="bg-white rounded-xs"
+            id="<?= $escaper->escapeHtmlAttr($sectionBlock->getNameInLayout()) ?>"
+            x-data="{ isOpen: <?= $index === 1 ? 'true' : 'false' ?> }"
+        >
+            <button class="flex justify-between w-full items-center gap-4 p-4 md:p-6" @click="isOpen = !isOpen">
+                <?=
+                    $titleRenderer->setTemplate($titleTemplate)
+                                ->assign('sectionBlock', $sectionBlock)
+                                ->toHtml()
+                ?>
+                <div class="relative size-4">
+                    <?= $heroicons->minusHtml("absolute size-4 transition-transform duration-100", 16, 16, ['aria-hidden' => 'true', ":class" => "{ 'rotate-90': !isOpen }"]) ?>
+                    <?= $heroicons->minusHtml("absolute size-4", 16, 16, ['aria-hidden' => 'true']) ?>
+                </div>
+            </button>
+            <div
+                class="grid transition-grid-row <?= $index === 1 ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' ?> duration-200"
+                :class="{ 'grid-rows-[1fr]': isOpen, 'grid-rows-[0fr]': !isOpen }"
+            >
+                <div class="overflow-hidden">
+                    <div class="px-4 pt-0 pb-5 md:px-6 md:pb-6">
+                        <?= /** @noEscape  */ $sectionHtml ?>
+                    </div>
+                </div>
+            </div>
+        </section>
+    <?php } ?>
+</div>

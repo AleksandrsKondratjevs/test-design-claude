@@ -1,0 +1,24 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$htmlTag = $block->getData('html_tag') ?? 'div';
+?>
+<?php if ($block->hasData('title')): ?>
+    <<?= /* @noEscape */ $htmlTag ?> class="section-title contents">
+        <h2 class="text-h3-sm lg:text-h3 text-black w-full mb-4 ">
+            <?= $escaper->escapeHtml($block->getData('title')) ?>
+        </h2>
+    </<?= /* @noEscape */ $htmlTag ?>>
+<?php endif ?>

@@ -1,0 +1,9 @@
+@theme {
+    --color-amsb_graystarts: #cbd5e0;
+    --color-amsb_yellowstars: #f6e05e;
+    --color-amsb_sl_gray: #dadada;
+    --color-amsb_sl_gray_1: #b6b6b6;
+    --color-amsb_sl_gray_2: #dfdedd;
+    --color-amsb_sl_gray_3: #4a4948;
+    --shadow-filterTooltip: 0 4px 16px 4px rgba(0, 0, 0, 0.12);
+}

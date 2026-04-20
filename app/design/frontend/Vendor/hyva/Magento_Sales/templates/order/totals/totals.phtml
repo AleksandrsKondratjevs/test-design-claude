@@ -1,0 +1,47 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Sales\Block\Order\Totals;
+
+/** @var Totals $block */
+/** @var Escaper $escaper */
+
+/**
+ * This template is used to render totals in the storefront.
+ * It is not used for order emails, which use Magento_Sales::order/totals.phtml (not part of the hyva-default-theme).
+ */
+?>
+<div class="flex justify-end account-card">
+    <div class="w-full">
+        <div class="order-totals grid grid-cols-[1fr_90px] md:grid-cols-[1fr_minmax(90px,156px)] gap-y-1 gap-x-4 max-md:px-3">
+            <?php foreach ($block->getTotals() as $code => $total): ?>
+                <?php if ($total->getBlockName()): ?>
+                    <?= $block->getChildHtml($total->getBlockName(), false) ?>
+                <?php else: ?>
+                    <div <?= /* @noEscape */ $block->getLabelProperties() ?> class="md:text-right">
+                        <?php if ($total->getStrong()): ?>
+                            <strong><?= $escaper->escapeHtml($total->getLabel()) ?>:</strong>
+                        <?php else: ?>
+                            <?= $escaper->escapeHtml($total->getLabel()) ?>:
+                        <?php endif ?>
+                    </div>
+                    <div <?= /* @noEscape */ $block->getValueProperties() ?>
+                        data-th="<?= $escaper->escapeHtmlAttr($total->getLabel()) ?>">
+                        <?php if ($total->getStrong()): ?>
+                            <strong><?= /* @noEscape */ $block->formatValue($total) ?></strong>
+                        <?php else: ?>
+                            <?= /* @noEscape */ $block->formatValue($total) ?>
+                        <?php endif?>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach?>
+        </div>
+    </div>
+</div>

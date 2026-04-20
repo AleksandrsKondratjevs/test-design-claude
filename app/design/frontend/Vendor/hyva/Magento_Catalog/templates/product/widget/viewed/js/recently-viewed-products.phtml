@@ -1,0 +1,319 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\GraphqlViewModel\ViewModel\GraphqlViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\Currency;
+use Hyva\Theme\ViewModel\ProductPage;
+use Hyva\Theme\ViewModel\RecentlyViewedProducts;
+use Hyva\Theme\ViewModel\Store;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Magento\Catalog\Block\Product\Image;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/**
+ * These variables are assigned in the parent templates: grid.phtml, list.phtml and sidebar.phtml
+ *
+ * @var string $uniqueId
+ * @var string $title
+ */
+
+/** @var GraphqlViewModel $gqlViewModel */
+$gqlViewModel = $viewModels->require(GraphqlViewModel::class);
+
+/** @var ProductPage $viewModelProducts */
+$viewModelProducts = $viewModels->require(ProductPage::class);
+
+/** @var RecentlyViewedProducts $recentlyViewed */
+$recentlyViewed = $viewModels->require(RecentlyViewedProducts::class);
+
+$currentProduct    = $viewModelProducts->getProduct();
+$currentProductSku = $currentProduct ? $currentProduct->getSku() : '';
+
+/** @var Image $productImage */
+$productImage = $currentProduct
+    ? $viewModelProducts->getImage($currentProduct, 'category_page_grid')
+    : null;
+
+/** @var Store $viewModelStore */
+$viewModelStore = $viewModels->require(Store::class);
+
+/** @var StoreConfig $storeConfig */
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+$noOfProductsToShow = (int) $storeConfig->getStoreConfig('catalog/recently_products/viewed_count');
+
+/** @var Currency $viewModelCurrency */
+$viewModelCurrency = $viewModels->require(Currency::class);
+
+$gqlRecentlyViewedProductsQuery = 'query ($skus: [String!]!) {
+products(filter: { sku: { in: $skus } }) {
+    items {
+      sku
+      id
+      name
+      small_image {
+        label
+        url
+      }
+      url_key
+      url_suffix
+      visibility
+      status
+      price_range {
+        minimum_price {
+          regular_price {
+            value
+            currency
+          }
+          final_price {
+            value
+            currency
+          }
+        }
+      }
+    }
+  }
+}';
+
+?>
+<script>
+    function initRecentlyViewedProductsComponent<?= /** @noEscape */ $uniqueId ?>(options) {
+        // Merge default options with customizations (isSlider) and overrides
+        const config = Object.assign({
+            isSlider: false,
+            useGraphQL: <?= /** @noEscape */ $recentlyViewed->isFetchRecentlyViewedEnabled() ? 'true' : 'false' ?>,
+            noOfProductsToShow: this.$root?.dataset.productsToShow || <?= $escaper->escapeJs($noOfProductsToShow) ?>
+        }, options || {});
+
+        function readRecentlyViewedFromStorage () {
+            const data = hyva.getBrowserStorage().getItem('recently_viewed_products');
+            return data ? JSON.parse(data).filter(product => {
+                <?php /** Remove items that are invalid after switching config.useGraphQL to false */ ?>
+                return config.useGraphQL || product.id;
+            }) : [];
+        }
+
+        return {
+            products: [],
+            currency: [],
+            noOfProductsToShow: config.noOfProductsToShow,
+            isLoading: true,
+            minHeight() {
+                if (this.isLoading) {
+                    return 'height: 600px; margin-block: 64px;';
+                }
+
+                if (this.products.length) {
+                    return 'margin-block: 64px';
+                }
+
+                return;
+            },
+            getProducts() {
+                const recentlyViewedProductsArray = readRecentlyViewedFromStorage();
+                let itemsToShow = [];
+                if (recentlyViewedProductsArray.length > 0) {
+                    // Avoid showing the current product
+                    const start = '<?= $escaper->escapeJs($currentProductSku) ?>' === '' ? 0 : 1;
+                    itemsToShow = recentlyViewedProductsArray.slice(start)
+                }
+
+                itemsToShow = itemsToShow.slice(0, this.noOfProductsToShow);
+
+                if (!itemsToShow.length) {
+                    this.noOfProductsToShow = 0;
+                    this.isLoading = false;
+                    return;
+                }
+
+                config.useGraphQL
+                    ? this.fetchProducts(itemsToShow)
+                    : this.renderRecentlyViewedProducts(itemsToShow)
+            },
+
+            fetchProducts(itemsToShow) {
+                const skusToFetch = itemsToShow.map(product => product.sku);
+
+                <?php /* It is not possible to query prices incl and excl tax from the GraphQL api */ ?>
+                <?php /* If display incl + excl is required, ensure catalog/recently_products/synchronize_with_backend is set to No */ ?>
+                const query = `<?= /** @noEscape */ $gqlViewModel->query("recently_viewed_products_query", $gqlRecentlyViewedProductsQuery) ?>`;
+                const variables = JSON.stringify({skus: skusToFetch});
+
+                window.fetch(BASE_URL + 'graphql?' + new URLSearchParams({query, variables}), {
+                    method: 'GET',
+                    headers: {
+                        'Store': '<?= $escaper->escapeJs($viewModelStore->getStoreCode()) ?>',
+                        'Content-Currency': '<?= $escaper->escapeJs($viewModelCurrency->getCurrentCurrencyCode()) ?>'
+                    },
+                })
+                    .then((response) =>  response.json())
+                    .then((result) => {
+                            this.currency = (result &&
+                                result.data &&
+                                result.data.currency);
+
+                            const responseProducts = (
+                                result &&
+                                result.data &&
+                                result.data.products &&
+                                result.data.products.items
+                            ) || [];
+
+                            // fix sorting of the response-products according to the sorting of the requested-products
+                            const sortedProducts = [];
+                            skusToFetch.forEach(sku => {
+                                responseProducts.forEach(productData => {
+                                    if (sku === productData.sku) {
+                                        sortedProducts.push(productData);
+                                    }
+                                });
+                            });
+                            this.renderRecentlyViewedProducts(sortedProducts);
+                        }
+                    )
+                    .finally(() => this.isLoading = false)
+            },
+
+            renderRecentlyViewedProducts(products) {
+                this.products = products;
+                this.isLoading = true;
+                if (config.isSlider) {
+                    // After products are available, request recently viewed product slider HTML from ContentTypes controller
+                    this.$nextTick(() => this.fetchRecentlyViewedProductSliderBySkus());
+                }
+            },
+
+            fetchRecentlyViewedProductSliderBySkus() {
+                try {
+                    if (!this.products || !this.products.length) {
+                        return;
+                    }
+
+                    const skus = this.products.map(p => p.sku).filter(Boolean);
+                    if (!skus.length) {
+                        return;
+                    }
+
+                    const parameters = {
+                        products_limit: skus.length,
+                        condition_type: 'sku',
+                        sort_order: 'newest',
+                        slider_pagination: 'dots',
+                        sku: skus.join(','),
+                        is_slider_show_arrows: false,
+                        title: '<?= $title; ?>'
+                    };
+
+                    const url = BASE_URL + 'scandiweb/ContentType/GetFeaturedProducts?' + new URLSearchParams(parameters);
+
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    })
+                        .then((response) => response.text())
+                        .then((response) => {
+                            if (!response) {
+                                return;
+                            }
+
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(response, 'text/html');
+                            const contentNode = doc.querySelector('.product-slider');
+                            if (!contentNode) {
+                                return;
+                            }
+
+                            // Execute inline scripts from response to initialize slider if any
+                            const tmpScripts = doc.getElementsByTagName('script');
+                            if (tmpScripts.length > 0) {
+                                const scripts = [];
+                                for (let i = 0; i < tmpScripts.length; i++) {
+                                    scripts.push(tmpScripts[i]);
+                                }
+                                for (let i = 0; i < scripts.length; i++) {
+                                    const script = document.createElement('script');
+                                    script.innerHTML = scripts[i].innerHTML;
+                                    document.head.appendChild(script);
+                                    scripts[i].parentNode.removeChild(scripts[i]);
+                                }
+                            }
+
+                            const container = this.$refs.recentlyViewedProductSliderContainer;
+                            if (!container) {
+                                return;
+                            }
+
+                            if (container.firstChild) {
+                                container.replaceChild(contentNode, container.firstChild);
+                            } else {
+                                container.appendChild(contentNode);
+                            }
+
+                            // Ensure ajax cart buttons (if present) are re-initialized
+                            try { window.setAjaxCart && window.setAjaxCart(); } catch (e) {}
+
+                            // Initialize slider controls directly from the fetched content
+                            this.initializeRecentlyViewedProductSliderFromResponse(contentNode);
+                        })
+                        .catch(() => {})
+                        .finally(() => {this.isLoading = false});
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+
+            getRecentlyViewedProductSwiper() {
+                try {
+                    const swiperElement = document.querySelector(".recently-viewed-products<?= /** @noEscape */ $uniqueId ?> .swiper");
+                    return swiperElement && swiperElement.swiper ? swiperElement.swiper : null;
+                } catch (e) {
+                    return null;
+                }
+            },
+
+            initializeRecentlyViewedProductSliderFromResponse(contentNode) {
+                const swiperElement = contentNode.querySelector('.swiper');
+                if (!swiperElement) {
+                    return;
+                }
+
+                const checkSwiperReady = () => {
+                    if (swiperElement.swiper) {
+                        this.initializeRecentlyViewedProductSliderControls();
+                    } else {
+                        requestAnimationFrame(checkSwiperReady);
+                    }
+                };
+
+                checkSwiperReady();
+            },
+
+            initializeRecentlyViewedProductSliderControls() {
+                const swiper = this.getRecentlyViewedProductSwiper();
+                if (!swiper) {
+                    return;
+                }
+
+                // Swiper is ready and will handle navigation automatically
+            },
+        }
+    }
+
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

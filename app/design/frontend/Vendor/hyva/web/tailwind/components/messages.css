@@ -1,0 +1,58 @@
+@layer components {
+    .message {
+        @apply flex justify-between items-center gap-3 w-full p-5 bg-primary-alpha-50 rounded-xs text-black font-medium mb-3;
+
+        &.error {
+            @apply bg-red-light;
+
+            .icon {
+                @apply text-red;
+            }
+        }
+
+        &.success {
+            @apply bg-green-light;
+
+            .icon {
+                @apply text-green;
+            }
+        }
+
+        &.info,
+        &.notice {
+            @apply bg-primary-alpha-50;
+
+            .icon {
+                @apply text-primary;
+            }
+        }
+
+        &.warning {
+            @apply bg-yellow-light;
+
+            .icon {
+                @apply text-yellow;
+            }
+        }
+
+        a {
+            @apply underline;
+        }
+
+        .icon {
+            @apply text-primary;
+        }
+    }
+}
+
+.page.messages {
+    @apply relative z-20;
+
+    .messages section#messages {
+        @apply container mx-auto py-3;
+    }
+
+    section#messages {
+        @apply absolute top-0 left-0 right-0;
+    }
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd"
+>
+    <body>
+        <referenceBlock name="hyva.checkout.columns">
+            <block
+                name="price-summary.total-segments.sticky"
+                template="Hyva_Checkout::checkout/price-summary/sticky/total-segments.phtml"
+            >
+                <arguments>
+                    <argument name="magewire" xsi:type="object">
+                        \Scandiweb\HyvaCheckout\Magewire\Checkout\PriceSummarySticky
+                    </argument>
+                </arguments>
+                <block name="price-summary.total-segment.sticky.grand_total"
+                        as="grand_total"
+                        template="Hyva_Checkout::checkout/price-summary/total-segments/grand-total.phtml"
+                >
+                    <block name="total-segment.tax.sticky.tax_grand_total_details"
+                            as="tax_details"
+                            template="Hyva_Checkout::checkout/price-summary/total-segments/extension-attributes/grand-total-tax-details.phtml"
+                    />
+                </block>
+            </block>
+        </referenceBlock>
+
+        <!-- Remove empty breadcrumbs container-->
+        <referenceBlock name="hyva.checkout.breadcrumbs" remove="true"/>
+
+        <!-- Add the navigation declared inside hyva_checkout_index_index -->
+        <move element="hyva.checkout.navigation" destination="hyva.checkout.columns"/>
+    </body>
+</page>

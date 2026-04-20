@@ -1,0 +1,64 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+
+<a
+    href="<?= $escaper->escapeUrl($block->getUrl('wishlist')) ?>"
+    class="relative inline-block"
+    x-data="initWishlistHeader"
+    @private-content-loaded.window="receiveWishlistData"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('My Wish List')); ?>"
+    :aria-label="linkAriaLabel"
+>
+    <?= $heroicons->heartHtml('text-black', 24, 24, ["aria-hidden" => "true"]) ?>
+    <template x-if="itemCount">
+        <span
+            x-text="itemCount"
+            class="absolute top-0 end-0 px-0.5 min-h-4 min-w-4 -mt-3.5 -me-1.5 flex justify-center items-center text-xs font-bold
+                    leading-none text-center text-white uppercase transform
+                    translate-y-1/2 rounded-full bg-primary"
+            aria-hidden="true"
+        ></span>
+    </template>
+</a>
+
+<script>
+    function initWishlistHeader() {
+        return {
+            wishlistProducts: null,
+            itemCount: 0,
+            linkAriaLabel() {
+                const countLabel = this.itemCount > 1
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 Items')) ?>', this.itemCount)
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 Item')) ?>', this.itemCount);
+                return `<?= $escaper->escapeJs(__('Wishlist Products')) ?> (${countLabel})`;
+            },
+            receiveWishlistData() {
+                const data = this.$event.detail.data;
+                this.itemCount = data.wishlist ? parseInt(data.wishlist.counter) : 0;
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initWishlistHeader', initWishlistHeader);
+    }, { once: true })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

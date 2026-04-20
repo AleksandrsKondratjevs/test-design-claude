@@ -1,0 +1,43 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+?>
+<?php
+/**
+ * Blog tag claud sidebar template
+ *
+ * @var $block \Magefan\Blog\Block\Sidebar\TagClaud
+ */
+?>
+<?php
+    $tags = $block->getTags();
+    $index = 0;
+?>
+
+<?php if ($tagsCount = count($tags)) { ?>
+<div class="block-tagclaud mb-12">
+    <div class="text-h3-sm lg:text-h4 mb-4 md:mb-6">
+        <?= $escaper->escapeHtml(__('Tags')) ?>
+    </div>
+
+    <div class="tagclaud-hld flex flex-wrap gap-2">
+    <?php foreach ($tags as $tag) { ?>
+        <?php
+            $title = $tag->getTitle();
+            $index++;
+        ?>
+        <span class="<?= $escaper->escapeHtml($block->getTagClass($tag)) ?>">
+            <a href="<?= $escaper->escapeUrl($tag->getTagUrl()) ?>" title="<?= $escaper->escapeHtml($title) ?>">
+                <?= $escaper->escapeHtml($title) ?>
+            </a>
+        </span>
+        <?php if ($index != $tagsCount): ?>
+            <span class="text-grey">/</span>
+        <?php endif; ?>
+    <?php } ?>
+    </div>
+</div>
+<?php } ?>

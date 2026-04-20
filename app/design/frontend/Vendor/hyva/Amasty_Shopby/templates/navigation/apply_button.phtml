@@ -1,0 +1,91 @@
+<?php declare(strict_types=1);
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Amasty\Shopby\Block\Navigation\ApplyButton;
+use Amasty\Shopby\Block\Navigation\UrlModifier;
+use Amasty\ShopbyHyvaCompatibility\ViewModel\ProductListAjax;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+
+/** @var ApplyButton $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$uniqueId = uniqid();
+
+/** @var ProductListAjax $productListAjax */
+$productListAjax = $viewModels->require(ProductListAjax::class);
+$pageLayout = $productListAjax->getPageLayout() ?: $block->getLayout()->getUpdate()->getPageLayout();
+$isOneColumn = $pageLayout === '1column' || $pageLayout === 'cms-full-width' || $pageLayout === 'product-full-width';
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+?>
+
+<?php if ($block->blockEnabled()): ?>
+    <div x-data="dataShowButton_<?= $escaper->escapeHtml($uniqueId) ?>()"
+         x-init="initShowButton()"
+         x-spread="eventListeners"
+         x-bind="eventListeners">
+        <?php if (!$block->isAjaxEnabled()): ?>
+            <form data-amshopby-filter="">
+                <input type="hidden"
+                       name="<?= /* @noEscape */ UrlModifier::VAR_REPLACE_URL ?>"
+                       value="1"/>
+            </form>
+        <?php endif; ?>
+        <div class="am_shopby_apply_filters bottom-0 md:bottom-auto z-50 border-t border-primary-alpha-15
+            -mt-3 w-full md:w-auto fixed md:absolute md:-mt-4 duration-200 ease-in-out"
+            :class="{
+                'left-0 md:ml-6 transition-[left,top]': buttonPosition !== 'right',
+                'right-0 md:mr-6 transition-[right,top]': buttonPosition === 'right'
+            }">
+            <div class="am-show-button flex items-center shadow-lg md:rounded-lg bg-white p-2 relative md:justify-start justify-center disabled:opacity-75"> <?php //phpcs:ignore?>
+                <svg class="w-4 h-4 text-white fill-current stroke-current absolute -m-4 hidden md:block"
+                     :class="{
+                         'z-0 bottom-px left-2/4 rotate-90': buttonPosition === 'top',
+                         'z-10 left-0 bottom-2/4 translate-y-[-50%] rotate-180': buttonPosition === 'left',
+                         'z-10 right-0 bottom-2/4 translate-y-[-50%]': buttonPosition === 'right'
+                     }"
+                     width="12"
+                     height="12"
+                >
+                    <rect x="0" y="0" width="12" height="12" transform="rotate(45)" class="shadow-xl"/>
+                </svg>
+
+                <button amshopby-apply-filter="1"
+                        id="amasty_shopby_apply_filters_<?= /* @noEscape */ $uniqueId ?>"
+                        title="<?= $escaper->escapeHtmlAttr(__('Apply Filters')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Apply Filters')) ?>"
+                        class="amshopby-button btn btn-primary relative"
+                        @click="applyFilter"
+                        :disabled="isLoading"
+                >
+                    <?= $this->getLayout()
+                        ->createBlock('Magento\Framework\View\Element\Template')
+                        ->setTemplate('Hyva_Theme::ui/loading-block.phtml')
+                        ->toHtml(); ?>
+                    <?= $escaper->escapeHtml(__('Show')) ?>
+                    <span x-html="itemsCount"></span>
+                    <?= $escaper->escapeHtml(__('results')) ?>
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function dataShowButton_<?= $escaper->escapeHtml($uniqueId)?>() {
+            return deepMerge({}, dataShowButton(), {
+                layout: '<?= $escaper->escapeHtml($pageLayout); ?>',
+                clearUrl: '<?= $escaper->escapeUrl($block->getClearUrl()) ?>',
+                ajaxEnabled: Boolean(<?= (int)$block->isAjaxSettingEnabled() ?>),
+                isOneColumn: Boolean(<?= /** @noEscape */ $isOneColumn; ?>),
+                buttonPosition: '<?= $escaper->escapeHtml($block->getButtonPosition()) ?>',
+                navigationSelector: '<?= $escaper->escapeHtml($block->getNavigationSelector()) ?>',
+            }, initSelectorsILN());
+        }
+    </script>
+<?php endif; ?>

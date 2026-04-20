@@ -1,0 +1,151 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Amasty\ShopbyHyvaCompatibility\ViewModel\JsInit;
+use Amasty\ShopbyHyvaCompatibility\ViewModel\ProductListAjax;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\LayeredNavigation\Block\Navigation;
+
+// phpcs:disable Generic.Files.LineLength.TooLong
+
+/** @var Navigation $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var JsInit $jsInitViewModel */
+$jsInitViewModel = $viewModels->require(JsInit::class);
+
+/** @var ProductListAjax $productListAjax */
+$productListAjax = $viewModels->require(ProductListAjax::class);
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$filterUniqId = uniqid();
+$pageLayout = $productListAjax->getPageLayout() ?: $block->getLayout()->getUpdate()->getPageLayout();
+$isOneColumn = $pageLayout === '1column' || $pageLayout === 'cms-full-width' || $pageLayout === 'product-full-width';
+$isSidebar = !!$block->getData('isSidebar') && !$isOneColumn;
+$expandedArray = $jsInitViewModel->getFiltersExpanded();
+?>
+<?php if ($block->canShowBlock()): ?>
+    <div id="layered-navigation-desktop" class="hidden md:block">
+    <div id="layered-navigation-content" class="<?=
+                /** @noEscape */
+                $isSidebar ? 'sidebar sidebar-main' : 'sidebar-topnav'; ?> one-column-wrapper relative">
+        <?= $block->getChildHtml('amshopby.js.main') ?>
+        <script>
+            function layeredNavigationExtend_<?= $escaper->escapeHtml($filterUniqId); ?>() {
+                <?php if ($isSidebar): ?>
+                    return deepMerge({}, initLayeredNavigation(), {
+                        isSidebar: true,
+                        isStickyEnabled: Boolean(<?=
+                                                    /** @noEscape */
+                                                    $jsInitViewModel->isEnableStickySidebarDesktop(); ?>)
+                    });
+                <?php else: ?>
+                    return deepMerge({}, initLayeredNavigationTop(), {
+                        isSidebar: false,
+                        isOneColumn: Boolean(<?=
+                                                /** @noEscape */
+                                                $isOneColumn; ?>)
+                    });
+                <?php endif; ?>
+            }
+        </script>
+        <div class="block-filter flex flex-col border-b border-primary-alpha-15 pt-4 md:border-0 md:bg-transparent md:py-0 md:px-0
+             <?= $escaper->escapeHtmlAttr($isSidebar ? 'md:block' : '-top hidden md:block my-0') ?>"
+            :class="{
+                 'md:block': isSidebar,
+                 '-top hidden md:block my-0': !isSidebar
+             }"
+            x-data="layeredNavigationExtend_<?= $escaper->escapeHtml($filterUniqId); ?>()"
+            x-init="checkIsMobileResolution($el)"
+            @resize.window.debounce="checkIsMobileResolution($el)"
+            :id="isSidebar ? 'layered-filter-block' : ''"
+            x-on:visibilitychange.window.debounce="isSidebar && checkIsMobileResolution($el)">
+
+            <?= $block->getChildHtml('state') ?>
+
+            <div class="block-content filter-content max-md:pb-16
+                 <?= $escaper->escapeHtmlAttr($isSidebar ? 'is-sidebar md:block' : 'mt-2'); ?>"
+                :id="isSidebar ? 'layered-filter-block-content' : ''"
+                :class="{
+                     'block-content filter-content': true,
+                     'mt-2': !isSidebar,
+                     'md:block': isSidebar,
+                     'overflow-y-auto': isApplySticky
+                 }">
+                <?php $filterIndex = 0; ?>
+                <?php foreach ($block->getFilters() as $filter): ?>
+                    <?php if ($filter->getItemsCount()): ?>
+                        <?php
+                        $open = in_array($filterIndex, $expandedArray);
+                        ?>
+                        <div class="filter-option
+                             <?= $escaper->escapeHtmlAttr($isSidebar ? 'py-4 relative border-b border-primary-alpha-15 max-md:last:border-none' : 'my-0 mb-2 mr-5 static shadow-none bg-transparent inline-block last:mr-0 pb-4'); ?>"
+                            :class="{
+                                 'relative': isSidebar,
+                                 'my-0 mb-2 mr-5 shadow-none inline-block bg-transparent static last:mr-0 pb-4': !isSidebar
+                             }"
+                            x-data="{ open: Boolean('<?=
+                                                        /** @noEscape */
+                                                        $open; ?>') }"
+                            @amSetFilterOpenState="isSidebar && (open = true)">
+                            <div class="filter-options-title flex items-center cursor-pointer justify-between select-none gap-3 px-4"
+                                x-on:click.prevent.stop="isSidebar ? open = !open : setOpenedFilter('<?= $escaper->escapeJs($filterIndex) ?>', $event.currentTarget)"
+                                :aria-expanded="isSidebar ? (open ? 'true' : 'false') : null"
+                                role="button"
+                                tabindex="0">
+                                <span class="title text-md md:text-lg font-semibold
+                                      <?= $escaper->escapeHtmlAttr(!$isSidebar ? 'mr-6' : ''); ?>"
+                                    :class="{
+                                          'mr-6': !isSidebar
+                                      }">
+                                    <?= $escaper->escapeHtml(__($filter->getName())) ?>
+                                </span>
+                                <span class="transition-transform transform duration-300 ease-in-out text-black" :class="{ 'rotate-180': isSidebar ? open : isFilterOpened('<?= $escaper->escapeJs($filterIndex) ?>') }">
+                                    <?= $heroicons->chevronDownHtml('', 16, 16, ["aria-hidden" => "true"]); ?>
+                                </span>
+                            </div>
+
+                            <div
+                                x-show="isSidebar ? open : isFilterOpened('<?= $escaper->escapeJs($filterIndex) ?>')"
+                                x-transition:enter-start="grid-rows-[0fr]"
+                                x-transition:enter-end="grid-rows-[1fr]"
+                                x-transition:leave-start="grid-rows-[1fr]"
+                                x-transition:leave-end="grid-rows-[0fr]"
+                                class="filter-options-content grid transition-all duration-200"
+                                style="overflow: hidden; <?= !$open ? 'display: none;' : '' ?>"
+                                @transitionend.self="$refs.overflowContainer.style.overflow = (isSidebar ? open : isFilterOpened('<?= $escaper->escapeJs($filterIndex) ?>')) ? 'visible' : 'hidden'"
+                            >
+                                <div x-ref="overflowContainer" class="min-h-0">
+                                    <div
+                                        class="filter-options-content pt-4 px-4
+                                        <?= $escaper->escapeHtmlAttr(!$isSidebar ? 'absolute z-50 box-content px-0 mt-1 py-4 shadow-lg bg-container-lighter min-w-44 ' : ''); ?>"
+                                                :class="{
+                                            'absolute z-50 px-0 py-4 mt-1 box-content shadow-lg bg-container-lighter': !isSidebar
+                                        }">
+                                        <?= /* @noEscape */ $block->getChildBlock('renderer')->render($filter) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php $filterIndex++; ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+
+            <?= $block->getChildHtml('amasty.shopby.applybutton.sidebar'); ?>
+        </div>
+    </div>
+    </div>
+<?php endif; ?>

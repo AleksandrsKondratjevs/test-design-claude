@@ -1,0 +1,126 @@
+    .snap {
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        & > div {
+            scroll-snap-align: start;
+        }
+    }
+
+    .swiper.swiper-horizontal {
+        @apply -mx-4 px-4 md:-mx-6 md:px-6 2xl:mx-0 2xl:px-0;
+    }
+
+    .swiper {
+        .swiper-slide {
+            @apply h-auto flex;
+        }
+    }
+
+    .swiper-arrows-container,
+    .swiper-rtl .swiper-arrows-container {
+        @apply invisible pointer-events-none absolute h-max lg:top-[calc(50%_-_21px)] transform -translate-y-1/2 w-full border-none z-10 max-lg:-bottom-9;
+
+        .swiper-button-prev,
+        .swiper-button-next {
+            @apply pointer-events-auto relative after:content-none p-2.5 border-2 border-primary-alpha-15 rounded-full w-auto h-auto mt-0 start-0;
+
+            svg {
+                @apply text-black size-5;
+            }
+        }
+
+        .swiper-button-prev {
+            @apply start-0;
+        }
+
+        .swiper-button-next {
+            @apply end-0;
+        }
+    }
+
+    .swiper-arrows-container-wrapper,
+    .swiper-rtl .swiper-arrows-container-wrapper {
+        @apply max-w-[1376px] relative flex justify-between 2xl:-mx-[52px];
+    }
+
+    .swiper,
+    div {
+        .swiper-pagination {
+            @apply hidden justify-center relative bottom-0! max-lg:pointer-events-none h-3 start-1/2 rtl:translate-x-1/2!;
+
+            &:not(.swiper-pagination-lock) {
+                @apply mt-8;
+            }
+        }
+
+        .swiper-pagination-bullet {
+            @apply bg-black/25 transition-opacity mx-1.5 size-3 min-w-3;
+        }
+
+        .swiper-pagination-bullet-active {
+            @apply bg-black/100;
+        }
+
+        .swiper-pagination-bullet-active-next {
+            @apply scale-[0.667];
+        }
+
+        .swiper-pagination-bullet-active-next-next {
+            @apply scale-[0.333];
+        }
+
+        .swiper-pagination-lock {
+            @apply py-0!;
+        }
+
+        .swiper-scrollbar {
+            @apply invisible relative! top-0! bottom-0 left-0! h-1! bg-[rgba(16,22,37,0.25)] z-0! md:max-w-60 mx-auto;
+        }
+
+        .swiper-scrollbar-drag {
+            @apply bg-black;
+        }
+    }
+
+    .swiper-initialized {
+        .swiper-pagination,
+        .swiper-arrows-container,
+        .swiper-scrollbar {
+            @apply visible;
+        }
+
+        .swiper-pagination {
+            @apply flex;
+        }
+
+        ~ .swiper-pagination,
+        ~ .swiper-arrows-container,
+        ~ .swiper-scrollbar {
+            @apply visible;
+        }
+
+        ~ .swiper-pagination {
+            @apply block;
+        }
+    }
+
+    .swiper-rtl {
+        .swiper-button-prev,
+        .swiper-button-next {
+            @apply after:hidden;
+
+            svg {
+                @apply rtl:rotate-180!;
+            }
+        }
+    }
+
+    .swiper:not(.swiper-initialized) {
+        @apply overflow-x-hidden;
+    }

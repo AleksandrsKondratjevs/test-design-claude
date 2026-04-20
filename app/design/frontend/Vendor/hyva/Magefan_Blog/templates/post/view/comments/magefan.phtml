@@ -1,0 +1,255 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+?>
+<?php
+/**
+ * Blog post comments template
+ *
+ * @var $block \Magefan\Blog\Block\Post\View\Comments
+ */
+?>
+<?php
+$comments = $block->getCommentsCollection();
+$numberOfCommentsToDisplay = $block->getNumberOfComments();
+$session = $block->getCustomerSession();
+
+$canPost = $block->canPost();
+?>
+<div id="post-comments">
+    <div class="c-count flex flex-col items-start justify-start mx-auto  md:flex-row mb-6">
+        <strong class="text-xl font-bold text-secondary title-font text-start"><?= $block->escapeHtml(__('%1 Comment(s)', $block->getPost()->getCommentsCount())) ?></strong>
+    </div>
+    <!-- reply form -->
+    <div class="c-reply cf mb-4">
+        <?php if ($image = $block->getCustomerImage()) { ?>
+            <div class="c-img">
+                <img src="<?= $block->escapeUrl($image) ?>" alt="<?= $block->escapeHtml($block->getCustomerName()) ?>">
+            </div>
+        <?php } ?>
+        <div class="c-replyform <?php if ($canPost) {
+                                    echo 'no-active';
+                                } ?>">
+            <form class="comment-form-blog-recaptcha"
+                action="<?= $block->escapeUrl($block->getFormUrl()) ?>"
+                method="post">
+                <div class="fieldset">
+                    <?= $block->getBlockHtml('formkey') ?>
+                    <input class="form-input" type="hidden" name="post_id" value="<?= (int)($block->getPost()->getId()) ?>" />
+                    <div class="field required">
+                        <label class="label" for="comment">
+                            <?= $block->escapeHtml(__('Leave a comment')) ?>
+                        </label>
+                        <div class="control">
+                            <textarea
+                                name="text"
+                                id="comment"
+                                class="form-input w-full min-h-36"
+                                placeholder="<?= $canPost ? $block->escapeHtml(__('Add a comment...')) : $block->escapeHtml(__('Sign in to add a comment...')) ?>" <?php if (!$canPost) { ?>
+                                disabled="disabled" <?php } ?>
+                                required
+                                data-validate="{required:true}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-between fieldset">
+                        <div class="w-full field required">
+                            <label class="label" for="author_nickname">
+                                <span><?= $block->escapeHtml(__('Full Name')) ?></span>
+                            </label>
+                            <div class="control">
+                                <input type="text"
+                                    name="author_nickname"
+                                    id="author_nickname"
+                                    value=""
+                                    placeholder="<?= $block->escapeHtml(__('Full Name')) ?>"
+                                    class="form-input w-full"
+                                    data-validate="{required:true}"
+                                    autocomplete="off"
+                                    required
+                                    aria-required="true">
+                            </div>
+                        </div>
+                        <div class="w-full field required">
+                            <label class="label" for="author_email">
+                                <span><?= $block->escapeHtml(__('Email')) ?></span>
+                            </label>
+                            <div class="control">
+                                <input
+                                    type="email"
+                                    id="author_email"
+                                    name="author_email"
+                                    autocomplete="email"
+                                    value=""
+                                    placeholder="<?= $block->escapeHtml(__('Email')) ?>"
+                                    class="form-input w-full"
+                                    required
+                                    data-validate="{required:true, 'validate-email':true}"
+                                    aria-required="true">
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if ($block->displayPrivacyPolicyCheckbox()) { ?>
+                        <?= $block->getChildBlock('display_privacy_policy_checkbox')->setCommentType('post')->toHtml(); ?>
+                    <?php } ?>
+                    <div class="clearfix"></div>
+
+                    <div id="recaptcha-append-to"><?= $block->getChildHtml('blog.post.comments.magefan.additional'); ?></div>
+
+                    <?php if ($canPost) { ?>
+                        <button type="submit" class="btn btn-primary max-md:w-full md:min-w-48 mt-6"><?= $block->escapeHtml(__('Submit')) ?></button>
+                    <?php } else { ?>
+                        <button type="button"
+                            onclick="window.location='<?= $block->escapeUrl($block->getCustomerUrl()->getLoginUrl()) ?>';">
+                            <?= $block->escapeHtml(__('Sign In')) ?>
+                        </button>
+                    <?php } ?>
+
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php
+    $commentsCount = count($comments);
+    if ($commentsCount) {
+    ?>
+        <div class="mt-8">
+            <!-- comments list -->
+            <div class="c-comments bg-container-darker p-0.5 rounded-sm">
+                <?php $i = 0 ?>
+                <?php foreach ($comments as $comment) { ?>
+                    <?php
+                    $i++;
+                    $comment->setIsHidden($i > $numberOfCommentsToDisplay);
+                    ?>
+                    <?= $block->getCommentHtml($comment) ?>
+                <?php } ?>
+                <?php if ($commentsCount > $numberOfCommentsToDisplay) { ?>
+                    <a href="#" class="c-allcomments more-comments-action" data-comment="0"><?= $block->escapeHtml(__('Load more comments')) ?></a>
+                <?php } ?>
+            </div>
+
+            <!-- reply comment form -->
+            <div id="c-replyform-comment" class="c-replyform c-replyform-comment mt-6" style="display:none">
+                <form class="reply-form-blog-recaptcha"
+                    action="<?= $block->escapeUrl($block->getFormUrl()) ?>"
+                    method="post">
+                    <?= $block->getBlockHtml('formkey') ?>
+                    <input type="hidden" name="post_id" value="<?= $block->escapeHtml($block->getPost()->getId()) ?>" />
+                    <input type="hidden" name="parent_id" value="" />
+                    <div class="field required">
+                        <label class="label" for="reply-message">
+                            <span><?= __('Leave a reply') ?></span>
+                        </label>
+                        <div class="control">                            
+                            <textarea class="refresh-value w-full form-textarea"
+                                name="text"
+                                id="reply-message"
+                                placeholder="<?= $canPost ? $block->escapeHtml(__('Add a reply...')) : $block->escapeHtml(__('Sign in to add a comment...')) ?>" <?php if (!$canPost) { ?>
+                                disabled="disabled" <?php } ?>
+                                required
+                                data-validate="{required:true}">
+                            </textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <?php if ($canPost && !$session->getCustomerGroupId()) { ?>
+                            <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-between fieldset">
+                                <div class="w-full field required">
+                                    <label class="label" for="author_nickname">
+                                        <span><?= $block->escapeHtml(__('Full Name')) ?></span>
+                                    </label>
+                                    <div class="control">
+                                        <input type="text"
+                                            name="author_nickname"
+                                            id="author_nickname"
+                                            value=""
+                                            placeholder="<?= $block->escapeHtml(__('Full Name')) ?>"
+                                            class="form-input w-full"
+                                            data-validate="{required:true}"
+                                            autocomplete="off"
+                                            required
+                                            aria-required="true">
+                                    </div>
+                                </div>
+                                <div class="w-full field required">
+                                    <label class="label" for="author_email">
+                                        <span><?= $block->escapeHtml(__('Email')) ?></span>
+                                    </label>
+                                    <div class="control">
+                                        <input
+                                            type="email"
+                                            id="author_email"
+                                            name="author_email"
+                                            autocomplete="email"
+                                            value=""
+                                            placeholder="<?= $block->escapeHtml(__('Email')) ?>"
+                                            class="form-input w-full"
+                                            required
+                                            data-validate="{required:true, 'validate-email':true}"
+                                            aria-required="true">
+                                    </div>
+                                </div>
+                            </div>
+                        <?php } ?>
+                        <div class="mt-6 flex flex-col gap-3 md:flex-row">
+                            <?php if ($canPost) { ?>
+                                <button class="read-more btn btn-primary max-md:w-full min-w-48" type="submit"><?= $block->escapeHtml(__('Submit')) ?></button>
+                                <?php if ($block->displayPrivacyPolicyCheckbox()) { ?>
+                                    <?= $block->getChildBlock('display_privacy_policy_checkbox')->setCommentType('comment')->toHtml(); ?>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <?php if ($block->displayPrivacyPolicyCheckbox()) { ?>
+                                    <?= $block->getChildBlock('display_privacy_policy_checkbox')->setCommentType('comment')->toHtml(); ?>
+                                <?php } ?>
+                                <button type="button"
+                                    class="btn btn-primary max-md:w-full min-w-48"
+                                    onclick="window.location='<?= $block->escapeUrl($block->getCustomerUrl()->getLoginUrl()) ?>';">
+                                    <?= $block->escapeHtml(__('Sign In')) ?>
+                                </button>
+                            <?php } ?>
+                            <button type="button" class="cancel reply-cancel-action btn text-primary max-md:w-full"><?= $block->escapeHtml(__('Cancel')) ?></button>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div id="recaptcha-reply-append-to"><?= $block->getChildHtml('blog.post.comments.magefan.reply.additional'); ?></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
+</div>
+
+<script>
+    var _deepestScroll = 0;
+
+    function initCommentsJs(firstCheck) {
+        if (!firstCheck && _deepestScroll + 50 > document.documentElement.scrollTop) {
+            return;
+        }
+
+        _deepestScroll = document.documentElement.scrollTop;
+
+        let commentElement = document.querySelector('.post-view .comments');
+        let offset = 50;
+
+        let isCommentElementVisible = ((commentElement.getBoundingClientRect().top - offset) < window.innerHeight);
+
+        if (isCommentElementVisible) {
+            document.removeEventListener('scroll', initCommentsJs);
+
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = '<?= $escaper->escapeUrl($block->getViewFileUrl('Magefan_Blog/js/magefan-comments.js')) ?>';
+            document.head.append(script);
+        }
+    }
+
+    initCommentsJs(true);
+    document.addEventListener('scroll', initCommentsJs);
+</script>

@@ -1,0 +1,57 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+
+?>
+<script>
+function initDeviceTypeVariable() {
+    const mobileMatchMedia = window.matchMedia("(max-width: 767px)");
+    const tabletMatchMedia = window.matchMedia("(min-width: 768px) and (max-width: 1023px)");
+    const desktopMatchMedia = window.matchMedia("(min-width: 1024px)");
+
+    function updateDeviceStore() {
+        const isMobile = mobileMatchMedia.matches;
+        const isTablet = tabletMatchMedia.matches;
+        const isDesktop = desktopMatchMedia.matches;
+
+        window.isMobile = isMobile;
+        window.isTablet = isTablet;
+        window.isDesktop = isDesktop;
+
+        Alpine.store('device').isMobile = isMobile;
+        Alpine.store('device').isTablet = isTablet;
+        Alpine.store('device').isDesktop = isDesktop;
+    }
+
+    // Initial check
+    updateDeviceStore();
+
+    // Attach change listeners
+    const matchMediaList = [mobileMatchMedia, tabletMatchMedia, desktopMatchMedia];
+    matchMediaList.forEach((mediaQuery) => {
+        if (typeof mediaQuery.onchange !== 'object') {
+            mediaQuery.addListener(updateDeviceStore); // Legacy
+        } else {
+            mediaQuery.addEventListener("change", updateDeviceStore);
+        }
+    });
+}
+
+document.addEventListener("alpine:init", () => {
+    Alpine.store('device', {
+        isMobile: window.isMobile,
+        isTablet: window.isTablet,
+        isDesktop: window.isDesktop
+    });
+
+    initDeviceTypeVariable();
+}, { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

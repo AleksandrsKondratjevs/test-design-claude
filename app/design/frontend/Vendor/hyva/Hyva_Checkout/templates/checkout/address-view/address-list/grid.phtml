@@ -1,0 +1,99 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Customer\Api\Data\AddressInterface;
+use Magento\Customer\Api\Data\AddressSearchResultsInterface;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Hyva\Checkout\Magewire\Checkout\AddressView\ShippingDetails\AddressList as Magewire;
+use Hyva\Checkout\ViewModel\Checkout\AddressView\AbstractAddressList;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var Magewire $magewire */
+/** @var AddressSearchResultsInterface $shippingAddressList */
+/** @var AddressInterface $address */
+/** @var Escaper $escaper */
+/** @var AbstractAddressList $addressList */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$addressList = $block->getData('address_list');
+$addressListItems = $addressList->getAddressListItems();
+$expandable = count($addressListItems) > 2;
+?>
+
+<?php if ($addressListItems): ?>
+    <div
+        <?php if ($expandable): ?>
+            x-data="hyvaExpandSavedAddress"
+        <?php endif; ?>
+    >
+        <div
+            <?php if ($expandable): ?>
+                id="address-grid"
+                class="address-grid space-y-2 h-96 overflow-hidden mask-overflow data-[expanded=true]:mask-none data-[expanded=true]:h-auto data-[expanded=true]:mb-3"
+                style="--tw-mask-size: 8rem; --tw-mask-dir: to bottom; --tw-mask-start: rgb(var(--tw-mask-color));"
+                x-bind="details"
+            <?php else: ?>
+                class="address-grid gap-2 grid lg:grid-cols-2 "
+            <?php endif; ?>
+        >
+            <?php foreach ($addressListItems as $address): ?>
+                <div
+                    class="address-item rounded-sm bg-white border border-transparent hover:border-primary"
+                    wire:key="address-<?= /* @noEscape */ $address->getId() ?>"
+                    data-id="<?= $escaper->escapeHtmlAttr($address->getId() ?? 0) ?>"
+                    x-data="hyvaCheckoutAddressSelector"
+                    data-active-address-entity="<?= $escaper->escapeHtmlAttr((int)$magewire->activeAddressEntity) ?>"
+                    x-bind:class="activeEntityClasses"
+                >
+                    <label class="flex !gap-x-4 mb-0 p-4 cursor-pointer field choice" for="<?= $escaper->escapeHtmlAttr($addressList->renderEntityName($address)) ?>">
+                        <input
+                            type="radio"
+                            wire:model="activeAddressEntity"
+                            value="<?=  /* @noEscape */ $address->getId() ?? 0 ?>"
+                            name="<?= $escaper->escapeHtmlAttr('address_' . $addressList->getTypeNamespace()) ?>"
+                            id="<?= $escaper->escapeHtmlAttr($addressList->renderEntityName($address)) ?>"
+                            class="radio"
+                        />
+                        <span class="h-full">
+                            <?= /* @noEscape */ $addressList->renderAddress($address) ?>
+                        </span>
+                        <?php if (! is_numeric($address->getId())): ?>
+                            <div class="toolbar flex gap-x-4">
+                                <button
+                                    data-modal-address-form-block-name="<?= $escaper->escapeHtmlAttr($addressList->getModalAddressFormBlockName()) ?>"
+                                    x-on:click="editAddress"
+                                    class="rounded-full w-9 h-9 bg-gray-200 border-0 flex-shrink-0 group-hover:bg-gray-300 group-hover:text-gray-600"
+                                    title="<?= $escaper->escapeHtmlAttr(__('Edit Address')) ?>"
+                                >
+                                    <span class="sr-only"><?= $escaper->escapeHtml(__('Edit Address')) ?></span>
+                                    <span class="w-full h-full rounded-full inline-flex items-center justify-center hover:text-green-700">
+                                        <?= $heroicons->pencilAltHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                    </span>
+                                </button>
+                            </div>
+                        <?php endif ?>
+                    </label>
+                </div>
+            <?php endforeach ?>
+        </div>
+        <?php if ($expandable): ?>
+            <button
+                class="btn btn-secondary justify-center w-full"
+                aria-controls="address-grid"
+                x-bind="toggle"
+            ><?= $escaper->escapeHtml(__('Show all')) ?></button>
+        <?php endif; ?>
+    </div>
+<?php endif ?>

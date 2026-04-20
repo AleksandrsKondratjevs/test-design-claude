@@ -1,0 +1,124 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\ReCaptcha;
+use Magento\Framework\Escaper;
+use Magento\Newsletter\Block\Subscribe;
+use Hyva\Theme\ViewModel\StoreConfig;
+
+/** @var Subscribe $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+/** @var ReCaptcha $recaptcha */
+/** @var HeroiconsOutline $heroicons */
+
+/** @var StoreConfig $storeConfigViewModel */
+$storeConfigViewModel = $viewModels->require(StoreConfig::class);
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$checkboxEnabled = $storeConfigViewModel->getStoreConfig('newsletter/general/checkbox_enable');
+$checkboxLabel = $storeConfigViewModel->getStoreConfig('newsletter/general/checkbox_label');
+
+// Do not replace this with $viewModels->require(ReCaptcha::class); that might break the dependency
+// on the Magento_ReCaptchaNewsletter module
+$recaptcha = $block->getData('viewModelRecaptcha');
+?>
+<div class="w-full">
+    <form
+        class="form subscribe"
+        action="<?= $escaper->escapeUrl($block->getFormActionUrl()) ?>"
+        method="post"
+        x-data="{ ...initNewsletterForm(), ...hyva.formValidation($el) }"
+        @submit.prevent="submitForm"
+        id="newsletter-validate-detail"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Subscribe to Newsletter')) ?>"
+    >
+        <div class="fieldset">
+            <div class="flex justify-center items-start gap-4 md:justify-start fieldset">
+                <div class="field field-reserved w-full">
+                    <label for="newsletter-subscribe" class="label text-white">
+                        <?= $escaper->escapeHtml(__('Sign up for emails')) ?>
+                    </label>
+                    <div class="control w-full">
+                        <input
+                            name="email"
+                            type="email"
+                            required
+                            id="newsletter-subscribe"
+                            class="form-input inline-flex w-full min-h-12"
+                            placeholder="<?= $escaper->escapeHtmlAttr(__('Email')) ?>"
+                            autocomplete="email"
+                            aria-describedby="footer-newsletter-heading"
+                            @change="onChange"
+                            data-validate='{"email": true, "required": true}'
+                            data-msg-email="<?= $escaper->escapeHtmlAttr('Enter a valid email.') ?>"
+                            data-msg-required="<?= $escaper->escapeHtmlAttr('This is a required field.') ?>"
+                        >
+                    </div>
+                    <?= $block->getBlockHtml('formkey') ?>
+                    <?= $recaptcha ? $recaptcha->getInputHtml(ReCaptcha::RECAPTCHA_FORM_ID_NEWSLETTER) : '' ?>
+                </div>
+                <button class="btn btn-primary bg-container-darker text-black hover:bg-white hidden shrink-0 mt-[26px] lg:flex">
+                    <?= $escaper->escapeHtml(__('Sign Up')) ?>
+                </button>
+            </div>
+            <?php if ($checkboxEnabled): ?>
+                <div class="field field-reserved choice mt-6 lg:mt-5">
+                    <input
+                        type="checkbox"
+                        class="checkbox"
+                        name="newsletter-terms-confirm"
+                        id="newsletter-terms-confirm"
+                        data-validate='{"required": true}'
+                        @change="onChange"
+                    >
+                    <label class="label [&>p]:inline-block " for="newsletter-terms-confirm"><?= $escaper->escapeHtml($checkboxLabel) ?></label>
+                </div>
+            <?php endif; ?>
+            <button class="btn btn-primary bg-container-darker text-black hover:bg-white mt-8 w-full lg:hidden">
+                <?= $escaper->escapeHtml(__('Sign Up')) ?>
+            </button>
+        </div>
+    </form>
+    <div class="w-full">
+        <?= $recaptcha ? $recaptcha->getLegalNoticeHtml(ReCaptcha::RECAPTCHA_FORM_ID_NEWSLETTER) : '' ?>
+    </div>
+    <script>
+        function initNewsletterForm() {
+            return {
+                errors: 0,
+                hasCaptchaToken: 0,
+                submitForm() {
+                    // Do not rename $form, the variable is expected to be declared in the recaptcha output
+                    const $form = document.querySelector('#newsletter-validate-detail');
+                    <?= $recaptcha ? $recaptcha->getValidationJsHtml(ReCaptcha::RECAPTCHA_FORM_ID_NEWSLETTER) : '' ?>
+
+                    this.validate()
+                .then(() => {
+                    // all fields validated
+                    $form.submit();
+                })
+                .catch((invalid) => {
+                    if (invalid.length > 0) {
+                        invalid[0].focus();
+                    }
+                });
+
+                    // if (this.errors === 0) {
+                    //     $form.submit();
+                    // }
+                }
+            }
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+</div>

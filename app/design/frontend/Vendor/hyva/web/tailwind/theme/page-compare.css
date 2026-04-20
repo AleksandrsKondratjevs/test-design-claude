@@ -1,0 +1,9 @@
+.catalog-product_compare-index {
+    .table-wrapper {
+        .rating-summary {
+            span {
+                @apply hidden;
+            }
+        }
+    }
+}

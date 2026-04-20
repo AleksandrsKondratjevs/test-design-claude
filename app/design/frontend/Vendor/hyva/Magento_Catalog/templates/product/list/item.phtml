@@ -1,0 +1,265 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+use Hyva\Theme\ViewModel\BlockJsDependencies;
+use Hyva\Theme\ViewModel\ProductCompare;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Hyva\Theme\ViewModel\ProductPage;
+use Hyva\Theme\ViewModel\Wishlist;
+use Magento\Catalog\Block\Product\View as AbstractProduct;
+use Magento\Catalog\Helper\Output as CatalogOutputHelper;
+use Magento\Catalog\ViewModel\Product\OptionsData as ProductOptionsData;
+use Magento\Framework\Escaper;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+// phpcs:disable Generic.Files.LineLength.TooLong
+// phpcs:disable Generic.WhiteSpace.ScopeIndent
+
+/** @var AbstractProduct $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ProductPage $productViewModel */
+$productViewModel = $viewModels->require(ProductPage::class);
+
+/** @var ProductListItem $productListItemViewModel */
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+
+/** @var CatalogOutputHelper $catalogOutputHelper */
+$catalogOutputHelper = $this->helper(CatalogOutputHelper::class);
+
+/** @var ProductCompare $compareViewModel */
+$compareViewModel = $viewModels->require(ProductCompare::class);
+/** @var Wishlist $wishlistViewModel */
+$wishlistViewModel = $viewModels->require(Wishlist::class);
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var HeroiconsSolid $heroiconsSolid */
+$heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
+
+$productOptionsViewmodel = $viewModels->require(ProductOptionsData::class);
+
+/** @var Magento\Catalog\Model\Product $product */
+if (! ($product = $block->getData('product'))) {
+    return;
+}
+$imageDisplayArea = $block->getData('image_display_area');
+$templateType = $block->getData('template_type');
+$viewMode = $block->getData('view_mode');
+$showDescription = $block->getData('show_description');
+$showAddToWishlist = $wishlistViewModel->isEnabled();
+$showAddToCompare = $compareViewModel->showInProductList();
+$viewIsGrid = $viewMode === 'grid';
+$productType = $product->getTypeId();
+$isProductGroupedOrBundle = $productType === 'bundle' || $productType === "grouped";
+$isProductConfigurable = $productType === 'configurable';
+$productId = $product->getId();
+$options   = $productOptionsViewmodel->getOptionsData($product);
+
+$hideDetails       = $block->getData('hide_details') ?: false;
+$hideRatingSummary = $block->getData('hide_rating_summary') ?: false;
+
+$imageCustomAttributes = $product->getData('image_custom_attributes')
+    ?? $block->getData('image_custom_attributes')
+    ?? [];
+$productName = $catalogOutputHelper->productAttribute($product, $product->getName(), 'name');
+
+// Ensure the required JS is rendered on the page
+$viewModels->require(BlockJsDependencies::class)->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/price-box.phtml');
+
+?>
+
+<?php if ($product->isSaleable()): ?>
+<form method="post"
+    action="<?= $escaper->escapeUrl($productViewModel->getAddToCartUrl($product, ['useUencPlaceholder' => true])) ?>"
+    class="item relative product product-item product_addtocart_form card card-interactive grow flex flex-col w-full <?= $viewIsGrid ? '' : 'md:flex-row p-3' ?>"
+    <?php if ($product->getOptions()): ?>
+    enctype="multipart/form-data"
+    <?php endif; ?>
+    <?php foreach ($block->getData('product_data_attributes') as $attribute => $include): ?>
+        <?php if ($include): ?>
+            <?php /** Append data-* attributes based on layout XML arguments */ ?>
+            <?= $escaper->escapeHtml(sprintf('data-%s', $attribute)); ?>="<?= $escaper->escapeHtmlAttr($product->getData($attribute)); ?>"
+        <?php endif; ?>
+    <?php endforeach; ?>
+>
+    <?= /** @noEscape */ $block->getBlockHtml('formkey') ?>
+    <input type="hidden" name="product" value="<?= (int)$productId ?>">
+    <?php foreach ($options as $optionItem): ?>
+    <input type="hidden"
+           name="<?= $escaper->escapeHtml($optionItem['name']) ?>"
+           value="<?= $escaper->escapeHtml($optionItem['value']) ?>">
+    <?php endforeach; ?>
+<?php else: ?>
+<div class="item relative product product-item card card-interactive flex flex-col w-full <?= $viewIsGrid ? '' : 'md:flex-row' ?>"
+     <?php foreach ($block->getData('product_data_attributes') as $attribute => $include): ?>
+         <?php if ($include): ?>
+             <?php /** Append data-* attributes based on layout XML arguments */ ?>
+             <?= $escaper->escapeHtml(sprintf('data-%s', $attribute)); ?>="<?= $escaper->escapeHtmlAttr($product->getData($attribute)); ?>"
+         <?php endif; ?>
+    <?php endforeach; ?>
+>
+<?php endif; ?>
+    <?php /* Product Image */ ?>
+    <?php if ($blockImage = $block->getImage($product, $imageDisplayArea)): ?>
+    <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
+        title="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+        class="product photo product-item-photo block mx-auto mb-3 max-md:w-full <?= $viewIsGrid ? '' : 'md:relative min-w-[188px]' ?>"
+        tabindex="-1"
+    >
+        <?= $block->getImage($product, $imageDisplayArea)
+            ->setTemplate('Magento_Catalog::product/list/image.phtml')
+            ->setData('custom_attributes', $imageCustomAttributes)
+            ->setProductId($productId)
+            ->setClass("object-contain rounded-xs")
+            ->toHtml(); ?>
+        <?php if ($showAddToWishlist && !$viewIsGrid): ?>
+            <div class="absolute top-0 end-0">
+                <?= $block->getChildBlock('wishlist')->setData('product', $product)->toHtml() ?>
+            </div>
+        <?php endif; ?>
+    </a>
+    <?php endif; ?>
+
+    <div class="product-info flex grow <?= $viewIsGrid ? 'flex-col' : 'max-md:flex-col md:ps-5 md:gap-5' ?>">
+        <?php if (!$viewIsGrid): ?>
+            <div class="flex flex-col justify-between <?= $viewIsGrid ? '' : 'grow md:justify-normal' ?>">
+        <?php endif; ?>
+        <div class="mt-2 items-center <?= $viewIsGrid ? '' : 'md:my-0' ?>">
+            <a
+                class="no-underline text-black"
+                href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
+                :id="`slide-desc-<?= $escaper->escapeHtmlAttr($product->getId()) ?>-${$id('slider-id')}`"
+            >
+                <?= /* @noEscape */ $productName ?>
+            </a>
+        </div>
+
+        <?php if (!$hideRatingSummary): ?>
+            <a
+                class="pt-0.5 <?= $viewIsGrid ? '' : 'md:mb-1' ?>"
+                href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>#customer-review-list"
+                title="<?= $escaper->escapeHtmlAttr(__('See %1 reviews on the product page', $productName)) ?>">
+                <?= $block->getReviewsSummaryHtml($product, 'short') ?>
+        </a>
+        <?php endif; ?>
+
+        <?php if ($product->isAvailable() && !$hideDetails): ?>
+            <?= $block->getProductDetailsHtml($product) ?>
+        <?php endif; ?>
+
+        <?php if ($showDescription): ?>
+            <div class="mt-4 items-center justify-center text-black text-center text-sm line-clamp-3 <?= $viewIsGrid ? '' : 'md:text-left' ?>">
+                <?= /* @noEscape */ $productViewModel->getShortDescriptionForProduct($product, false, false) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($isProductGroupedOrBundle): ?>
+            <span class="sr-only">
+                <?= $escaper->escapeHtml(__('The price depends on the options chosen on the product page')) ?>
+            </span>
+        <?php endif; ?>
+
+        <?php if (!$viewIsGrid): ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$viewIsGrid): ?>
+            <div class="flex flex-col md:justify-between md:min-w-[272px]">
+        <?php endif; ?>
+
+        <div class="mt-auto text-black <?= $viewIsGrid ? 'pt-3 ' : 'pt-3 md:mt-0 md:pt-0 md:text-end' ?>"
+             x-data="initPriceBox()"
+             x-defer="intersect"
+             @update-prices-<?= (int)$productId ?>.window="updatePrice($event.detail);"
+        >
+            <?= /* @noEscape */ $productListItemViewModel->getProductPriceHtml($product) ?>
+        </div>
+
+        <div class="pt-3 flex items-center gap-3
+            <?= $viewIsGrid ? '' : 'md:justify-center' ?>">
+            <?php if ($product->isSaleable()): ?>
+                <?php if ($isProductGroupedOrBundle): ?>
+                    <a
+                        href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
+                        class="btn btn-primary justify-center w-full"
+                        title="<?= $escaper->escapeHtmlAttr(__('Configure %1 on the product page', $productName)) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Configure %1 on the product page', $productName)) ?>"
+                    >
+                        <span>
+                            <?= $escaper->escapeHtml(__('Configure')) ?>
+                        </span>
+                    </a>
+                <?php elseif($isProductConfigurable): ?>
+                    <a
+                        href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
+                        class="btn btn-primary justify-center w-full"
+                        title="<?= $escaper->escapeHtmlAttr(__('Choose options %1 on the product page', $productName)) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Choose options %1 on the product page', $productName)) ?>"
+                    >
+                        <span>
+                            <?= $escaper->escapeHtml(__('Buy now')) ?>
+                        </span>
+                    </a>
+                <?php else: ?>
+                    <button
+                        class="btn btn-primary justify-center w-full"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productName) ?>"
+                        data-addto="cart"
+                    >
+                        <span>
+                            <?= $escaper->escapeHtml(__('Add to Cart')) ?>
+                        </span>
+                    </button>
+                <?php endif; ?>
+
+            <?php else: ?>
+            <div class="w-auto justify-center <?= $viewIsGrid ? 'me-auto' : 'me-auto md:me-0' ?>">
+                <?= $block->getChildBlock('stockstatus')->setData('product', $product)->toHtml() ?>
+            </div>
+            <?php endif; ?>
+            <div class="flex flex-wrap gap-2">
+                <?php if ($showAddToCompare): ?>
+                <button x-data="initCompareOnProductList()"
+                        x-defer="intersect"
+                        @click.prevent="addToCompare(<?= (int)$productId ?>)"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Compare') . ' ' . $productName) ?>"
+                        type="button"
+                        class="btn btn-secondary p-3"
+                        data-addto="compare"
+                >
+                    <?= $heroicons->switchHorizontalHtml("w-5 h-5", 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+                <?php endif; ?>
+                <?php if ($addToBlock = $block->getChildBlock('addto')): ?>
+                    <?= $addToBlock->setProduct($product)->getChildHtml() ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php if (!$viewIsGrid): ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($showAddToWishlist && $viewIsGrid): ?>
+            <div class="absolute top-3 end-3">
+                <?= $block->getChildBlock('wishlist')->setData('product', $product)->toHtml() ?>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php if ($product->isSaleable()): ?>
+</form>
+<?php else: ?>
+</div>
+<?php endif; ?>

@@ -1,0 +1,35 @@
+/* Keep file for backwards compatibility */
+.checkout-cart-index {
+    .product-bundle-options {
+        .price {
+            @apply font-bold max-md:ms-auto;
+        }
+    }
+
+    .table-row-items > div.table-row-item {
+        @apply bg-container-darker;
+
+        &:nth-child(2n + 1) {
+            @apply bg-container-lighter;
+        }
+    }
+}
+
+
+.cart-summary-cms-block {
+    @apply w-full p-4 rounded-xs mt-0.5;
+}
+
+.cart-summary-images-cms-block {
+    @apply flex flex-row! flex-wrap justify-center! items-center gap-x-3 gap-y-2;
+
+    img {
+        @apply w-[42px] h-7;
+    }
+}
+
+.cart-summary-bottom-cms-block {
+    img {
+        @apply inline;
+    }
+}

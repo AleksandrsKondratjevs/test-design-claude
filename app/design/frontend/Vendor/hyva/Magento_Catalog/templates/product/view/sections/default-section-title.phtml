@@ -1,0 +1,19 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\AbstractBlock;
+
+/** @var AbstractBlock $sectionBlock */
+/** @var Escaper $escaper */
+
+?>
+<h4>
+    <?= $sectionBlock->getTitle() ?>
+</h4>

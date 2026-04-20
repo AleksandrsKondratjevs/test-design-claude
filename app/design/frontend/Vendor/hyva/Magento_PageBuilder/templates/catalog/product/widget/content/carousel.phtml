@@ -1,0 +1,181 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+declare(strict_types=1);
+
+use Scandiweb\ContentTypes\ViewModel\ContentType;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Block\Product\ListProduct;
+use Magento\Framework\View\Element\Template;
+
+/** @var ListProduct $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$contentTypeViewModel = $viewModels->require(ContentType::class);
+
+// CTA configurations
+$isCtaEnabled = $block->getIsShowAllEnabled();
+$ctaText = $block->getShowAllButtonText();
+$ctaLink = $block->getShowAllButtonUrl();
+
+// Slider configurations
+$lazyLoad = $block->getData('lazy_load');
+$isSliderInfinitive = 'true';
+$isSliderShowArrows = 'true';
+$sliderPagination = 'dots';
+$uniqueId = '_' . uniqid('');
+?>
+<?php if ($block->getTitle()): ?>
+    <div class="block-title">
+        <strong><?= $escaper->escapeHtml(__($block->getTitle())) ?></strong>
+    </div>
+<?php elseif ($block->getBlockTitle()): ?>
+    <h2 class="content-block-title">
+        <?= $escaper->escapeHtml($block->getBlockTitle()) ?>
+    </h2>
+<?php endif; ?>
+
+<?php if ($block->getBlockSubTitle()): ?>
+    <p class="content-block-subtitle">
+        <?= $escaper->escapeHtml($block->getBlockSubTitle()) ?>
+    </p>
+<?php endif; ?>
+
+<?php if ($lazyLoad === 'true' && !$block->getData('preview')): ?>
+    <script>
+        function initCarouselLazyLoad<?= $uniqueId ?>() {
+            return {
+                isLoading: true,
+                conditionOption: '<?= $escaper->escapeJs($block->getData('condition_option')) ?>',
+                conditionValue: '<?= $escaper->escapeJs($block->getData('condition_option_value')) ?>',
+                conditionsEncoded: '<?= $escaper->escapeJs($block->getData('conditions_encoded')) ?>',
+                productsCount: <?= (int)$block->getData('products_count') ?>,
+                sortOrder: '<?= $escaper->escapeJs($block->getData('sort_order')) ?>',
+                init() {
+                    this.fetchProducts();
+                },
+                fetchProducts() {
+                    const loaderTimeout = setTimeout(() => this.isLoading = true, 200);
+                    const parameters = {
+                        products_limit: this.productsCount,
+                        condition_type: this.conditionOption,
+                        sort_order: this.sortOrder,
+                        slider_pagination: '<?= $escaper->escapeJs($sliderPagination) ?>',
+                        <?php if ($isSliderInfinitive === 'true'): ?>
+                        is_slider_infinitive: true,
+                        <?php endif; ?>
+                        <?php if ($isSliderShowArrows === 'true'): ?>
+                        is_slider_show_arrows: true,
+                        <?php endif; ?>
+                    };
+
+                    switch (this.conditionOption) {
+                        case 'category_ids':
+                            parameters.category_id = this.conditionValue;
+                            break;
+                        case 'sku':
+                            parameters.sku = this.conditionValue;
+                            break;
+                        case 'condition':
+                            parameters.conditions = this.conditionsEncoded;
+                            break;
+                    }
+
+                    const url = 'scandiweb/ContentType/GetFeaturedProducts?' + new URLSearchParams(parameters);
+
+                    fetch(url, {
+                        method: "GET",
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then((response) => response.text())
+                    .then((response) => {
+                        if (!response) {
+                            const noResultsFound = "<div class='product-slider no-results min-h-80 lg:min-h-[460px] w-full flex justify-center items-center'>No products found!</div>"
+                            this.replaceSliderElement(noResultsFound);
+                            return;
+                        }
+                        this.replaceSliderElement(response);
+                    })
+                    .catch((error) => {
+                        const errorMessage = "<div class='product-slider error min-h-80 lg:min-h-[460px] w-full flex justify-center items-center'>Error loading products: " + error.message + "</div>";
+                        this.replaceSliderElement(errorMessage);
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
+                        clearTimeout(loaderTimeout);
+                        try { window.setAjaxCart(); } catch (e) {}
+                    });
+                },
+                replaceSliderElement(content) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(content, 'text/html');
+                    const contentNode = doc.querySelector(".product-slider");
+                    if (!contentNode) return;
+
+                    const tmpScripts = doc.getElementsByTagName('script');
+                    if (tmpScripts.length > 0) {
+                        [...tmpScripts].forEach((scriptEl) => {
+                            const script = document.createElement('script');
+                            script.innerHTML = scriptEl.innerHTML;
+                            document.head.appendChild(script);
+                            scriptEl.remove();
+                        });
+                    }
+
+                    if (this.$refs.productsSliderContainer && this.$refs.productsSliderContainer.firstChild) {
+                        this.$refs.productsSliderContainer.replaceChild(
+                            contentNode,
+                            this.$refs.productsSliderContainer.firstChild
+                        );
+                    }
+                }
+            }
+        }
+    </script>
+    <?= $hyvaCsp->registerInlineScript() ?>
+
+    <section class="relative" x-data="initCarouselLazyLoad<?= $uniqueId ?>()" x-defer="intersect">
+        <div x-ref="productsSliderContainer" class="h-full w-full min-h-80 lg:min-h-[460px] relative">
+            <div class="w-full h-full absolute top-0">
+                <?= $this->getLayout()
+                    ->createBlock('Magento\Framework\View\Element\Template')
+                    ->setTemplate('Hyva_Theme::ui/loading-block.phtml')
+                    ->toHtml(); ?>
+            </div>
+        </div>
+    </section>
+
+<?php else: ?>
+    <?php if ($block->getProductCollection() && $block->getProductCollection()->getSize()): ?>
+        <?= 
+            $this->getLayout()
+                ->createBlock(Template::class)
+                ->setTemplate('Magento_Catalog::product/slider/product-slider.phtml')
+                ->setData('product_list', $block->getProductCollection())
+                ->setData('page_size', $block->getProductCollection()->getSize())
+                ->setData('is_slider_infinitive', $isSliderInfinitive)
+                ->setData('is_slider_show_arrows', $isSliderShowArrows)
+                ->setData('slider_pagination', $sliderPagination)
+                ->toHtml();
+        ?>
+    <?php endif; ?>
+<?php endif; ?>
+
+<?php if ($isCtaEnabled && $ctaText && $ctaText !== '' && $ctaLink): ?>
+    <?php $link = $contentTypeViewModel->getSingleLink($ctaLink); ?>
+    <a
+        class="btn btn-primary md:w-fit md:mx-auto mt-8"
+        href="<?= $escaper->escapeHtmlAttr($link['url']) ?>"
+        <?php if ($link['open_new_tab']): ?>
+            target="_blank"
+            rel="noopener noreferrer"
+        <?php endif; ?>
+    >
+        <span><?= $escaper->escapeHtml($ctaText) ?></span>
+    </a>
+<?php endif; ?>

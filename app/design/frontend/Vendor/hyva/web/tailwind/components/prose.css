@@ -1,0 +1,19 @@
+.prose {
+    @apply text-black max-w-none;
+
+    ul {
+        @apply ms-0;
+
+        li {
+            @apply mt-0 mb-2 ps-0 marker:text-black;
+        }
+    }
+
+    [data-content-type="row"] {
+        @apply px-0;
+
+        [data-content-type="text"] > * {
+            @apply first:mt-0;
+        }
+    }
+}

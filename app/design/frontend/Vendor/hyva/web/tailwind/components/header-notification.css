@@ -1,0 +1,43 @@
+.header-notification {
+    @apply w-full;
+
+    [data-content-type="row"] {
+        & > * {
+            @apply flex justify-center w-full items-center;
+
+            a {
+                @apply text-current;
+            }
+        }
+    }
+
+    [data-content-type="row"][data-appearance="full-width"] > .row-full-width-inner {
+        @apply pl-0 pr-0;
+    }
+
+    .swiper.swiper-horizontal {
+        @apply ml-0 mr-0;
+    }
+
+    .swiper-button-next, .swiper-button-prev {
+        @apply text-black;
+    }
+
+    [data-content-type="scandiweb_notification_carousel"] {
+        @apply w-full;
+    }
+
+    @media (min-width: 1024px) {
+        .swiper-button-next, .swiper-button-prev {
+        --swiper-navigation-size: 16px;
+        }
+
+        .swiper-button-next {
+            @apply -right-5;
+        }
+
+        .swiper-button-prev {
+            @apply -left-5;
+        }
+    }
+}

@@ -1,0 +1,50 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\StoreConfig;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+/** @var StoreConfig $storeConfig */
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+$storeName = $storeConfig->getStoreConfig('general/store_information/name');
+?>
+<div id="header"
+     class="relative z-30 w-full bg-white"
+>
+    <div class="container flex flex-wrap items-center w-full max-md:py-2.5 py-6 mx-auto mt-0 justify-between">
+        <div class="flex gap-10">
+            <!--Logo-->
+            <?= $block->getChildHtml('logo'); ?>
+
+            <?php if ($storeName): ?>
+                <div class="flex items-center gap-2 max-md:hidden font-bold">
+                    <?= $heroicons->shieldCheckHtml('', 24, 24) ?>
+                    <?= __('Shop safely at %1', $storeName) ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <?= $block->getChildHtml('header-customer-support') ?>
+    </div>
+
+    <!--Authentication Pop-Up-->
+    <?= $block->getChildHtml('authentication-popup'); ?>
+</div>
+

@@ -1,0 +1,154 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Search\Helper\Data as SearchHelper;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\Model\ViewModelRegistry;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var SearchHelper $helper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HeroiconsOutline $heroIcons */
+/** @var HyvaCsp $hyvaCsp */
+
+$helper = $this->helper(SearchHelper::class);
+$heroIcons = $viewModels->require(HeroiconsOutline::class);
+?>
+<script>
+    'use strict';
+
+    function initMiniSearch() {
+        return {
+            minSearchLength: <?= (int) $helper->getMinQueryLength() ?>,
+            suggestions: [],
+            queryString: '<?= $escaper->escapeHtmlAttr($helper->getEscapedQueryText()) ?>',
+
+            init() {
+                this.$watch('queryString', (value) => {
+                    if (value === '') {
+                        this.suggestions = [];
+                    }
+                })
+            },
+            suggest() {
+                const search = this.$refs.searchInput;
+                if (search.value.length >= this.minSearchLength) {
+                    search.setCustomValidity('');
+                    search.reportValidity();
+                    this.fetchSuggestions(search.value);
+                } else {
+                    this.suggestions = [];
+                }
+            },
+            fetchSuggestions(term) {
+                fetch(
+                        window.BASE_URL + 'search/ajax/suggest?' + new URLSearchParams({
+                            q: term
+                        }), {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }
+                    )
+                    .then(response => response.json())
+                    .then(result => this.suggestions = result);
+            },
+            search(term) {
+                const search = this.$refs.searchInput;
+                term = term || search.value;
+                if (term.length < this.minSearchLength) {
+                    search.setCustomValidity(
+                        '<?= $escaper->escapeJs(
+                            __('Minimum Search query length is %1', $helper->getMinQueryLength())
+                        ) ?>'
+                    );
+                    search.reportValidity();
+                } else {
+                    search.setCustomValidity('');
+                    search.value = term;
+                    this.$refs.form.submit();
+                }
+            },
+            focusElement(element) {
+                if (element && element.nodeName === "DIV") {
+                    element.focus();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<div x-data="initMiniSearch()">
+    <form
+        class="form minisearch w-full flex md:relative"
+        id="search_mini_form"
+        x-ref="form"
+        @submit.prevent="search()"
+        action="<?= $escaper->escapeUrl($helper->getResultUrl()) ?>"
+        method="get"
+        role="search">
+        <div class="relative w-full">
+            <label class="hidden" for="search" data-role="minisearch-label">
+                <span><?= $escaper->escapeHtml(__('Search')) ?></span>
+            </label>
+            <input id="search"
+                x-ref="searchInput"
+                type="search"
+                autocomplete="off"
+                name="<?= $escaper->escapeHtmlAttr($helper->getQueryParamName()) ?>"
+                x-model="queryString"
+                placeholder="<?= $escaper->escapeHtmlAttr(__('What are you looking for?')) ?>"
+                maxlength="<?= $escaper->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
+                class="form-input flex-1 px-3 py-2 rounded-xs outline-hidden w-full min-h-12 hover:border-primary focus:border-primary focus:shadow-none"
+                @focus.once="suggest"
+                @input.debounce.300="suggest"
+                @keydown.arrow-down.prevent="focusElement($root.querySelector('[tabindex]'))" >
+            <button type="submit"
+                class="bg-primary text-white rounded-e-sm px-3 outline-hidden absolute end-0 top-0 h-full"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Search')) ?>">
+                <?= $heroIcons->searchHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+            </button>
+            <button
+                @click.prevent="queryString = ''"
+                x-cloak
+                x-show="queryString !== ''"
+                class="px-3 outline-hidden absolute end-12 top-0 h-full"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Clear')) ?>">
+                <?= $heroIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+        <template x-if="suggestions.length > 0">
+            <div class="w-full leading-normal transition appearance-none flex flex-col lg:mt-1 max-lg:start-0 absolute top-full bg-white p-2 z-30">
+                <template x-for="suggestion in suggestions">
+                    <div class="flex justify-between p-2 hover:bg-container-darker rounded-xs cursor-pointer"
+                        tabindex="0"
+                        @click="search(suggestion.title)"
+                        @keydown.enter="search(suggestion.title)"
+                        @keydown.arrow-up.prevent="
+                              focusElement($event.target.previousElementSibling) || $refs.searchInput.focus()
+                          "
+                        @keydown.arrow-down.prevent="focusElement($event.target.nextElementSibling)">
+                        <span x-text="suggestion.title"></span>
+                        <span x-text="suggestion.num_results"></span>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </form>
+</div>

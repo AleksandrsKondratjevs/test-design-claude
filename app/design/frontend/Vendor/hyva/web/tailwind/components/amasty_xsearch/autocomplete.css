@@ -1,0 +1,19 @@
+.am-search-content {
+    @apply w-full;
+
+    &:not(.am-search-horizontal-view) {
+        @apply md:w-[calc(100%-283px)];
+    }
+
+    &.am-search-sidebar-disabled {
+        @apply md:w-full;
+    }
+}
+
+.am-search-sidebar {
+    @apply w-full;
+
+    &:not(.am-search-horizontal-view) {
+        @apply md:max-w-[283px];
+    }
+}

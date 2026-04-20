@@ -1,0 +1,35 @@
+@layer components {
+    .account-nav {
+        @apply max-md:mt-8;
+
+        ul {
+            @apply list-none bg-white py-3;
+        }
+
+        li {
+            & a,
+            & strong {
+                @apply flex justify-between text-black no-underline font-normal py-1 px-3.5 bg-white;
+            }
+
+            & a:hover {
+                @apply hover:text-primary;
+            }
+
+            &.current {
+                & a,
+                & strong {
+                    @apply text-primary font-bold;
+                }
+
+                & a > strong {
+                    @apply p-0;
+                }
+            }
+        }
+    }
+
+    .account-nav-content {
+        @apply bg-container-darker p-0.5 max-md:mt-0.5;
+    }
+}
