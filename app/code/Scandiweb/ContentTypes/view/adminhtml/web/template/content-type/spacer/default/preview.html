@@ -1,0 +1,11 @@
+<div class="pagebuilder-content-type" data-bind="event: { mouseover: onMouseOver, mouseout: onMouseOut }, mouseoverBubble: false">
+    <div attr="data.main.attributes">
+        <div class="pagebuilder-spacer-mobile" data-bind="style: { 'min-height': `${data.main.attributes().space_mobile}px` }">
+            <span class="pagebuilder-spacer-text" data-bind="text: `${data.main.attributes().space_mobile}px`"></span>
+        </div>
+        <div class="pagebuilder-spacer-desktop" data-bind="style: { 'min-height': `${data.main.attributes().space_desktop}px` }">
+            <span class="pagebuilder-spacer-text" data-bind="text: `${data.main.attributes().space_desktop}px`"></span>
+        </div>
+    </div>
+    <render args="getOptions().template" ></render>
+</div>

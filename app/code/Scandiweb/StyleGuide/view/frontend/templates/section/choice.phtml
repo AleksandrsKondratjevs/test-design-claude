@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_StyleGuide
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+
+/** @var HeroiconsSolid $heroiconssolid */
+$heroiconssolid = $viewModels->require(HeroiconsSolid::class);
+
+?>
+<div class="flex max-md:flex-col gap-14">
+    <div class="flex flex-col w-full">
+        <form autocomplete="off">
+            <fieldset class="fieldset flex flex-col gap-5 w-fit">
+                <div class="field choice">
+                    <input type="checkbox" name="checkbox" id="checkbox" value="1" title="checkbox"
+                        class="checkbox">
+                    <label for="checkbox" class="label">Checkbox</label>
+                </div>
+                <div class="field choice">
+                    <input type="checkbox" name="checkbox-1" id="checkbox-1" value="1" title="checkbox"
+                        class="checkbox">
+                    <label for="checkbox-1" class="label">Checkbox hint</label>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field field-reserved field-error choice">
+                    <input type="checkbox" name="checkbox-2" id="checkbox-2" value="1" title="checkbox"
+                        class="checkbox">
+                    <label for="checkbox-2" class="label">Checkbox error</label>
+                    <ul class="messages">
+                        <li>Error message</li>
+                    </ul>
+                </div>
+                <div class="field choice">
+                    <input type="checkbox" name="checkbox-3" id="checkbox-3" value="1" title="checkbox"
+                        class="checkbox" disabled>
+                    <label for="checkbox-3" class="label">Checkbox disabled</label>
+                </div>
+                <div class="field choice">
+                    <input type="checkbox" name="checkbox-4" id="checkbox-4" value="1" title="checkbox"
+                        class="checkbox" disabled checked="true">
+                    <label for="checkbox-4" class="label">Checkbox disabled checked</label>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="flex flex-col w-full">
+        <form autocomplete="off">
+            <fieldset class="fieldset flex flex-col gap-5 w-fit">
+            <div class="field choice">
+                    <input type="radio" name="radio" id="radio" value="1" title="radio"
+                        class="radio">
+                    <label for="radio" class="label">Radio</label>
+                </div>
+                <div class="field choice">
+                    <input type="radio" name="radio-1" id="radio-1" value="1" title="radio"
+                        class="radio">
+                    <label for="radio-1" class="label">Radio hint</label>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field field-reserved field-error choice">
+                    <input type="radio" name="radio-2" id="radio-2" value="1" title="radio"
+                        class="radio">
+                    <label for="radio-2" class="label">Radio error</label>
+                    <ul class="messages">
+                        <li>Error message</li>
+                    </ul>
+                </div>
+                <div class="field choice">
+                    <input type="radio" name="radio-3" id="radio-3" value="1" title="radio"
+                        class="radio" disabled>
+                    <label for="radio-3" class="label">Radio disabled</label>
+                </div>
+                <div class="field choice">
+                    <input type="radio" name="radio-4" id="radio-4" value="1" title="radio"
+                        class="radio" disabled checked="true"">
+                    <label for="radio-4" class="label">Radio disabled checked</label>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>

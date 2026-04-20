@@ -1,0 +1,15 @@
+<?php
+$link = $block->getLink();
+?>
+
+<div class="flex justify-center mt-8">
+    <a
+        class="btn btn-primary w-full md:w-max"
+        href="<?= $escaper->escapeUrl($link['url']) ?>"
+        <?php if ($link['open_new_tab']): ?>
+            target="_blank"
+        <?php endif; ?>
+    >
+        <?= __('Show All Promotion') ?>
+    </a>
+</div>

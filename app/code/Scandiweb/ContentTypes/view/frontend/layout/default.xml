@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="after.body.start">
+            <!-- Global swiper functionality -->
+            <block name="swiper.slider" template="Scandiweb_ContentTypes::swiper-slider.phtml"/>
+        </referenceContainer>
+
+        <!-- Global read more button -->
+        <block name="pagebuilder.read_more_button" template="Scandiweb_ContentTypes::read-more-button.phtml"/>
+
+        <!-- Render JS templates depending on PageBuilder CMS content rendered on a page -->
+        <referenceBlock name="page-js-dependencies">
+            <arguments>
+                <argument name="blockOutputPatternMap" xsi:type="array">
+                    <item name="page_builder.read_more_text" xsi:type="array">
+                        <item name="regex" xsi:type="string">/data-content-type="read_more_text"/</item>
+                        <item name="template" xsi:type="string">Scandiweb_ContentTypes::widgets/read-more.phtml</item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

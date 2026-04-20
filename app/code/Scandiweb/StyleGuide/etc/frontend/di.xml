@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_StylePage
+ * @author    Aleksandrs Kondratjevs <info@scandiweb.com>
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Typography" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Typography</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/typography.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Loader" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Loader</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/loader.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Messages" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Messages</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/messages.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Buttons" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Buttons</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/buttons.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Form" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Inputs / Drop-downs</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/form.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Choice" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Checkbox / Radio</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/choice.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Breadcrumbs" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Breadcrumbs</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/breadcrumbs.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Colors" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Colors</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/colors.phtml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Scandiweb\StyleGuide\Model\Section\Tabs" type="Scandiweb\StyleGuide\Model\Section">
+        <arguments>
+            <argument name="title" xsi:type="string" translatable="true">Tabs</argument>
+            <argument name="template" xsi:type="string">Scandiweb_StyleGuide::section/tabs.phtml</argument>
+        </arguments>
+    </virtualType>
+    <type name="Scandiweb\StyleGuide\ViewModel\SectionBlocksProvider">
+        <arguments>
+            <argument name="sections" xsi:type="array">
+                <item name="colors" xsi:type="object" sortOrder="10">Scandiweb\StyleGuide\Model\Section\Colors</item>
+                <item name="typography" xsi:type="object" sortOrder="20">Scandiweb\StyleGuide\Model\Section\Typography</item>
+                <item name="buttons" xsi:type="object" sortOrder="30">Scandiweb\StyleGuide\Model\Section\Buttons</item>
+                <item name="tabs" xsi:type="object" sortOrder="40">Scandiweb\StyleGuide\Model\Section\Tabs</item>
+                <item name="breadcrumbs" xsi:type="object" sortOrder="50">Scandiweb\StyleGuide\Model\Section\Breadcrumbs</item>
+                <item name="form" xsi:type="object" sortOrder="60">Scandiweb\StyleGuide\Model\Section\Form</item>
+                <item name="choice" xsi:type="object" sortOrder="70">Scandiweb\StyleGuide\Model\Section\Choice</item>
+                <item name="messages" xsi:type="object" sortOrder="80">Scandiweb\StyleGuide\Model\Section\Messages</item>
+                <item name="loader" xsi:type="object" sortOrder="90">Scandiweb\StyleGuide\Model\Section\Loader</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

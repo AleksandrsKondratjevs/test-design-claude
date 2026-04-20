@@ -1,0 +1,156 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$sections = $block->getSections();
+
+if (!count($sections)) {
+    return null;
+}
+
+$uniqueId = '_' . uniqid('');
+
+// Content type configurations
+$blockTitle = $block->getBlockTitle();
+$blockSubTitle = $block->getBlockSubTitle();
+$ctaType = $block->getCtaType();
+$showAllEnabled = $block->getIsShowAllEnabled() === 'true' ? true : false;
+$showAllUrl = $block->getShowAllUrl();
+
+// Slider configurations
+$isSliderInfinitive = $block->getSliderInfinitive() === 'true' ? true : false;
+$isSliderShowArrows = $block->getSliderShowArrows() === 'true' ? true : false;
+$sliderPagination = $block->getSliderPagination() !== 'none' ? $block->getSliderPagination() : false;
+$sliderCountMobile = $block->getData('slider_count_mobile');
+$sliderCountTablet = $block->getData('slider_count_tablet');
+$sliderCountDesktop = $block->getData('slider_count_desktop');
+?>
+<script>
+    function initPromo<?= $uniqueId ?>() {
+        return {
+            init() {
+                const swiperOptions = {
+                    loop: <?= $isSliderInfinitive ? 'true' : 'false' ?>,
+                    loopAddBlankSlides: true,
+                    loopAddBlankSlides: true,
+                    spaceBetween: 16,
+                    breakpoints: {
+                        768: {
+                            slidesPerView: <?= $escaper->escapeJs($sliderCountTablet) ?>,
+                        },
+                        1024: {
+                            slidesPerView: <?= $escaper->escapeJs($sliderCountDesktop) ?>,
+                        },
+                    }
+                };
+
+
+                <?php if ($isSliderShowArrows): ?>
+                    const arrowPrev = this.$el.querySelector('.swiper-button-prev<?= $uniqueId ?>');
+                    const arrowNext = this.$el.querySelector('.swiper-button-next<?= $uniqueId ?>');
+
+                    if (arrowPrev && arrowNext) {
+                        swiperOptions.navigation = {
+                            prevEl: arrowPrev,
+                            nextEl: arrowNext
+                        }
+                    }
+                <?php endif; ?>
+
+                <?php if ($sliderPagination === 'dots'): ?>
+                    const paginationDots = this.$el.querySelector('.swiper-pagination<?= $uniqueId ?>');
+
+                    if (paginationDots) {
+                        swiperOptions.pagination = {
+                            el: paginationDots,
+                            type: 'bullets',
+                            clickable: true,
+                            dynamicBullets: true,
+                            dynamicMainBullets: 4,
+                        }
+                    }
+                <?php endif; ?>
+
+                <?php if ($sliderPagination === 'progressbar'): ?>
+                    const progressbar = this.$el.querySelector('.swiper-scrollbar<?= $uniqueId ?>');
+
+                    if (progressbar) {
+                        swiperOptions.scrollbar = {
+                            el: progressbar,
+                            draggable: true,
+                        }
+                    }
+                <?php endif; ?>
+
+                initSwiperSlider(this.$refs.uspWrapper, swiperOptions);
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<?= $this->getLayout()
+    ->createBlock('Magento\Framework\View\Element\Template')
+    ->setTemplate('Scandiweb_ContentTypes::style/slider-initial-styling.phtml')
+    ->setData('slider_count_mobile', $sliderCountMobile)
+    ->setData('slider_count_tablet', $sliderCountTablet)
+    ->setData('slider_count_desktop', $sliderCountDesktop)
+    ->setData('unique_id', $uniqueId)
+    ->toHtml(); ?>
+<div x-data="initPromo<?= $uniqueId ?>" id="<?= $escaper->escapeHtmlAttr($uniqueId) ?>">
+    <?php if ($blockTitle): ?>
+        <h2 class="content-block-title">
+            <?= $escaper->escapeHtml($blockTitle) ?>
+        </h2>
+    <?php endif; ?>
+    <?php if ($blockSubTitle): ?>
+        <p class="content-block-subtitle">
+            <?= $escaper->escapeHtml($blockSubTitle) ?>
+        </p>
+    <?php endif; ?>
+    <div class="overflow-visible relative">
+        <div class="swiper overflow-hidden" x-ref="uspWrapper">
+            <div class="swiper-wrapper flex">
+                <?php foreach ($sections as $index => $section): ?>
+                    <div class="swiper-slide">
+                        <?= $this->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Scandiweb_ContentTypes::content-type/promo/card/full-image.phtml')
+                            ->setData('section', $section)
+                            ->setData('cta_type', $ctaType)
+                            ->toHtml(); ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?=
+        $this->getLayout()
+            ->createBlock('Magento\Framework\View\Element\Template')
+            ->setTemplate('Scandiweb_ContentTypes::carousel-nav.phtml')
+            ->setData('is_show_arrows', $isSliderShowArrows)
+            ->setData('pagination', $sliderPagination)
+            ->setData('unique_id', $uniqueId)
+            ->toHtml();
+        ?>
+    </div>
+    <?php if ($showAllEnabled): ?>
+        <?= $this->getLayout()
+            ->createBlock('Magento\Framework\View\Element\Template')
+            ->setTemplate('Scandiweb_ContentTypes::content-type/promo/misc/see-all-link.phtml')
+            ->setData('link', $block->getSingleLink($block->getShowAllUrl()))
+            ->toHtml(); ?>
+    <?php endif; ?>
+</div>

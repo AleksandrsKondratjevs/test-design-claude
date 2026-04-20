@@ -1,0 +1,48 @@
+<?php
+    $uniqueId = $block->getData('unique_id');
+
+    $mobileCount = $block->getData('slider_count_mobile');
+    $tabletCount = $block->getData('slider_count_tablet');
+    $desktopCount = $block->getData('slider_count_desktop');
+
+    // Usual gap from breakpoints & content
+    // Look at design to change it.
+    $mobileGap = 16;
+    $tabletGap = 16;
+    $desktopGap = 16;
+?>
+
+<style>
+    #<?= $escaper->escapeHtml($uniqueId) ?> {
+        .swiper:not(.swiper-initialized) .swiper-wrapper {
+                @media (max-width: 768px) {
+                    <?= /** @noEscape */ "gap: {$mobileGap}px "?>
+                }
+
+                @media (min-width: 768px) and (max-width: 1023px) {
+                    <?= /** @noEscape */ "gap: {$tabletGap}px "?>
+                }
+
+                @media (min-width: 1023px) {
+                    <?= /** @noEscape */ "gap: {$desktopGap}px "?>
+                }
+
+            .swiper-slide {
+                @media (max-width: 768px) {
+                    <?= /** @noEscape */ "min-width: calc((100% - ({$mobileGap}px * ({$mobileCount} - 1))) / {$mobileCount});"?>
+                    <?= /** @noEscape */ "max-width: calc((100% - ({$mobileGap}px * ({$mobileCount} - 1))) / {$mobileCount});"?>
+                }
+
+                @media (min-width: 768px) and (max-width: 1023px) {
+                    <?= /** @noEscape */ "min-width: calc((100% - ({$tabletGap}px * ({$tabletCount} - 1))) / {$tabletCount});"?>
+                    <?= /** @noEscape */ "max-width: calc((100% - ({$tabletGap}px * ({$tabletCount} - 1))) / {$tabletCount});"?>
+                }
+
+                @media (min-width: 1023px) {
+                    <?= /** @noEscape */ "min-width: calc((100% - ({$desktopGap}px * ({$desktopCount} - 1))) / {$desktopCount});"?>
+                    <?= /** @noEscape */ "max-width: calc((100% - ({$desktopGap}px * ({$desktopCount} - 1))) / {$desktopCount});"?>
+                }
+            }
+        }
+    }
+</style>

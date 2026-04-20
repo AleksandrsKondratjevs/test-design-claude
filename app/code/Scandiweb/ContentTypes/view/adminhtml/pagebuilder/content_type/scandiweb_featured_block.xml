@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_PageBuilder:etc/content_type.xsd">
+    <type name="scandiweb_featured_block" label="Featured Block" menu_section="scandiweb_components"
+        component="Magento_PageBuilder/js/content-type"
+        backend_block="Scandiweb\ContentTypes\Block\ContentTypes\FeaturedBlock"
+        preview_component="Scandiweb_ContentTypes/js/content-type/featured-block/preview"
+        master_component="Magento_PageBuilder/js/content-type/master"
+        form="pagebuilder_scandiweb_featured_block_form" sortOrder="3" translate="label">
+        <children default_policy="deny" />
+        <parents default_policy="deny">
+            <parent name="row" policy="allow" />
+            <parent name="column" policy="allow" />
+            <parent name="tab-item" policy="allow" />
+            <parent name="scandiweb_tab_with_image_item" policy="allow" />
+        </parents>
+        <appearances>
+            <appearance name="default" default="true"
+                preview_template="Scandiweb_ContentTypes/content-type/featured-block/default/preview"
+                master_template="Scandiweb_ContentTypes/content-type/featured-block/default/master"
+                reader="Magento_PageBuilder/js/master-format/read/configurable">
+                <elements>
+                    <element name="main">
+                        <attribute name="name" source="data-content-type" />
+                        <attribute name="appearance" source="data-appearance" />
+                        <attribute name="content_title" source="content_title" />
+                        <attribute name="content_description" source="content_description" />
+                        <attribute name="show_first_cta" source="show_first_cta" />
+                        <attribute name="first_cta_text" source="first_cta_text" />
+                        <attribute name="first_cta_link" source="first_cta_link" converter="Scandiweb_ContentTypes/js/converter/attribute/object" />
+                        <attribute name="first_cta_type" source="first_cta_type" />
+                        <attribute name="show_second_cta" source="show_second_cta" />
+                        <attribute name="second_cta_text" source="second_cta_text" />
+                        <attribute name="second_cta_link" source="second_cta_link" converter="Scandiweb_ContentTypes/js/converter/attribute/object" />
+                        <attribute name="second_cta_type" source="second_cta_type" />
+                        <attribute name="visual_content_position" source="visual_content_position" />
+                        <attribute name="visual_content_img" source="src"
+                            converter="Magento_PageBuilder/js/converter/attribute/src"
+                            preview_converter="Magento_PageBuilder/js/converter/attribute/preview/src" />
+                        <attribute name="visual_content_mobile_img" source="mobile_src"
+                            converter="Magento_PageBuilder/js/converter/attribute/src"
+                            preview_converter="Magento_PageBuilder/js/converter/attribute/preview/src" />
+                        <html name="html" />
+                    </element>
+                </elements>
+				<converters>
+					<converter
+						component="Scandiweb_ContentTypes/js/content-type/featured-block/mass-converter/block-directive"
+						name="block_directive">
+						<config>
+							<item name="html_variable" value="html" />
+						</config>
+					</converter>
+				</converters>
+            </appearance>
+        </appearances>
+    </type>
+</config>

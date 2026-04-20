@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+?>
+
+<!-- Min height to preserve space for tabs before render -->
+<div class="my-8 overflow-hidden min-h-9" data-content-type="block-tabs">
+    <div class="flex md:justify-center" data-content-type="block-tabs-wrapper">
+        <template x-for="(tabName, index) in tabsData">
+            <button
+                @click="handleActiveTab(index)"
+                x-text="tabName"
+                data-content-type="block-tabs-slide"
+                class="tab max-w-max! min-w-max"
+                :class="{'tab-active': activeTab === index  }">
+            </button>
+        </template>
+    </div>
+</div>

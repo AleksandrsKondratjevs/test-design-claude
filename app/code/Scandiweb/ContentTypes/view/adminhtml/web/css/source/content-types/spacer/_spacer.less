@@ -1,0 +1,27 @@
+.pagebuilder-stage-wrapper {
+    &.desktop-viewport {
+        .pagebuilder-spacer-mobile {
+            display: none;
+        }
+    }
+
+    &.mobile-viewport {
+        .pagebuilder-spacer-desktop {
+            display: none;
+        }
+    }
+}
+
+.pagebuilder-spacer-mobile,
+.pagebuilder-spacer-desktop {
+    background: url('@{baseDir}Scandiweb_ContentTypes/css/images/content-type/spacer/spacer.svg') no-repeat center center;
+    background-size: 100% 100%;
+
+    .pagebuilder-spacer-text {
+        position: absolute;
+        left: 51%;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 700;
+    }
+}

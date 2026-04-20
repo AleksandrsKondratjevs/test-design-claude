@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+ -->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">
+                pagebuilder_scandiweb_usp_item_form.pagebuilder_scandiweb_usp_item_form_data_source</item>
+        </item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+        <item name="label" xsi:type="string" translate="true">Tab</item>
+    </argument>
+    <settings>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>pagebuilder_scandiweb_usp_item_form.pagebuilder_scandiweb_usp_item_form_data_source</dep>
+        </deps>
+        <namespace>pagebuilder_scandiweb_usp_item_form</namespace>
+        <buttons>
+            <button name="save"
+                class="Magento\PageBuilder\Block\Adminhtml\ContentType\Edit\SaveButton" />
+        </buttons>
+        <selectorPrefix>.block-usp-item-form</selectorPrefix>
+    </settings>
+    <dataSource name="pagebuilder_scandiweb_usp_item_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Scandiweb_ContentTypes/js/form/usp-provider</item>
+            </item>
+        </argument>
+        <dataProvider name="pagebuilder_scandiweb_usp_item_form_data_source"
+            class="Magento\PageBuilder\Model\ContentType\DataProvider">
+            <settings>
+                <requestFieldName />
+                <primaryFieldName />
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="appearance_fieldset" sortOrder="10"
+        component="Magento_PageBuilder/js/form/element/dependent-fieldset">
+        <settings>
+            <label translate="true">Appearance</label>
+            <additionalClasses>
+                <class name="admin__fieldset-visual-select-large">true</class>
+            </additionalClasses>
+            <collapsible>false</collapsible>
+            <opened>true</opened>
+            <imports>
+                <link name="hideFieldset">${$.name}.appearance:options</link>
+                <link name="hideLabel">${$.name}.appearance:options</link>
+            </imports>
+        </settings>
+        <field name="image" formElement="imageUploader" sortOrder="0">
+            <settings>
+                <label translate="true">Image</label>
+                <componentType>imageUploader</componentType>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+            <formElements>
+                <imageUploader>
+                    <settings>
+                        <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                        <maxFileSize>4194304</maxFileSize>
+                        <uploaderConfig>
+                            <param xsi:type="string" name="url">pagebuilder/contenttype/image_upload</param>
+                        </uploaderConfig>
+                        <previewTmpl>Magento_PageBuilder/form/element/uploader/preview</previewTmpl>
+                    </settings>
+                </imageUploader>
+            </formElements>
+        </field>
+        <field name="title" sortOrder="10" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Title</label>
+                <dataScope>title</dataScope>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+        <field name="description" sortOrder="20" formElement="wysiwyg" template="ui/form/field">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="fit" xsi:type="boolean">false</item>
+                    <item name="wysiwygConfigData" xsi:type="array">
+                        <item name="toggle_button" xsi:type="boolean">true</item>
+                        <item name="height" xsi:type="string">20px</item>
+                        <item name="add_variables" xsi:type="boolean">false</item>
+                        <item name="add_widgets" xsi:type="boolean">false</item>
+                        <item name="add_images" xsi:type="boolean">false</item>
+                        <item name="add_directives" xsi:type="boolean">false</item>
+                        <item name="dynamic_id" xsi:type="boolean">true</item>
+                        <item name="is_pagebuilder_enabled" xsi:type="boolean">false</item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <label>Description</label>
+                <dataScope>description</dataScope>
+            </settings>
+            <formElements>
+                <wysiwyg>
+                    <settings>
+                        <rows>1</rows>
+                        <wysiwyg>true</wysiwyg>
+                    </settings>
+                </wysiwyg>
+            </formElements>
+        </field>
+        <field name="cta_text" sortOrder="30" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="disabledValues" xsi:type="array">
+                        <item name="none" xsi:type="string">never</item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <label translate="true">CTA Text</label>
+                <dataType>text</dataType>
+                <dataScope>cta_text</dataScope>
+            </settings>
+        </field>
+        <urlInput name="link_url" sortOrder="40"
+            template="Magento_PageBuilder/form/element/url-input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Link</label>
+                <dataScope>link_url</dataScope>
+                <urlTypes class="Magento\Ui\Model\UrlInput\LinksConfigProvider" />
+                <validation>
+                    <rule name="validate-message-no-link" xsi:type="boolean">true</rule>
+                    <rule name="validate-message-no-widget" xsi:type="boolean">true</rule>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <imports>
+                    <link name="validation.validate-message-no-link">${$.parentName}.content:value</link>
+                    <link name="validation.validate-message-no-widget">${$.parentName}.content:value</link>
+                </imports>
+            </settings>
+        </urlInput>
+        <field name="position" sortOrder="50" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="default" xsi:type="string">10</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>number</dataType>
+                <label translate="true">USP position</label>
+                <dataScope>position</dataScope>
+                <notice translate="true">The higher the number, the farther the USP will appear in
+                    the list.</notice>
+            </settings>
+        </field>
+    </fieldset>
+</form>

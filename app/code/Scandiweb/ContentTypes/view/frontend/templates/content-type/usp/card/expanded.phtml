@@ -1,0 +1,41 @@
+<?php
+$section = $block->getData('section');
+$uspCardColor = $block->getData('usp_card_color');
+$ctaType = $block->getData('cta_type');
+
+$title = $section['title'];
+$description = $section['description'];
+$image = $section['image'];
+$ctaText = $section['cta_text'];
+$url = $section['url'];
+$openInNewTab = $section['open_new_tab']
+?>
+<div
+    class="flex-col gap-5 rounded-xs"
+    <?php if ($uspCardColor): ?>
+    style="background-color: <?= $uspCardColor ?>;"
+    <?php endif; ?>>
+    <img
+        class="w-full rounded-xs"
+        src="<?= $escaper->escapeHtmlAttr($image) ?>"
+        alt="<?= $escaper->escapeHtmlAttr($title)  ?>"
+        width="288"
+        height="256">
+    <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-3 text-center px-4 pt-4 lg:px-6 lg:pt-6">
+            <h4><?= $escaper->escapeHtml($title) ?></h4>
+            <div class="h-full"><?= html_entity_decode($description) ?></div>
+        </div>
+        <?php if ($ctaText): ?>
+            <a
+                href="<?= $escaper->escapeUrl($url) ?>"
+                <?php if ($openInNewTab): ?>
+                    target="_blank"
+                <?php endif; ?>
+                class="mt-auto w-full lg:w-max mx-auto text-center <?= $escaper->escapeHtmlAttr($ctaType) ?>"
+                title="<?= $escaper->escapeHtmlAttr($title) ?>">
+                <?= $escaper->escapeHtml($ctaText) ?>
+            </a>
+        <?php endif; ?>
+    </div>
+</div>

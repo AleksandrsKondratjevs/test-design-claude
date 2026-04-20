@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+$sections = $block->getSections();
+
+if (!count($sections)) {
+    return null;
+}
+
+// Content type configurations
+$blockTitle = $block->getBlockTitle();
+$blockSubTitle = $block->getBlockSubTitle();
+$ctaType = $block->getCtaType();
+$promoCardColor = $block->getPromoCardColor();
+$showAllEnabled = $block->getIsShowAllEnabled() === 'true' ? true : false;
+$showAllUrl = $block->getShowAllUrl();
+$mobileGridCols = $block->getGridColumnsMobile();
+$tabletGridCols = $block->getGridColumnsTablet();
+$desktopGridCols = $block->getGridColumnsDesktop();
+
+?>
+
+<div>
+    <?php if ($blockTitle): ?>
+        <h2 class="content-block-title">
+            <?= $escaper->escapeHtml($blockTitle) ?>
+        </h2>
+    <?php endif; ?>
+    <?php if ($blockSubTitle): ?>
+        <p class="content-block-subtitle">
+            <?= $escaper->escapeHtml($blockSubTitle) ?>
+        </p>
+    <?php endif; ?>
+    <div class="grid grid-cols-<?= $mobileGridCols ?> md:grid-cols-<?= $tabletGridCols ?> lg:grid-cols-<?= $desktopGridCols ?> gap-4">
+        <?php foreach ($sections as $index => $section): ?>
+            <?= $this->getLayout()
+                ->createBlock('Magento\Framework\View\Element\Template')
+                ->setTemplate('Scandiweb_ContentTypes::content-type/promo/card/default.phtml')
+                ->setData('section', $section)
+                ->setData('promo_card_color', $promoCardColor)
+                ->setData('cta_type', $ctaType)
+                ->toHtml(); ?>
+        <?php endforeach; ?>
+    </div>
+    <?php if ($showAllEnabled): ?>
+        <?= $this->getLayout()
+            ->createBlock('Magento\Framework\View\Element\Template')
+            ->setTemplate('Scandiweb_ContentTypes::content-type/promo/misc/see-all-link.phtml')
+            ->setData('link', $block->getSingleLink($block->getShowAllUrl()))
+            ->toHtml(); ?>
+    <?php endif; ?>
+</div>

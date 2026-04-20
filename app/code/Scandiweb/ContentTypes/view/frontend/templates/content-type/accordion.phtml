@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @author    Baron Gobi <info@scandiweb.com>
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$uniqueId = '_' . uniqid('');
+
+$isOpened = $block->getIsOpened();
+$title = $block->getBlockTitle();
+$isDesktopDisabled = (int)$block->getDesktopDisabled();
+$content = $block->getCmsFilterContent();
+$titleColor = $block->getTitleColor();
+
+?>
+
+<script>
+    function accordion<?= $uniqueId ?>() {
+        return {
+            isOpen: Boolean(<?= $isOpened ?>),
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div x-data="accordion<?= $uniqueId ?>" data-content-type="accordion" class="w-full" x-defer="intersect">
+    <button class="flex justify-between items-center gap-3 py-4 w-full <?= $isDesktopDisabled ? 'lg:pointer-events-none' : '' ?>"
+        @click="isOpen = !isOpen"
+        <?php if ($titleColor): ?>
+            style="color: <?= $titleColor ?>"
+        <?php endif; ?>
+    >
+        <h4><?= $escaper->escapeHtml($title) ?></h4>
+        <div class="<?= $isDesktopDisabled ? 'lg:hidden' : '' ?>">
+            <?= $heroicons->chevronDownHtml("transition-transform duration-200", 16, 16, ['aria-hidden' => 'true', ":class" => "{ 'rotate-180': isOpen }"]) ?>
+        </div>
+    </button>
+    <div
+        class="grid transition-grid-row <?= $isOpened ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' ?> <?= $isDesktopDisabled ? 'lg:grid-rows-[1fr]' : '' ?> duration-200"
+        :class="{ 'grid-rows-[1fr]': isOpen, 'grid-rows-[0fr]': !isOpen }"
+    >
+        <div class="overflow-hidden">
+            <div class="pb-4 max-md:pt-2" data-content-type="accordion-content">
+                <?= html_entity_decode($content) ?>
+            </div>
+        </div>
+    </div>
+</div>

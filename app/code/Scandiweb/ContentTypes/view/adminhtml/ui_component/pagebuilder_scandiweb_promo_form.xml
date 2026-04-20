@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+ -->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd" extends="scandiweb_base_grid_slider_form">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">pagebuilder_scandiweb_promo_form.pagebuilder_scandiweb_promo_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Scandiweb Promo</item>
+    </argument>
+    <settings>
+        <deps>
+            <dep>pagebuilder_scandiweb_promo_form.pagebuilder_scandiweb_promo_form_data_source</dep>
+        </deps>
+        <namespace>pagebuilder_scandiweb_promo_form</namespace>
+    </settings>
+    <dataSource name="pagebuilder_scandiweb_promo_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_PageBuilder/js/form/provider</item>
+            </item>
+        </argument>
+        <dataProvider name="pagebuilder_scandiweb_promo_form_data_source" class="Magento\PageBuilder\Model\ContentType\DataProvider">
+            <settings>
+                <requestFieldName/>
+                <primaryFieldName/>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="appearance_fieldset" sortOrder="0" component="Magento_PageBuilder/js/form/element/dependent-fieldset">
+        <settings>
+            <label translate="true">Type</label>
+            <additionalClasses>
+                <class name="admin__fieldset-visual-select-large">true</class>
+            </additionalClasses>
+            <collapsible>false</collapsible>
+            <opened>true</opened>
+            <imports>
+                <link name="hideFieldset">${$.name}.appearance:options</link>
+                <link name="hideLabel">${$.name}.appearance:options</link>
+            </imports>
+        </settings>
+        <field name="appearance" formElement="select" sortOrder="10" component="Magento_PageBuilder/js/form/element/dependent-visual-select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="default" xsi:type="string">default</item>
+                </item>
+            </argument>
+            <settings>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                    <class name="admin__field-visual-select-container">true</class>
+                </additionalClasses>
+                <dataType>text</dataType>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <elementTmpl>Magento_PageBuilder/form/element/visual-select</elementTmpl>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="AppearanceSourceScandiwebPromo"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+    </fieldset>
+    <fieldset name="main" sortOrder="10">
+        <settings>
+            <label translate="true">Main</label>
+            <collapsible>true</collapsible>
+            <opened>true</opened>
+        </settings>
+        <field name="block_title" sortOrder="10" formElement="input">
+            <settings>
+                <label translate="true">Title</label>
+                <dataType>text</dataType>
+                <dataScope>block_title</dataScope>
+                <validation>
+                    <rule name="validate-string" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+        <field name="block_sub_title" sortOrder="20" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Subtitle</label>
+                <visible>true</visible>
+                <dataScope>block_sub_title</dataScope>
+                <validation>
+                    <rule name="validate-string" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+        <field name="promo_card_color" sortOrder="80" formElement="colorPicker">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="disabledValues" xsi:type="array">
+                        <item name="none" xsi:type="string">full_image</item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <label translate="true">Promo Card Background Color</label>
+                <componentType>colorPicker</componentType>
+                <placeholder translate="true">No Color</placeholder>
+                <additionalClasses>
+                    <class name="admin__field-medium">true</class>
+                    <class name="admin__field-conditional-hide">true</class>
+                </additionalClasses>
+                <validation>
+                    <rule name="validate-color" xsi:type="boolean">true</rule>
+                </validation>
+                <dataScope>promo_card_color</dataScope>
+                <dataType>text</dataType>
+                <imports>
+                    <link name="setDisabled">ns = ${ $.ns }, index = appearance:value</link>
+                </imports>
+            </settings>
+            <formElements>
+                <colorPicker>
+                    <settings>
+                        <colorPickerMode>full</colorPickerMode>
+                        <colorFormat>hex</colorFormat>
+                    </settings>
+                </colorPicker>
+            </formElements>
+        </field>
+        <field name="cta_type" sortOrder="30" formElement="select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="default" xsi:type="string">pagebuilder-button-primary</item>
+                    <item name="disabledValues" xsi:type="array">
+                        <item name="none" xsi:type="string">never</item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">CTA Type</label>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options>
+                            <option name="0" xsi:type="array">
+                                <item name="value" xsi:type="string">btn btn-primary</item>
+                                <item name="label" xsi:type="string" translate="true">Primary</item>
+                            </option>
+                            <option name="1" xsi:type="array">
+                                <item name="value" xsi:type="string">btn btn-secondary</item>
+                                <item name="label" xsi:type="string" translate="true">Secondary</item>
+                            </option>
+                            <option name="2" xsi:type="array">
+                                <item name="value" xsi:type="string">link</item>
+                                <item name="label" xsi:type="string" translate="true">Link</item>
+                            </option>
+                        </options>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="is_show_all_enabled" sortOrder="40" formElement="checkbox">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="default" xsi:type="string">true</item>
+                </item>
+            </argument>
+            <settings>
+                <label translate="true">Enable Show all button</label>
+                <dataType>boolean</dataType>
+                <dataScope>is_show_all_enabled</dataScope>
+                <notice translate="true">Enabling this setting will show button which will redirect to selected tab url</notice>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="string">false</map>
+                            <map name="true" xsi:type="string">true</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <urlInput name="show_all_url" sortOrder="50"
+            template="Magento_PageBuilder/form/element/url-input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Link</label>
+                <dataScope>show_all_url</dataScope>
+                <urlTypes class="Magento\Ui\Model\UrlInput\LinksConfigProvider" />
+                <validation>
+                    <rule name="validate-message-no-link" xsi:type="boolean">true</rule>
+                    <rule name="validate-message-no-widget" xsi:type="boolean">true</rule>
+                </validation>
+                <imports>
+                    <link name="validation.validate-message-no-link">${$.parentName}.content:value</link>
+                    <link name="validation.validate-message-no-widget">${$.parentName}.content:value</link>
+                </imports>
+            </settings>
+        </urlInput>
+    </fieldset>
+    <fieldset name="general" sortOrder="30">
+        <settings>
+            <label/>
+        </settings>
+        <modal name="promo_item_modal">
+            <settings>
+                <options>
+                    <option name="title" xsi:type="string" translate="true">Add Promo Item</option>
+                </options>
+            </settings>
+            <insertForm name="promo_item_insert_form" component="Scandiweb_ContentTypes/js/form/components/promo-insert-form">
+                <settings>
+                    <toolbarContainer>${ $.parentName }</toolbarContainer>
+                    <renderUrl path="mui/index/render_handle">
+                        <param name="buttons">1</param>
+                        <param name="handle">pagebuilder_scandiweb_promo_item_form</param>
+                    </renderUrl>
+                    <externalProvider>${ $.ns}.pagebuilder_scandiweb_promo_item_form_data_source</externalProvider>
+                    <ns>pagebuilder_scandiweb_promo_item_form</ns>
+                </settings>
+            </insertForm>
+        </modal>
+        <container name="add_promo" sortOrder="10" template="ui/form/components/complex">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="content" xsi:type="string"/>
+                    <item name="label" xsi:type="string"/>
+                </item>
+            </argument>
+            <button name="add_promo_button">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="actions" xsi:type="array">
+                            <item name="0" xsi:type="array">
+                                <item name="targetName" xsi:type="string">index=promo_item_insert_form</item>
+                                <item name="actionName" xsi:type="string">destroyInserted</item>
+                            </item>
+                            <item name="1" xsi:type="array">
+                                <item name="targetName" xsi:type="string">index=promo_item_modal</item>
+                                <item name="actionName" xsi:type="string">openModal</item>
+                            </item>
+                            <item name="2" xsi:type="array">
+                                <item name="targetName" xsi:type="string">index=promo_item_insert_form</item>
+                                <item name="actionName" xsi:type="string">render</item>
+                            </item>
+                        </item>
+                    </item>
+                </argument>
+                <settings>
+                    <title translate="true">Add Promo</title>
+                </settings>
+            </button>
+        </container>
+        <dynamicRows name="sections" sortOrder="20" component="Scandiweb_ContentTypes/js/form/components/promo-dynamic-rows" template="Magento_PageBuilder/form/components/dynamic-rows/edit-form-on-click-grid">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="insertFormProvider" xsi:type="string">index = promo_item_insert_form</item>
+                    <item name="modalProvider" xsi:type="string">index=promo_item_modal</item>
+                    <item name="emptyContentPlaceholder" xsi:type="string">No Promo found. Click "Add Promo"</item>
+                </item>
+            </argument>
+            <settings>
+                <dndConfig>
+                    <param name="enabled" xsi:type="boolean">false</param>
+                </dndConfig>
+                <identificationProperty>record_id</identificationProperty>
+                <addButton>false</addButton>
+                <visible>true</visible>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+                <componentType>dynamicRows</componentType>
+            </settings>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                    </item>
+                </argument>
+                <field name="image" formElement="imageUploader" sortOrder="0">
+                    <settings>
+                        <label translate="true">Image</label>
+                        <componentType>imageUploader</componentType>
+                        <disabled>true</disabled>
+                        <additionalClasses>
+                            <class name="image-uploader-preview">true</class>
+                        </additionalClasses>
+                    </settings>
+                    <formElements>
+                        <imageUploader>
+                            <settings>
+                                <allowedExtensions>jpg jpeg gif png</allowedExtensions>
+                                <maxFileSize>4194304</maxFileSize>
+                                <uploaderConfig>
+                                    <param xsi:type="string" name="url">pagebuilder/contenttype/image_upload</param>
+                                </uploaderConfig>
+                                <disabled>true</disabled>
+                                <visible>false</visible>
+                                <previewTmpl>Magento_PageBuilder/form/element/uploader/preview</previewTmpl>
+                            </settings>
+                        </imageUploader>
+                    </formElements>
+                </field>
+                <field name="title" component="Magento_Ui/js/form/element/text" template="Magento_PageBuilder/dynamic-rows/element/text" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Title</label>
+                        <visible>true</visible>
+                        <dataScope>title</dataScope>
+                        <elementTmpl>ui/dynamic-rows/cells/text</elementTmpl>
+                    </settings>
+                </field>
+                <field name="description" component="Magento_Ui/js/form/element/text" template="Scandiweb_ContentTypes/dynamic-rows/element/text-html" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Description</label>
+                        <visible>true</visible>
+                        <dataScope>description</dataScope>
+                        <elementTmpl>ui/dynamic-rows/cells/text</elementTmpl>
+                    </settings>
+                </field>
+                <field name="position" component="Magento_Ui/js/form/element/text" template="Magento_PageBuilder/dynamic-rows/element/text" formElement="input">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Position</label>
+                        <visible>true</visible>
+                        <dataScope>position</dataScope>
+                        <elementTmpl>ui/dynamic-rows/cells/text</elementTmpl>
+                    </settings>
+                </field>
+                <button name="actions" component="Magento_PageBuilder/js/form/components/action-button" template="Magento_PageBuilder/form/components/dynamic-rows/actions">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="insertFormProvider" xsi:type="string">index = promo_item_insert_form</item>
+                            <item name="modalProvider" xsi:type="string">index = promo_item_modal</item>
+                            <item name="noClickEdit" xsi:type="boolean">true</item>
+                            <item name="actions" xsi:type="array">
+                                <item name="0" xsi:type="array">
+                                    <item name="targetName" xsi:type="string">${ $.name }</item>
+                                    <item name="actionName" xsi:type="string">edit</item>
+                                    <item name="label" xsi:type="string" translate="true">Edit</item>
+                                </item>
+                                <item name="1" xsi:type="array">
+                                    <item name="targetName" xsi:type="string">${ $.name }</item>
+                                    <item name="actionName" xsi:type="string">deleteRecord</item>
+                                    <item name="label" xsi:type="string" translate="true">Delete</item>
+                                </item>
+                            </item>
+                            <item name="label" translate="true" xsi:type="string">Select</item>
+                        </item>
+                    </argument>
+                </button>
+            </container>
+        </dynamicRows>
+    </fieldset>
+</form>

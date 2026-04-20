@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_StyleGuide
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+/** @var \Scandiweb\StyleGuide\Block\Section $block */
+/** @var \Magento\Framework\Escaper $escaper */
+?>
+<div class="flex flex-wrap gap-10 justify-between">
+    <div class="flex flex-col gap-5">
+        <span class="text-grey font-bold">Heading</span>
+        <h1>Heading 1</h1>
+        <h2>Heading 2</h2>
+        <h3>Heading 3</h3>
+        <h4>Heading 4</h4>
+    </div>
+    <div class="flex flex-col gap-5">
+        <span class="text-grey font-bold">Body Text</span>
+        <p>Body text regular</p>
+        <p class="font-medium">Body text medium</p>
+        <p class="font-bold">Body text bold</p>
+        <ol>
+            <li>
+                unordered list item
+            </li>
+        </ol>
+        <ul>
+            <li>
+                ordered list item
+            </li>
+        </ul>
+        <a href="#" title="Body link">
+            Body text link
+        </a>
+    </div>
+    <div class="flex flex-col gap-5">
+        <span class="text-grey font-bold">Caption Text</span>
+        <table>
+            <caption class="flex flex-col gap-5">
+                <p>Caption text regular</p>
+                <p class="font-medium">Caption text medium</p>
+                <p class="font-bold">Caption text bold</p>
+                <ul>
+                    <li>
+                        unordered list item
+                    </li>
+                </ul>
+                <ol>
+                    <li>
+                        ordered list item
+                    </li>
+                </ol>
+                <a href="#" title="caption link">
+                    Caption text link
+                </a>
+            </caption>
+        </table>
+    </div>
+    <div class="flex flex-col gap-5">
+        <span class="text-grey font-bold">Sub Text</span>
+        <sub class="flex flex-col gap-5">
+            <p>Sub text regular</p>
+            <p class="font-medium">Sub text medium</p>
+            <p class="font-bold">Sub text bold</p>
+            <ul>
+                <li>
+                    unordered list item
+                </li>
+            </ul>
+            <ol>
+                <li>
+                    ordered list item
+                </li>
+            </ol>
+        </sub>
+    </div>
+</div>

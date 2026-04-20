@@ -1,0 +1,228 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$sections = $block->getSections();
+
+if (!count($sections)) {
+    return null;
+}
+
+$uniqueId = '_' . uniqid('');
+
+// Content type configurations
+$title = $block->getBlockTitle();
+$subTitle = $block->getBlockSubTitle();
+$isShowAllButtonEnabled = $block->getIsShowAllEnabled();
+
+// Slider configurations
+$isSliderInfinitive = $block->getSliderInfinitive();
+$isSliderShowPagination = $block->getSliderShowPagination();
+$sliderPagination = $block->getSliderPagination() !== 'none' ? $block->getSliderPagination() : false;
+$isSliderShowArrows = $block->getSliderShowArrows();
+
+?>
+
+<script>
+    function initFeaturedProducts<?= $uniqueId ?>() {
+        return {
+            selectedTab: <?= json_encode($sections[0]) ?>,
+            selectedTabIndex: 0,
+            isLoading: true,
+
+            init() {
+                this.initializeSlider();
+
+                this.fetchProducts();
+
+                this.$watch('selectedTab', () => {
+                    this.fetchProducts();
+                })
+            },
+            initializeSlider() {
+                const swiperOptions = {
+                    spaceBetween: 12,
+                    mousewheel: {
+                        forceToAxis: true
+                    },
+                    scrollbar: {
+                        el: '.swiper-scrollbar',
+                        draggable: true,
+                    },
+                };
+
+                initSwiperSlider(this.$refs.categoriesWrapper, swiperOptions);
+            },
+            fetchProducts() {
+                // Requires to not show loader in case if content is cached and comes fast
+                const loaderTimeout = setTimeout(() => this.isLoading = true, 200);
+
+                const parameters = {
+                    products_limit: this.selectedTab.limit,
+                    condition_type: this.selectedTab.condition_option,
+                    sort_order: this.selectedTab.sort_order,
+                    slider_pagination: '<?= $sliderPagination ?>',
+                    <?php if ($isSliderInfinitive === 'true'): ?>
+                        is_slider_infinitive: true,
+                    <?php endif; ?>
+                    <?php if ($isSliderShowArrows === 'true'): ?>
+                        is_slider_show_arrows: true,
+                    <?php endif; ?>
+                };
+
+                switch (this.selectedTab.condition_option) {
+                    case 'category_ids':
+                        parameters.category_id = this.selectedTab.category_id;
+                        break;
+                    case 'sku':
+                        parameters.sku = this.selectedTab.sku;
+                        break;
+                    case 'condition':
+                        parameters.conditions = this.selectedTab.conditions;
+                        break;
+                }
+
+                const url = 'scandiweb/ContentType/GetFeaturedProducts?' + new URLSearchParams(parameters);
+
+                fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                    }
+                }).then((response) => {
+                    return response.text()
+                }).then((response) => {
+                    if (!response) {
+                        const noResultsFound = "<div class='product-slider no-results min-h-[510px] lg:min-h-[506px]l w-full flex justify-center items-center'>No products found! </div>"
+                        this.replaceSliderElement(noResultsFound);
+                        return;
+                    }
+
+                    this.replaceSliderElement(response);
+                }).finally(() => {
+                    this.isLoading = false;
+                    clearTimeout(loaderTimeout);
+
+                    try {
+                         // For support of ajax add to cart
+                        window.setAjaxCart();
+                    } catch (e) {}
+                });
+            },
+            replaceSliderElement(content) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                const contentNode = doc.querySelector(".product-slider");
+
+                if (!contentNode) {
+                    return;
+                }
+
+                const tmpScripts = doc.getElementsByTagName('script');
+
+                if (tmpScripts.length > 0) {
+                    const scripts = [];
+                    for (let i = 0; i < tmpScripts.length; i++) {
+                        scripts.push(tmpScripts[i]);
+                    }
+
+                    for (let i = 0; i < scripts.length; i++) {
+                        let script = document.createElement('script');
+                        script.innerHTML = scripts[i].innerHTML;
+
+                        document.head.appendChild(script);
+
+                        scripts[i].parentNode.removeChild(scripts[i]);
+                    }
+                }
+
+                this.$refs.productsSliderContainer.replaceChild(contentNode, this.$refs.productsSliderContainer.firstChild);
+            },
+            handleCategorySelect(sectionData, index) {
+                this.selectedTab = sectionData;
+                this.selectedTabIndex = index;
+            },
+            decodeHtmlEntities(input) {
+                const tempElement = document.createElement('p');
+                tempElement.innerHTML = input;
+                return tempElement.textContent || tempElement.innerText;
+            },
+            getUrl() {
+                if (!this.selectedTab?.params) {
+                    return this.selectedTab.url;
+                }
+
+                const decodedParams = this.decodeHtmlEntities(this.selectedTab.params);
+                return this.selectedTab.url + '?' + decodedParams;
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div x-data="initFeaturedProducts<?= $uniqueId ?>" class="py-16" x-defer="intersect">
+    <?php if ($title): ?>
+        <h2 class="content-block-title">
+            <?= $escaper->escapeHtml($title) ?>
+        </h2>
+    <?php endif; ?>
+    <?php if ($subTitle): ?>
+        <p class="content-block-subtitle">
+            <?= $escaper->escapeHtml($subTitle) ?>
+        </p>
+    <?php endif; ?>
+    <div class="swiper" x-ref="categoriesWrapper">
+        <div class="swiper-wrapper flex md:justify-center">
+            <?php foreach ($sections as $index => $section): ?>
+                <?php
+                $title = $section['title'];
+                ?>
+                <button
+                    class="tab <?= $index === 0 ? 'tab-active' : '' ?> swiper-slide max-w-max! min-w-max"
+                    :class="{
+                        'tab-active': <?= $index ?> === selectedTabIndex,
+                    }"
+                    @click="handleCategorySelect(<?= $escaper->escapeHtmlAttr(json_encode($section)) ?>, <?= $index ?>)">
+                    <?= $escaper->escapeHtml($title) ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+        <?=
+            $this->getLayout()
+                ->createBlock('Magento\Framework\View\Element\Template')
+                ->setTemplate('Scandiweb_ContentTypes::carousel-nav.phtml')
+                ->setData('is_show_arrows', false)
+                ->setData('pagination', 'progressbar')
+                ->setData('unique_id', $uniqueId)
+                ->toHtml();
+        ?>
+    </div>
+    <div x-ref="productsSliderContainer" class="h-full w-full min-h-80 lg:min-h-[460px] relative">
+        <div class="w-full h-full absolute top-0">
+            <?= $this->getLayout()
+                ->createBlock('Magento\Framework\View\Element\Template')
+                ->setTemplate('Hyva_Theme::ui/loading-block.phtml')
+                ->toHtml(); ?>
+        </div>
+    </div>
+    <?php if ($isShowAllButtonEnabled === 'true'): ?>
+        <a class="btn btn-primary w-max mx-auto no-underline mt-8" href="<?= $sections[0]['url'] ?>" :href="getUrl">
+            <?= __('View All Products') ?>
+        </a>
+    <?php endif; ?>
+</div>

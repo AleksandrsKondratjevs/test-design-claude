@@ -1,0 +1,22 @@
+<div attr="data.main.attributes"
+     ko-style="data.main.style"
+     class="pagebuilder-content-type delivery-info-wrapper"
+     event="{ mouseover: onMouseOver, mouseout: onMouseOut }, mouseoverBubble: false">
+    <div class="delivery-info-container">
+        <div class="delivery-info-visual">
+            <img
+                 data-bind="attr: { src: data.main.attributes().src }" />
+        </div>
+        <div class="delivery-info-content">
+            <div class="delivery-info-text"
+                 data-bind="liveEdit: { field: 'delivery_text', placeholder: $t('Enter delivery text') }">
+            </div>
+            <if args="data.main.attributes()['cta_text']">
+                <div class="delivery-info-cta"
+                     data-bind="liveEdit: { field: 'cta_text', placeholder: $t('Enter CTA text') }">
+                </div>
+            </if>
+        </div>
+    </div>
+    <render args="getOptions().template" />
+</div>

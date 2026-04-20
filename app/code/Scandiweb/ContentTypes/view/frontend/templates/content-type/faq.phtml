@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$sections = $block->getSections();
+
+if (!count($sections)) {
+    return null;
+}
+
+// Content type configurations
+$blockTitle = $block->getBlockTitle();
+$blockSubtitle = $block->getBlockSubTitle();
+?>
+
+<div>
+    <?php if ($blockTitle): ?>
+        <h2 class="content-block-title">
+            <?= $escaper->escapeHtml($blockTitle) ?>
+        </h2>
+    <?php endif; ?>
+    <?php if ($blockSubtitle): ?>
+        <p class="content-block-subtitle">
+            <?= $escaper->escapeHtml($blockSubtitle) ?>
+        </p>
+    <?php endif; ?>
+    <div class="flex flex-col gap-0.5">
+        <?php foreach ($sections as $section): ?>
+            <div x-data="{ isOpen: false }" class="bg-white p-4 rounded-xs">
+                <button class="flex justify-between w-full items-center gap-4" @click="isOpen = !isOpen">
+                    <h4 class="text-left">
+                        <?= $escaper->escapeHtml($section['section_title']) ?>
+                    </h4>
+                    <div class="relative size-4">
+                        <?= $heroicons->minusHtml("absolute size-4 transition-transform duration-100", 16, 16, ['aria-hidden' => 'true', ":class" => "{ 'rotate-90': !isOpen }"]) ?>
+                        <?= $heroicons->minusHtml("absolute size-4", 16, 16, ['aria-hidden' => 'true']) ?>
+                    </div>
+                </button>
+                <div
+                    class="grid transition-grid-row grid-rows-[0fr] duration-200"
+                    :class="{ 'grid-rows-[1fr]': isOpen, 'grid-rows-[0fr]': !isOpen }">
+                    <div class="overflow-hidden">
+                        <div class="mt-4 pb-1">
+                            <?= html_entity_decode($section['section_content']) ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>

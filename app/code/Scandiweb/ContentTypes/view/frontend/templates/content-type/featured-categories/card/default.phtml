@@ -1,0 +1,28 @@
+<?php
+$section = $block->getData('section');
+$title = $section['title'];
+$image = $section['image'];
+$url = $section['url'];
+$openInNewTab = $section['open_new_tab'];
+?>
+
+<a
+    href="<?= $escaper->escapeUrl($url) ?>"
+    <?php if ($openInNewTab): ?>
+        target="_blank"
+    <?php endif; ?>
+    title="<?= $escaper->escapeHtmlAttr($title) ?>"
+    class="flex flex-col gap-4 items-center no-underline text-black w-full"
+>
+    <img
+        class="w-full aspect-square"
+        src="<?= $escaper->escapeHtmlAttr($image) ?>"
+        alt="<?= $escaper->escapeHtmlAttr($title) ?>"
+        height="192"
+        width="192">
+    <span
+        class="w-full text-center text-sm md:text-xl font-bold"
+    >
+        <?= $escaper->escapeHtml($title) ?>
+    </span>
+</a>

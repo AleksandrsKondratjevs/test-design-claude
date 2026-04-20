@@ -1,0 +1,81 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+?>
+
+<script>
+    const initReadMore = () => {
+        return {
+            isOpened: false,
+            isTruncateDesktop: false,
+            isTruncateMobile: false,
+            truncateDesktopClass: '',
+            truncateMobileClass: '',
+
+            init() {
+                this.initData();
+            },
+            initData() {
+                this.$el.querySelectorAll('[data-content-type="read_more_text"]').forEach((readMoreWrapper) => {
+                    this.isTruncateDesktop = readMoreWrapper.getAttribute('truncate_desktop') === 'true';
+                    this.isTruncateMobile = readMoreWrapper.getAttribute('truncate_mobile') === 'true';
+                    this.truncateDesktopClass = readMoreWrapper.getAttribute('truncate_desktop_lines');
+                    this.truncateMobileClass = readMoreWrapper.getAttribute('truncate_mobile_lines');
+                })
+            },
+            handleOpenReadMore() {
+                if (window.innerWidth > 768 && this.isTruncateDesktop) {
+                    this.toggleTruncateClass(this.truncateDesktopClass);
+
+                    return;
+                }
+
+                if (this.isTruncateMobile) {
+                    this.toggleTruncateClass(this.truncateMobileClass);
+                }
+            },
+            toggleTruncateClass(cssClass) {
+                if (this.isOpened) {
+                    this.$refs.content.classList.add(cssClass);
+                } else {
+                    this.$refs.content.classList.remove(cssClass);
+                }
+
+                this.isOpened = !this.isOpened;
+            },
+        }
+    };
+
+    (() => {
+        document.querySelectorAll('[data-content-type="read_more_text"]').forEach((readMoreWrapper) => {
+            readMoreWrapper.setAttribute('x-ref', 'content');
+
+            const container = document.createElement('div');
+            container.setAttribute('x-data', 'initReadMore()');
+
+            readMoreWrapper.parentNode.insertBefore(container, readMoreWrapper);
+
+            container.appendChild(readMoreWrapper);
+
+            container.insertAdjacentHTML(
+                'beforeend',
+                '<?= $escaper->escapeJs($block->getBlockHtml('pagebuilder.read_more_button')) ?>'
+            );
+        })
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$isShowArrows = $block->getIsShowArrows() ?? true;
+$isShowProgressbar = $block->getIsShowProgressbar() ?? false;
+$isShowPagination = $block->getIsShowPagination() ?? true;
+$sliderPagination = $block->getPagination() !== 'none' ? $block->getPagination() : false;
+
+$arrowsWrapperClass = $block->getArrowsWrapperClass();
+$arrowsContainerClass = $block->getArrowsContainerClass();
+$arrowsContainerConditionalClass = $block->getArrowsContainerConditionalClass();
+
+$paginationContainerClass = $block->getPaginationContainerClass();
+$uniqueId = $block->getUniqueId();
+
+?>
+
+<div
+    class="
+        swiper-arrows-container
+        <?= $escaper->escapeHtmlAttr($arrowsContainerClass) ?>
+        <?= !$isShowArrows ? 'hidden!' : ''; ?>
+        <?= !$sliderPagination ? 'max-lg:hidden' : '' ?>"
+    <?php if ($arrowsContainerConditionalClass): ?>
+        :class="<?= $arrowsContainerConditionalClass ?>"
+    <?php endif; ?>
+>
+    <div class="swiper-arrows-container-wrapper <?= $escaper->escapeHtmlAttr($arrowsWrapperClass) ?>">
+        <div class="swiper-button-prev <?= $uniqueId ? 'swiper-button-prev' . $uniqueId : '' ?>">
+            <?= $heroicons->arrowLeftHtml('rtl:rotate-180', 20, 20, ['aria-hidden' => 'true']); ?>
+        </div>
+        <div class="swiper-button-next <?= $uniqueId ? 'swiper-button-next' . $uniqueId : '' ?>">
+            <?= $heroicons->arrowRightHtml('rtl:rotate-180', 20, 20, ['aria-hidden' => 'true']); ?>
+        </div>
+    </div>
+</div>
+<?php if ($sliderPagination === 'progressbar'): ?>
+    <div class="
+        swiper-scrollbar
+        <?= $uniqueId ? 'swiper-scrollbar' . $uniqueId : '' ?>
+        <?= $escaper->escapeHtmlAttr($paginationContainerClass) ?>
+        <?= $isShowArrows ? 'max-lg:max-w-[70%] mx-auto' : ''  ?> mt-8!">
+    </div>
+<?php elseif($sliderPagination === 'dots'): ?>
+    <div
+        class="swiper-pagination
+        <?= $escaper->escapeHtmlAttr($paginationContainerClass) ?>
+        <?= $uniqueId ? 'swiper-pagination' . $uniqueId : '' ?>"
+    ></div>
+<?php endif; ?>

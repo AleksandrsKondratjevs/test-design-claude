@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * author    Ibrahim Askar <info@scandiweb.com>
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_PageBuilder:etc/content_type.xsd">
+    <type name="scandiweb_delivery_info" label="Delivery Information" menu_section="scandiweb_components" component="Magento_PageBuilder/js/content-type" preview_component="Magento_PageBuilder/js/content-type/preview" master_component="Magento_PageBuilder/js/content-type/master" form="pagebuilder_scandiweb_delivery_info_form" sortOrder="1" translate="label">
+        <children default_policy="deny" />
+        <parents default_policy="deny">
+            <parent name="row" policy="allow" />
+            <parent name="column" policy="allow" />
+            <parent name="tab-item" policy="allow"/>
+            <parent name="scandiweb_tab_with_image_item" policy="allow"/>
+        </parents>
+        <appearances>
+            <appearance name="default" default="true" preview_template="Scandiweb_ContentTypes/content-type/delivery-info/default/preview" master_template="Scandiweb_ContentTypes/content-type/delivery-info/default/master" reader="Magento_PageBuilder/js/master-format/read/configurable">
+                <elements>
+                    <element name="main">
+                        <style name="text_align" source="text_align"/>
+                        <style name="border" source="border_style" converter="Magento_PageBuilder/js/converter/style/border-style"/>
+                        <style name="border_color" source="border_color"/>
+                        <style name="border_width" source="border_width" converter="Magento_PageBuilder/js/converter/style/border-width"/>
+                        <style name="border_radius" source="border_radius" converter="Magento_PageBuilder/js/converter/style/remove-px"/>
+                        <style name="margins" storage_key="margins_and_padding" reader="Magento_PageBuilder/js/property/margins" converter="Magento_PageBuilder/js/converter/style/margins"/>
+                        <style name="padding" storage_key="margins_and_padding" reader="Magento_PageBuilder/js/property/paddings" converter="Magento_PageBuilder/js/converter/style/paddings"/>
+                        <attribute name="name" source="data-content-type"/>
+                        <attribute name="appearance" source="data-appearance"/>
+                        <attribute name="delivery_text" source="delivery_text"/>
+                        <attribute name="cta_text" source="cta_text"/>
+                        <attribute name="cta_link" source="cta_link"/>
+                        <attribute name="delivery_image" source="src" converter="Magento_PageBuilder/js/converter/attribute/src" preview_converter="Magento_PageBuilder/js/converter/attribute/preview/src"/>
+                    </element>
+                    <element name="block_directive">
+                        <html name="block_directive" converter="Magento_PageBuilder/js/converter/html/tag-escaper" />
+                    </element>
+                </elements>
+                <converters>
+                    <converter component="Scandiweb_ContentTypes/js/content-type/delivery-info/block-directive" name="block_directive">
+                        <config>
+                            <item name="html_variable" value="block_directive"/>
+                            <item name="block_class" value="Scandiweb\ContentTypes\Block\ContentTypes\DeliveryInfo"/>
+                        </config>
+                    </converter>
+                </converters>
+            </appearance>
+        </appearances>
+    </type>
+</config>

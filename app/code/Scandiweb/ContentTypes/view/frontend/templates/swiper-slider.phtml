@@ -1,0 +1,95 @@
+<?php
+/**
+ * @category  Scandiweb
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+/**
+ * This is abstract functionality to init swiper slider.
+ * By default can init slider with calling function initSwiperSlider. It is available globally.
+ * Example:
+ *
+ * initSwiperSlider(htmlElement, swiperOptions);
+ *
+ * Where swiperOptions are last layer of setting options, which means they will override default one
+ * in case of they repeat.
+ *
+ *
+ * In case if requires to return back swiper instance, use promise chaining to await for
+ * swiper instance to return. Example:
+ *
+ * initSwiperSlider(this.$refs.gallery, swiperOptions).then((swiperInstance) => {
+ *   this.gallerySlider = swiperInstance;
+ * });
+ *
+ */
+
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$swiperUrl = $block->getViewFileUrl('Scandiweb_ContentTypes::js/swiper.min.js');
+$swiperCssUrl = $block->getViewFileUrl('Scandiweb_ContentTypes::css/swiper.min.css');
+?>
+
+<script>
+    window.swiperInitializing = false;
+    window.swiperPromise = null;
+
+    function initSwiperSlider(swiperElement, options = {}) {
+        const addSwiperJs = (callback) => {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.addEventListener('load', callback);
+            script.src = '<?= $escaper->escapeJs($escaper->escapeUrl($swiperUrl)) ?>';
+            document.head.appendChild(script);
+        }
+
+        const addSwiperCss = () => {
+            const link = document.createElement('link');
+            link.type = 'text/css';
+            link.rel = 'stylesheet';
+            link.href = '<?= $escaper->escapeJs($escaper->escapeUrl($swiperCssUrl)) ?>';
+            document.head.appendChild(link);
+        }
+
+        const initSlider = () => {
+            const swiperInstance = new Swiper(swiperElement, {
+            slidesPerView: 'auto',
+            spaceBetween: 16,
+            mousewheel: {
+                forceToAxis: true
+            },
+            ...options
+        });
+        return swiperInstance;
+        }
+
+        if (!window.Swiper) {
+            if (!window.swiperPromise) {
+                window.swiperPromise = new Promise((resolve) => {
+                    window.swiperInitializing = true;
+                    addSwiperCss();
+                    addSwiperJs(() => {
+                        resolve();
+                    });
+                });
+            }
+
+            return window.swiperPromise.then(() => {
+                return initSlider();
+            });
+        } else {
+            return initSlider();
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

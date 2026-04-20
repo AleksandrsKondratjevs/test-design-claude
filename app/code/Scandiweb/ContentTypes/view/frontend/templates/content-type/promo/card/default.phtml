@@ -1,0 +1,43 @@
+<?php
+$section = $block->getData('section');
+$promoCardColor = $block->getData('promo_card_color');
+$ctaType = $block->getData('cta_type');
+
+$title = $section['title'];
+$description = $section['description'];
+$image = $section['image'];
+$ctaText = $section['cta_text'];
+$url = $section['url'];
+$openInNewTab = $section['open_new_tab'];
+
+?>
+<div
+    class="bg-white flex-col rounded-xs flex h-full 2xl:w-full"
+    <?php if ($promoCardColor): ?>
+        style="background-color: <?= $escaper->escapeHtmlAttr($promoCardColor) ?>;"
+    <?php endif; ?>>
+    <img
+        class="w-full rounded-xs aspect-square md:aspect-[4/3]"
+        src="<?= $escaper->escapeHtmlAttr($image) ?>"
+        alt="<?= $escaper->escapeHtmlAttr($title)  ?>"
+        width="400"
+        height="300"
+        loading="lazy">
+    <div class="flex flex-col gap-8 justify-between p-4 lg:p-6 h-full">
+        <div class="flex flex-col gap-3">
+            <h4><?= $escaper->escapeHtml($title) ?></h4>
+            <div><?= html_entity_decode($description) ?></div>
+        </div>
+        <?php if ($ctaText): ?>
+            <a
+                href="<?= $escaper->escapeUrl($url) ?>"
+                <?php if ($openInNewTab): ?>
+                    target="_blank"
+                <?php endif; ?>
+                class="w-full lg:w-max <?= $escaper->escapeHtmlAttr($ctaType) ?>"
+                title="<?= $escaper->escapeHtmlAttr($title) ?>">
+                <?= $escaper->escapeHtml($ctaText) ?>
+            </a>
+        <?php endif; ?>
+    </div>
+</div>

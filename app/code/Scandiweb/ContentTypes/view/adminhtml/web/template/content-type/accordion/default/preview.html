@@ -1,0 +1,30 @@
+<div class="accordion pagebuilder-content-type"
+     attr="data.main.attributes"
+     ko-style="data.main.style"
+     css="data.main.css"
+     event="{ mouseover: onMouseOver, mouseout: onMouseOut }, mouseoverBubble: false">
+     <div class="accordion-title"
+          attr="data.block_title.attributes"
+          data-bind="style: { color: data.main.attributes().title_color }, liveEdit: { field: 'block_title', placeholder: $t('Enter Title') }">
+     </div>
+     <div class="accordion-content">
+          <div if="isWysiwygSupported()"
+               class="inline-wysiwyg"
+               attr="data.content.attributes"
+               afterRender="initWysiwyg">
+               <div html="data.content.html"></div>
+          </div>
+          <div if="isWysiwygSupported()"
+               class="placeholder-text"
+               ifnot="data.content.html"
+               translate="'Edit Content'"></div>
+          <div ifnot="isWysiwygSupported()">
+               <textarea class="inline-wysiwyg-textarea"
+                         afterRender="initTextarea"
+                         event="{keyup: onTextareaKeyUp, focus: onTextareaFocus, blur: onTextareaBlur}"
+                         data-bind="attr: { placeholder: $t('Edit Content') }"></textarea>
+          </div>
+     </div>
+
+     <render args="getOptions().template" />
+</div>

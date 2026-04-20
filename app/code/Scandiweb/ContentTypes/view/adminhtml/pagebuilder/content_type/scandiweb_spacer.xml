@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_PageBuilder:etc/content_type.xsd">
+    <type name="spacer" label="Spacer" component="Magento_PageBuilder/js/content-type"
+        preview_component="Magento_PageBuilder/js/content-type/preview"
+        master_component="Magento_PageBuilder/js/content-type/master"
+        form="pagebuilder_scandiweb_spacer_form" menu_section="elements" sortOrder="0"
+        translate="label"
+>
+        <children default_policy="deny" />
+        <appearances>
+            <appearance default="true" name="default"
+                preview_template="Scandiweb_ContentTypes/content-type/spacer/default/preview"
+                master_template="Scandiweb_ContentTypes/content-type/spacer/default/master"
+                reader="Magento_PageBuilder/js/master-format/read/configurable">
+                <elements>
+                    <element name="main">
+                        <attribute name="name" source="data-content-type"/>
+                        <attribute name="appearance" source="data-appearance" />
+                        <attribute name="space_mobile" source="space_mobile" />
+                        <attribute name="space_desktop" source="space_desktop" />
+                    </element>
+                </elements>
+            </appearance>
+        </appearances>
+    </type>
+</config>

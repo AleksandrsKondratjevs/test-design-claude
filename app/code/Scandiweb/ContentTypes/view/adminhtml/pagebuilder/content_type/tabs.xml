@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_PageBuilder:etc/content_type.xsd">
+    <type name="tabs"
+          label="Tabs"
+          component="Magento_PageBuilder/js/content-type-collection"
+          preview_component="Magento_PageBuilder/js/content-type/tabs/preview"
+          master_component="Magento_PageBuilder/js/content-type/master-collection"
+          form="pagebuilder_tabs_form"
+          menu_section="layout"
+          icon="icon-pagebuilder-tabs"
+          sortOrder="20"
+          translate="label">
+        <breakpoints>
+            <breakpoint name="mobile">
+                <form>pagebuilder_tabs_mobile_form</form>
+            </breakpoint>
+        </breakpoints>
+        <parents default_policy="deny">
+            <parent name="root-container" policy="allow"/>
+            <parent name="row" policy="allow"/>
+            <parent name="column" policy="allow"/>
+        </parents>
+        <children default_policy="deny">
+            <child name="tab-item" policy="allow"/>
+        </children>
+        <appearances>
+            <appearance name="default"
+                        default="true"
+                        preview_template="Scandiweb_ContentTypes/content-type/tabs/default/preview"
+                        master_template="Scandiweb_ContentTypes/content-type/tabs/default/master"
+                        reader="Magento_PageBuilder/js/master-format/read/configurable">
+                <elements>
+                    <element name="main">
+                        <attribute name="block_title" source="data-block-title"/>
+                        <attribute name="block_subtitle" source="data-block-subtitle"/>
+                    </element>
+                </elements>
+            </appearance>
+        </appearances>
+    </type>
+</config>

@@ -1,0 +1,208 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_StyleGuide
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HeroiconsSolid;
+
+/** @var HeroiconsSolid $heroiconssolid */
+$heroiconssolid = $viewModels->require(HeroiconsSolid::class);
+
+?>
+<div class="flex flex-col md:flex-row gap-14">
+    <div class="flex flex-col w-full">
+        <form autocomplete="off">
+            <fieldset class="fieldset flex flex-col gap-5 w-fit">
+                <div class="field">
+                    <label class="label" for="input-1">
+                        <span>Default</span>
+                    </label>
+                    <div class="control">
+                        <input name="input-1" class="form-input w-[320px]"
+                            id="input-1" placeholder="Placeholder"
+                        >
+                    </div>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field required">
+                    <label class="label" for="input-2">
+                        <span>Required</span>
+                    </label>
+                    <div class="control">
+                        <input name="input-2" class="form-input w-[320px]"
+                            id="input-2" placeholder="Placeholder"
+                        >
+                    </div>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field field-reserved field-error">
+                    <label class="label" for="input-3">
+                        <span>Error</span>
+                    </label>
+                    <div class="control">
+                        <input name="input-3" class="form-input w-[320px]"
+                            id="input-3" placeholder="Placeholder"
+                        >
+                    </div>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field">
+                    <label class="label" for="input-4">
+                        <span>Disabled</span>
+                    </label>
+                    <div class="control">
+                        <input name="input-4" class="form-input w-[320px]"
+                            id="input-4" placeholder="Placeholder" disabled
+                        >
+                    </div>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="flex flex-col w-full">
+        <form autocomplete="off">
+            <fieldset class="fieldset flex flex-col gap-5 w-fit">
+                <div class="field">
+                    <?=
+                        $this->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                            ->setData('label', 'Default')
+                            ->setData('id', 'select')
+                            ->setData('name', 'select-name')
+                            ->setData('css_class', 'w-[320px]')
+                            ->setData('options', [
+                                [
+                                    'value' => 'option-1',
+                                    'label' => 'Option 1',
+                                ],
+                                [
+                                    'value' => 'option-2',
+                                    'label' => 'Option 2 disabled',
+                                    'disabled' => true
+                                ],
+                                [
+                                    'value' => 'option-3',
+                                    'label' => 'Option 3',
+                                ]
+                            ])
+                            ->setData('placeholder', 'Select country...')
+                            ->toHtml();
+                    ?>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field required">
+                    <?=
+                        $this->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                            ->setData('label', 'Default')
+                            ->setData('id', 'select-1')
+                            ->setData('name', 'select-name')
+                            ->setData('css_class', 'w-[320px]')
+                            ->setData('options', [
+                                [
+                                    'value' => 'option-1',
+                                    'label' => 'Option 1',
+                                ],
+                                [
+                                    'value' => 'option-2',
+                                    'label' => 'Option 2 disabled',
+                                    'disabled' => true
+                                ],
+                                [
+                                    'value' => 'option-3',
+                                    'label' => 'Option 3',
+                                ]
+                            ])
+                            ->setData('placeholder', 'Select country...')
+                            ->toHtml();
+                    ?>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field field-reserved field-error">
+                    <?=
+                        $this->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                            ->setData('label', 'Error')
+                            ->setData('id', 'select-2')
+                            ->setData('name', 'select-name')
+                            ->setData('css_class', 'w-[320px]')
+                            ->setData('options', [
+                                [
+                                    'value' => 'option-1',
+                                    'label' => 'Option 1',
+                                ],
+                                [
+                                    'value' => 'option-2',
+                                    'label' => 'Option 2 disabled',
+                                    'disabled' => true
+                                ],
+                                [
+                                    'value' => 'option-3',
+                                    'label' => 'Option 3',
+                                ]
+                            ])
+                            ->setData('placeholder', 'Select country...')
+                            ->toHtml();
+                    ?>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+                <div class="field">
+                    <?=
+                        $this->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Hyva_Theme::ui/dropdown.phtml')
+                            ->setData('label', 'Disabled')
+                            ->setData('id', 'select-3')
+                            ->setData('name', 'select-name')
+                            ->setData('css_class', 'w-[320px]')
+                            ->setData('options', [
+                                [
+                                    'value' => 'option-1',
+                                    'label' => 'Option 1',
+                                ],
+                                [
+                                    'value' => 'option-2',
+                                    'label' => 'Option 2 disabled',
+                                    'disabled' => true
+                                ],
+                                [
+                                    'value' => 'option-3',
+                                    'label' => 'Option 3',
+                                ]
+                            ])
+                            ->setData('placeholder', 'Select country...')
+                            ->setData('is_disabled', true)
+                            ->toHtml();
+                    ?>
+                    <ul class="messages">
+                        <li>Hint message</li>
+                    </ul>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>

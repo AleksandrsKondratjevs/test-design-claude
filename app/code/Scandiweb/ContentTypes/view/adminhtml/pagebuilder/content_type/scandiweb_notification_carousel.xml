@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_PageBuilder:etc/content_type.xsd">
+    <type name="scandiweb_notification_carousel" 
+    backend_block="Scandiweb\ContentTypes\Block\ContentTypes\NotificationCarousel" 
+    label="Notification Carousel" menu_section="scandiweb_components" component="Magento_PageBuilder/js/content-type" 
+    preview_component="Scandiweb_ContentTypes/js/content-type/notification-carousel/preview" 
+    master_component="Magento_PageBuilder/js/content-type/master" 
+    form="pagebuilder_scandiweb_notification_carousel_form" sortOrder="25" translate="label">
+        <children default_policy="deny" />
+        <parents default_policy="deny">
+            <parent name="row" policy="allow" />
+            <parent name="column" policy="allow" />
+            <parent name="tab-item" policy="allow"/>
+        </parents>
+        <appearances>
+            <appearance name="default" default="true" preview_template="Scandiweb_ContentTypes/content-type/notification-carousel/preview" 
+            master_template="Scandiweb_ContentTypes/content-type/notification-carousel/master" 
+            reader="Magento_PageBuilder/js/master-format/read/configurable">
+                <elements>
+                    <element name="main">
+                        <attribute name="name" source="data-content-type" />
+                        <attribute name="appearance" source="data-appearance" />
+                        <attribute name="slider_infinitive" source="slider_infinitive"/>
+                        <attribute name="slider_show_arrows" source="slider_show_arrows"/>
+                        <attribute name="slider_count_mobile" source="slider_count_mobile"/>
+                        <attribute name="slider_count_desktop" source="slider_count_desktop"/>
+                        <attribute name="slider_count_tablet" source="slider_count_tablet"/>
+                        <html name="html"/>
+                        <attribute name="sections" source="data-sections" 
+                        converter="Scandiweb_ContentTypes/js/converter/attribute/object"/>
+                    </element>
+                </elements>
+                <converters>
+                    <converter component="Scandiweb_ContentTypes/js/content-type/notification-carousel/mass-converter/block-directive" 
+                    name="block_directive">
+                        <config>
+                            <item name="html_variable" value="html"/>
+                        </config>
+                    </converter>
+                </converters>
+            </appearance>
+        </appearances>
+    </type>
+</config>

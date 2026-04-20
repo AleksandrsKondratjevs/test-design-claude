@@ -1,0 +1,91 @@
+div[data-content-type='tabs'] .tabs-navigation,
+.pagebuilder-content-type.pagebuilder-tabs .tabs-navigation {
+    padding-bottom: 24px;
+    border-bottom: unset !important;
+
+    li.tab-header {
+        margin-right: 12px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border: 2px solid #A6B4D8;
+        background: white;
+        border-radius: 2px !important;
+        margin-bottom: 0 !important;
+
+        a.tab-title {
+            padding: 4px 10px 4px 16px;
+            color: #101625;
+        }
+
+        &:hover {
+            border-color: #101625;
+        }
+
+        &:last-of-type {
+            margin-right: 0;
+        }
+    }
+
+    li.tab-header.ui-state-active {
+        border-radius: 2px !important;
+        border: 2px solid #3A29CC;
+        margin-bottom: 0 !important;
+
+        &::after {
+            content: unset;
+        }
+
+        a.tab-title {
+            padding: 4px 10px 4px 16px;
+            color: #101625;
+        }
+    }
+}
+
+div[data-content-type='scandiweb_tabs_with_image'].pagebuilder-content-type.pagebuilder-tabs {
+    .tabs-navigation {
+        padding-bottom: 0;
+
+        li.tab-header {
+            &.with-image {
+                border: unset;
+
+                &.active {
+                    background-color: var(--tab-bg) !important;
+                }
+
+                .tab-image {
+                    img {
+                        width: 144px;
+                        height: 144px;
+                        object-fit: cover;
+                    }
+                }
+            }
+        }
+
+        li.tab-header.ui-state-active {
+            border: unset;
+        }
+    }
+
+    .tabs-content {
+        padding-top: 24px;
+    }
+
+    &.full-width {
+        .tabs-content {
+            > .element-children {
+                margin-left: auto;
+                margin-right: auto;
+                max-width: 1280px;
+            }
+        }
+    }
+}
+
+.pagebuilder-content-type .pagebuilder-tab-item {
+    border: unset !important;
+    box-shadow: unset !important;
+}

@@ -1,0 +1,257 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_StyleGuide
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+declare(strict_types=1);
+
+/** @var \Scandiweb\StyleGuide\Block\Section $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$primaryColors = [
+    [
+        "label" => "Primary",
+        "hex" => "#3A29CC",
+        "opacity" => "100%",
+        "class" => "bg-primary",
+        "textColor" => "text-white"
+    ],
+    [
+        "label" => "Secondary",
+        "hex" => "#101625",
+        "opacity" => "100%",
+        "class" => "bg-secondary",
+        "textColor" => "text-white"
+    ],
+    [
+        "label" => "Secondary",
+        "hex" => "#101625",
+        "opacity" => "100%",
+        "class" => "bg-secondary",
+        "textColor" => "text-white"
+    ],
+    [
+        "label" => "White",
+        "hex" => "#FFFFFF",
+        "opacity" => "100%",
+        "class" => "bg-white",
+        "textColor" => "text-black",
+        "border" => "border border-gray-200"
+    ]
+];
+
+$backgroundColors = [
+    [
+        "label" => "Beige 50",
+        "hex" => "#F8F4EF",
+        "opacity" => "100%",
+        "class" => "bg-beige-50",
+        "textColor" => "text-black",
+    ],
+    [
+        "label" => "Grey 50",
+        "hex" => "#D9DCF1",
+        "opacity" => "100%",
+        "class" => "bg-primary-alpha-50",
+        "textColor" => "text-black"
+    ],
+    [
+        "label" => "Grey 100",
+        "hex" => "#A6B4D8",
+        "opacity" => "100%",
+        "class" => "bg-primary-alpha-15",
+        "textColor" => "text-black"
+    ],
+    [
+        "label" => "Grey 500",
+        "hex" => "#7E81A0",
+        "opacity" => "100%",
+        "class" => "bg-grey",
+        "textColor" => "text-white"
+    ]
+];
+
+$statusColors = [
+    [
+        "label" => "Red",
+        "hex" => "#E20018",
+        "opacity" => "100%",
+        "class" => "bg-red",
+        "textColor" => "text-white"
+    ],
+    [
+        "label" => "Red 50",
+        "hex" => "#FFCCD1",
+        "opacity" => "100%",
+        "class" => "bg-red-50",
+        "textColor" => "text-black"
+    ],
+    [
+        "label" => "Green",
+        "hex" => "#00C151",
+        "opacity" => "100%",
+        "class" => "bg-green",
+        "textColor" => "text-white"
+    ],
+    [
+        "label" => "Green 50",
+        "hex" => "#D7FBE4",
+        "opacity" => "100%",
+        "class" => "bg-green-50",
+        "textColor" => "text-black"
+    ],
+    [
+        "label" => "Yellow",
+        "hex" => "#EDA800",
+        "opacity" => "100%",
+        "class" => "bg-yellow",
+        "textColor" => "text-white"
+    ],
+    [
+        "label" => "Yellow 50",
+        "hex" => "#FFF3CC",
+        "opacity" => "100%",
+        "class" => "bg-yellow-50",
+        "textColor" => "text-black"
+    ]
+];
+
+$opacityColors = [
+    [
+        "label" => "Blue",
+        "hex" => "#3A29CC",
+        "opacity" => "15%",
+        "class" => "bg-primary-alpha-15",
+        "textColor" => "text-black"
+    ],
+    [
+        "label" => "Black",
+        "hex" => "#101625",
+        "opacity" => "25%",
+        "class" => "bg-black-alpha-25",
+        "textColor" => "text-black"
+    ],
+    [
+        "label" => "White",
+        "hex" => "#FFFFFF",
+        "opacity" => "25%",
+        "class" => "bg-white-alpha-25",
+        "textColor" => "text-black",
+        "border" => "border border-gray-200"
+    ]
+];
+?>
+
+<div class="space-y-8">
+    <!-- Primary Colors -->
+    <div>
+        <div class="flex flex-wrap gap-5">
+            <?php foreach ($primaryColors as $color): ?>
+                <div class="<?= $escaper->escapeHtmlAttr($color['class']) ?> <?= $escaper->escapeHtmlAttr($color['textColor']) ?> max-w-80 max-md:max-w-none max-md:min-w-full flex-1 px-5 py-4 flex flex-col gap-3 <?= isset($color['border']) ? $escaper->escapeHtmlAttr($color['border']) : '' ?>">
+                    <div class="flex flex-col">
+                        <span class="font-bold"><?= $escaper->escapeHtml($color['label']) ?></span>
+                    </div>
+                    <div class="space-y-0.5 w-max">
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">HEX:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['hex']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Opacity:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['opacity']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Class:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['class']) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- Background Colors -->
+    <div>
+        <div class="flex flex-wrap gap-5">
+            <?php foreach ($backgroundColors as $color): ?>
+                <div class="<?= $escaper->escapeHtmlAttr($color['class']) ?> <?= $escaper->escapeHtmlAttr($color['textColor']) ?> max-w-80 max-md:max-w-none max-md:min-w-full flex-1 px-5 py-4 flex flex-col gap-3 <?= isset($color['border']) ? $escaper->escapeHtmlAttr($color['border']) : '' ?>">
+                    <div class="flex flex-col">
+                        <span class="font-bold"><?= $escaper->escapeHtml($color['label']) ?></span>
+                    </div>
+                    <div class="space-y-0.5 w-max">
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">HEX:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['hex']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Opacity:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['opacity']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Class:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['class']) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- Status Colors -->
+    <div>
+        <div class="flex flex-wrap gap-5">
+            <?php foreach ($statusColors as $color): ?>
+                <div class="<?= $escaper->escapeHtmlAttr($color['class']) ?> <?= $escaper->escapeHtmlAttr($color['textColor']) ?> max-w-52 max-md:max-w-none max-md:min-w-full flex-1 px-5 py-4 flex flex-col gap-3 <?= isset($color['border']) ? $escaper->escapeHtmlAttr($color['border']) : '' ?>">
+                    <div class="flex flex-col">
+                        <span class="font-bold"><?= $escaper->escapeHtml($color['label']) ?></span>
+                    </div>
+                    <div class="space-y-0.5 w-max">
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">HEX:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['hex']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Opacity:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['opacity']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Class:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['class']) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- Opacity Variations -->
+    <div>
+        <div class="flex flex-wrap gap-5">
+            <?php foreach ($opacityColors as $color): ?>
+                <div class="<?= $escaper->escapeHtmlAttr($color['class']) ?> <?= $escaper->escapeHtmlAttr($color['textColor']) ?> max-w-80 max-md:max-w-none max-md:min-w-full flex-1 px-5 py-4 flex flex-col gap-3 <?= isset($color['border']) ? $escaper->escapeHtmlAttr($color['border']) : '' ?>">
+                    <div class="flex flex-col">
+                        <span class="font-bold"><?= $escaper->escapeHtml($color['label']) ?></span>
+                    </div>
+                    <div class="space-y-0.5 w-max">
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">HEX:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['hex']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Opacity:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['opacity']) ?></span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="opacity-60">Class:</span>
+                            <span class="font-semibold"><?= $escaper->escapeHtml($color['class']) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>

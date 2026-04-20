@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+// Content
+$title = $block->getContentTitle();
+$description = $block->getContentDescription();
+
+// First CTA configurations
+$isShowFirstCta = $block->getShowFirstCta() === 'show';
+$firstCtaText = $block->getFirstCtaText();
+$firstCtaClasses = $block->getFirstCtaType();
+
+// Second CTA configurations
+$isShowSecondCta = $block->getShowSecondCta() === 'show';
+$secondCtaText = $block->getSecondCtaText();
+$secondCtaClasses = $block->getSecondCtaType();
+
+// Visual
+$isVisualOnLeft = $block->getVisualContentPosition() === 'left';
+$images = $block->getImages();
+$image = $images['image'];
+$desktopImage = $images['desktopImage'];
+
+?>
+<div class="flex flex-col md:flex-row gap-6 lg:gap-12 max-md:pb-16 <?= $isVisualOnLeft ? 'md:-ms-6 2xl:-ms-[104px]' : 'md:-me-6 2xl:-me-[104px]' ?>">
+    <?php if ($image): ?>
+        <div class="md:w-full max-md:-mx-4 <?= $isVisualOnLeft ? '' : 'md:order-2' ?>">
+            <picture>
+                <?php if ($desktopImage): ?>
+                    <!-- Desktop image source -->
+                    <source
+                        media="(min-width: 768px)"
+                        srcset="<?= $escaper->escapeUrl($desktopImage['url']) ?>"
+                    >
+                <?php endif; ?>
+                <img
+                    src="<?= $escaper->escapeUrl($image['url']) ?>"
+                    alt="<?= $escaper->escapeHtmlAttr($image['alt']) ?>"
+                    class="w-full h-full object-cover"
+                >
+            </picture>
+        </div>
+    <?php endif; ?>
+    <div class="flex flex-col w-full h-full my-auto justify-center <?= $image ? '' : 'items-center' ?>">
+        <?php if ($title): ?>
+            <div class="mb-3">
+                <?= html_entity_decode($title) ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($description): ?>
+            <?= html_entity_decode($description) ?>
+        <?php endif; ?>
+        <div class="flex flex-col md:flex-row gap-3 mt-8 md:mt-12 lg:mt-12">
+            <?php if ($isShowFirstCta): ?>
+                <?php
+                    $firstCtaLink = $block->getSingleLink($block->getFirstCtaLink());
+                ?>
+                <a
+                    href="<?= $escaper->escapeHtmlAttr($firstCtaLink['url']) ?>"
+                    <?php if ($firstCtaLink['open_new_tab']): ?>
+                        target="_blank"
+                    <?php endif; ?>
+                    class="<?= $image ? 'md:w-1/2' : '' ?> <?= $firstCtaClasses ?>"
+                >
+                    <?= $escaper->escapeHtml($firstCtaText) ?>
+                </a>
+            <?php endif; ?>
+            <?php if ($isShowSecondCta): ?>
+                <?php
+                    $secondCtaLink = $block->getSingleLink($block->getSecondCtaLink());
+                ?>
+                <a
+                    href="<?= $escaper->escapeHtmlAttr($secondCtaLink['url']) ?>"
+                    <?php if ($secondCtaLink['open_new_tab']): ?>
+                        target="_blank"
+                    <?php endif; ?>
+                    class="<?= $image ? 'md:w-1/2' : '' ?> <?= $secondCtaClasses ?>"
+                >
+                    <?= $escaper->escapeHtml($secondCtaText) ?>
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>

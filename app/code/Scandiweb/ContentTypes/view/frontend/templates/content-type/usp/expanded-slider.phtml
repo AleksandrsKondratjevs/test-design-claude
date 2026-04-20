@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * @category  Scandiweb
+ * @package   Scandiweb_ContentTypes
+ * @copyright Copyright (c) 2025 Scandiweb, Inc (https://scandiweb.com)
+ * @license   http://opensource.org/licenses/OSL-3.0 The Open Software License 3.0 (OSL-3.0)
+ */
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$sections = $block->getSections();
+
+if (!count($sections)) {
+    return null;
+}
+
+$uniqueId = '_' . uniqid('');
+
+// Content type configurations
+$blockTitle = $block->getBlockTitle();
+$blockSubTitle = $block->getBlockSubTitle();
+$ctaType = $block->getCtaType();
+$uspCardColor = $block->getUspColor();
+
+// Slider configurations
+$isSliderInfinitive = $block->getSliderInfinitive() === 'true' ? true : false;
+$isSliderShowArrows = $block->getSliderShowArrows() === 'true' ? true : false;
+$sliderPagination = $block->getSliderPagination() !== 'none' ? $block->getSliderPagination() : false;
+$sliderCountMobile = $block->getData('slider_count_mobile');
+$sliderCountTablet = $block->getData('slider_count_tablet');
+$sliderCountDesktop = $block->getData('slider_count_desktop');
+
+?>
+<script>
+    function initUsp<?= $uniqueId ?>() {
+        return {
+            init() {
+                const swiperOptions = {
+                    loop: <?= $isSliderInfinitive ? 'true' : 'false' ?>,
+                    loopAddBlankSlides: true,
+                    spaceBetween: 16,
+                    slidesPerView: <?= $escaper->escapeJs($sliderCountMobile) ?>,
+                    <?php if ($isSliderShowArrows): ?>
+                        navigation: {
+                            nextEl: '.swiper-button-next<?= $uniqueId ?>',
+                            prevEl: '.swiper-button-prev<?= $uniqueId ?>',
+                        },
+                    <?php endif; ?>
+                    <?php if ($sliderPagination === 'dots'): ?>
+                        pagination: {
+                            el: '.swiper-pagination<?= $uniqueId ?>',
+                            type: 'bullets',
+                            dynamicBullets: true,
+                            dynamicMainBullets: 4,
+                            clickable: true,
+                        },
+                    <?php endif; ?>
+                    <?php if ($sliderPagination === 'progressbar'): ?>
+                        scrollbar: {
+                            el: '.swiper-scrollbar<?= $uniqueId ?>',
+                            draggable: true,
+                        },
+                    <?php endif; ?>
+                    breakpoints: {
+                        768: {
+                            slidesPerView: <?= $escaper->escapeJs($sliderCountTablet) ?>,
+                        },
+                        1024: {
+                            slidesPerView: <?= $escaper->escapeJs($sliderCountDesktop) ?>,
+                        },
+                    }
+                };
+
+                initSwiperSlider(this.$refs.uspWrapper, swiperOptions);
+            },
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<?= $this->getLayout()
+    ->createBlock('Magento\Framework\View\Element\Template')
+    ->setTemplate('Scandiweb_ContentTypes::style/slider-initial-styling.phtml')
+    ->setData('slider_count_mobile', $sliderCountMobile)
+    ->setData('slider_count_tablet', $sliderCountTablet)
+    ->setData('slider_count_desktop', $sliderCountDesktop)
+    ->setData('unique_id', $uniqueId)
+    ->toHtml(); ?>
+<div x-data="initUsp<?= $uniqueId ?>" id="<?= $escaper->escapeHtmlAttr($uniqueId) ?>" x-defer="intersect">
+    <?php if ($blockTitle): ?>
+        <h2 class="content-block-title">
+            <?= $escaper->escapeHtml($blockTitle) ?>
+        </h2>
+    <?php endif; ?>
+    <?php if ($blockSubTitle): ?>
+        <p class="content-block-subtitle">
+            <?= $escaper->escapeHtml($blockSubTitle) ?>
+        </p>
+    <?php endif; ?>
+    <div class="overflow-visible relative">
+        <div class="swiper overflow-hidden" x-ref="uspWrapper">
+            <div class="swiper-wrapper flex">
+                <?php foreach ($sections as $index => $section): ?>
+                    <div class="swiper-slide">
+                        <?= $this->getLayout()
+                            ->createBlock('Magento\Framework\View\Element\Template')
+                            ->setTemplate('Scandiweb_ContentTypes::content-type/usp/card/expanded.phtml')
+                            ->setData('section', $section)
+                            ->setData('usp_card_color', $uspCardColor)
+                            ->setData('cta_type', $ctaType)
+                            ->toHtml(); ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?=
+        $this->getLayout()
+            ->createBlock('Magento\Framework\View\Element\Template')
+            ->setTemplate('Scandiweb_ContentTypes::carousel-nav.phtml')
+            ->setData('is_show_arrows', $isSliderShowArrows)
+            ->setData('pagination', $sliderPagination)
+            ->setData('arrows_container_class', 'lg:top-40')
+            ->setData('unique_id', $uniqueId)
+            ->toHtml();
+        ?>
+    </div>
+</div>
